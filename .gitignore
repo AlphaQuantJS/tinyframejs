@@ -1,0 +1,58 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Local env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Testing
+coverage
+
+# Turbo
+.turbo
+
+# Vercel
+.vercel
+
+# Build Outputs
+.next/
+out/
+build
+dist
+dist/
+
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Misc
+.DS_Store
+*.pem
+
+*.log
+*.tsbuildinfo
+coverage/
+
+
+# Windsurf
+.windsurfrules
+
+
+TODO.md
+CONTEXT*
+CODING_GUIDELINES.ru.md
+TZ.md
+/packages/core/benchmark/
+
+/packages/core/OPTIMASATION_PLAN.md
+/packages/core/RELEASE_CHECKLIST.md
+/packages/core/__benchmarks__/

@@ -1,0 +1,36 @@
+{
+  "name": "alphaquant-core",
+  "version": "1.0.0",
+  "description": "High-performance tabular engine for quantitative JS",
+  "type": "module",
+  "files": [
+    "src"
+  ],
+  "exports": "./src/index.js",
+  "scripts": {
+    "lint": "eslint . --ext .js,.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest watch",
+    "coverage": "vitest run --coverage",
+    "build": "echo \"No build step (pure JS)\"",
+    "release": "pnpm build && changeset publish",
+    "prepare": "husky install"
+  },
+  "keywords": [],
+  "author": "Alex Kalinovsky <a.kalinovsky@protonmail.com>",
+  "license": "MIT",
+  "packageManager": "pnpm@10.7.1",
+  "devDependencies": {
+    "eslint": "^9.25.1",
+    "eslint-plugin-jsdoc": "^50.6.10",
+    "@changesets/cli": "2.29.2",
+    "@commitlint/config-conventional": "19.8.0",
+    "commitlint": "19.8.0",
+    "husky": "9.1.7",
+    "lint-staged": "15.5.1",
+    "prettier": "3.5.3",
+    "vitest": "3.1.2"
+  }
+}

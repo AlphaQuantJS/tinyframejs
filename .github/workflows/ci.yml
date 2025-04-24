@@ -32,7 +32,7 @@ jobs:
 
       - name: PR AI Review
         if: github.event_name == 'pull_request'
-        uses: decentralizedlabs/pr-codex@main
+        uses: decentralizedlabs/pr-codex@f3e5b2b14a61704b6ea53a21905efb4c70e31e1b
         with:
           openai_api_key: ${{ secrets.OPENAI_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}

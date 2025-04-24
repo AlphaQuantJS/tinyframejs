@@ -6,3 +6,6 @@ build
 *.lock
 .env
 
+
+pnpm-lock.yaml
+

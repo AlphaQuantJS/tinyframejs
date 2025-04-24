@@ -62,6 +62,45 @@ Please review our [`Coding Guidelines`](./CODING_GUIDELINES.md) for:
 
 ---
 
+## ✨ Auto-formatting with Prettier
+
+To ensure consistent code style across the codebase, we use [Prettier](https://prettier.io/) integrated via `lint-staged` and `Husky`.
+
+### 🔧 How it works
+
+Before each commit, the following happens automatically:
+
+- `eslint --fix` runs on all staged `.js` and `.mjs` files
+- `prettier --write` runs on all staged `.js`, `.json`, `.yml`, `.md`, etc.
+
+This is done via `pre-commit` hook configured by [Husky](https://typicode.github.io/husky/) and driven by `lint-staged`.
+
+### 📁 `lint-staged.config.js`
+
+```js
+export default {
+  '*.js': ['eslint --fix', 'prettier --write'],
+  '*.mjs': ['eslint --fix', 'prettier --write'],
+  '*.json': ['prettier --write'],
+  '*.yml': ['prettier --write'],
+  '*.yaml': ['prettier --write'],
+  '*.md': ['prettier --write'],
+};
+```
+
+### 🐶 `.husky/pre-commit`
+
+```bash
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+npx lint-staged
+```
+
+With this setup, formatting will be enforced automatically during development — no manual formatting required!
+
+---
+
 ## 🧾 Commit Message Format
 
 We use [**Conventional Commits**](https://www.conventionalcommits.org/) for changelogs and releases.

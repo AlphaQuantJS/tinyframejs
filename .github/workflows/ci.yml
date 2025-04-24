@@ -17,10 +17,11 @@ jobs:
         with:
           node-version: 20
           cache: 'pnpm'
-          package-manager: pnpm
 
-      - name: Install dependencies
-        run: pnpm install
+      - name: Setup pnpm & install deps
+        run: |
+          npm install -g pnpm   
+          pnpm install
 
       - name: Lint
         run: pnpm lint

@@ -1,0 +1,10 @@
+name: PR Codex (local wrapper)
+description: Local composite action for running PR Codex CLI
+inputs:
+  openai_api_key:
+    required: true
+  github_token:
+    required: true
+runs:
+  using: node20
+  main: index.js

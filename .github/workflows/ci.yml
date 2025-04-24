@@ -30,12 +30,12 @@ jobs:
       - name: Run tests
         run: pnpm test
 
-      - name: PR AI Review
+      - name: PR AI Review (local)
         if: github.event_name == 'pull_request'
-        uses: decentralizedlabs/pr-codex@f3e5b2b14a61704b6ea53a21905efb4c70e31e1b
+        uses: ./.github/actions/pr-codex-local
         with:
           openai_api_key: ${{ secrets.OPENAI_API_KEY }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }} 
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5

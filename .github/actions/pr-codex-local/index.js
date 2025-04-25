@@ -22,7 +22,7 @@ async function run() {
       process.env.GITHUB_TOKEN = githubToken;
 
       // Run PR analysis with OpenAI
-      // eslint-disable-next-line max-len
+
       const command = `npx pr-codex review --pr ${prNumber} --repo ${owner}/${repo}`;
 
       exec(command, (error, stdout, stderr) => {

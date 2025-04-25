@@ -8,7 +8,8 @@
   ],
   "exports": "./src/index.js",
   "scripts": {
-    "lint": "eslint . --ext .js,.mjs",
+    "lint": "eslint . --ext .js,.mjs --fix",
+    "lint:check": "eslint . --ext .js,.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
@@ -16,7 +17,8 @@
     "coverage": "vitest run --coverage",
     "build": "echo \"No build step (pure JS)\"",
     "release": "pnpm build && changeset publish",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "precommit": "pnpm format && pnpm lint && pnpm test"
   },
   "keywords": [],
   "author": "Alex Kalinovsky <a.kalinovsky@protonmail.com>",

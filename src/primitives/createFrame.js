@@ -189,11 +189,13 @@ function createFrameFromColumns(columnData, rowCount, opts) {
     if (opts.copy === 'none') {
       columns[name] = col; // share as‑is
     } else if (opts.useTypedArrays && isNumericDType(dt)) {
+      /* eslint-disable operator-linebreak */
       columns[name] = ArrayBuffer.isView(col)
         ? opts.copy === 'shallow'
           ? cloneTA(col)
           : col
         : toTyped(col, dt);
+      /* eslint-enable operator-linebreak */
     } else {
       columns[name] =
         opts.copy === 'shallow' ? [...col] : JSON.parse(JSON.stringify(col));
@@ -231,7 +233,7 @@ function detectDType(arr) {
   for (const v of arr) {
     // eslint-disable-next-line eqeqeq
     if (v == null || Number.isNaN(v)) continue;
-    // eslint-enable-next-line eqeqeq
+    // eslint-enable eqeqeq
     if (typeof v !== 'number') return 'str';
     if (!Number.isInteger(v)) int = false;
     if (v < 0) unsigned = false;

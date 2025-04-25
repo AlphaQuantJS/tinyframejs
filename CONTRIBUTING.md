@@ -1,16 +1,16 @@
 # 🤝 Contributing to tinyframejs
 
-Thank you for your interest in contributing to **tinyframejs**, the high-performance JavaScript engine for financial tabular data. We welcome contributions of all kinds — code, docs, benchmarks, ideas.
+Thank you for your interest in contributing to **tinyframejs**, the high-performance JavaScript engine for tabular data. We welcome contributions of all kinds — code, docs, benchmarks, ideas.
 
 ---
 
 ## 🧰 Repository Overview
 
-This repository is a standalone part of the [TinyFrameJS](https://github.com/a3ka/tinyframejs) ecosystem and contains:
+This repository is a standalone part of the [AlphaQuantJS](https://github.com/AlphaQuantJS) ecosystem and contains:
 
 - ✅ The core tabular engine built on TypedArray structures (TinyFrame)
 - ✅ Functional APIs for stats, filtering, reshaping
-- ✅ Chainable `AQDataFrame` wrapper (inspired by Pandas)
+- ✅ Chainable `DataFrame` wrapper (inspired by Pandas)
 - ✅ Vitest-based unit tests
 - ✅ Benchmarks vs competitors in `/benchmarks`
 
@@ -23,7 +23,7 @@ Project structure is in [`README.md`](./README.md#-package-structure)
 1. **Fork this repo** on GitHub
 2. **Clone your fork** locally:
    ```bash
-   git clone git@github.com:yourname/tinyframejs.git
+   git clone git@github.com:AlphaQuantJS/tinyframejs.git
    cd tinyframejs
    npm install
    ```
@@ -32,10 +32,7 @@ Project structure is in [`README.md`](./README.md#-package-structure)
    git checkout -b feat/your-feature-name
    ```
 4. Implement your feature or fix inside `src/`
-5. Run tests and linting before pushing:
-   ```bash
-   npm run lint && npm run test
-   ```
+5. Run tests and linting before pushing (see workflow below)
 6. **Push and open a Pull Request** to the `main` branch
 
 ---
@@ -53,7 +50,7 @@ Please review our [`Coding Guidelines`](./CODING_GUIDELINES.md) for:
 
 ## ✅ Pull Request Checklist
 
-- [ ] Code builds with `npm run build`
+- [ ] Code builds with `pnpm build`
 - [ ] Added or updated relevant tests in `test/`
 - [ ] Follows ESLint/Prettier rules
 - [ ] Descriptive commit message (see below)
@@ -65,42 +62,68 @@ Please review our [`Coding Guidelines`](./CODING_GUIDELINES.md) for:
 
 ---
 
-## ✨ Auto-formatting with Prettier
+## ✅ Последовательность действий перед коммитом
 
-To ensure consistent code style across the codebase, we use [Prettier](https://prettier.io/) integrated via `lint-staged` and `Husky`.
-
-### 🔧 How it works
-
-Before each commit, the following happens automatically:
-
-- `eslint --fix` runs on all staged `.js` and `.mjs` files
-- `prettier --write` runs on all staged `.js`, `.json`, `.yml`, `.md`, etc.
-
-This is done via `pre-commit` hook configured by [Husky](https://typicode.github.io/husky/) and driven by `lint-staged`.
-
-### 📁 `lint-staged.config.js`
-
-```js
-export default {
-  '*.js': ['eslint --fix', 'prettier --write'],
-  '*.mjs': ['eslint --fix', 'prettier --write'],
-  '*.json': ['prettier --write'],
-  '*.yml': ['prettier --write'],
-  '*.yaml': ['prettier --write'],
-  '*.md': ['prettier --write'],
-};
-```
-
-### 🐶 `.husky/pre-commit`
+### 1. 🔍 Проверка и авто-исправление форматирования (Prettier)
 
 ```bash
-#!/bin/sh
-. "$(dirname "$0")/_/husky.sh"
-
-npx lint-staged
+pnpm format
 ```
 
-With this setup, formatting will be enforced automatically during development — no manual formatting required!
+📌 Автоматически применит стиль `.prettierrc` ко всем `.js`, `.json`, `.md`, `.yml`, и т.д.
+
+---
+
+### 2. ✅ Авто-исправление кода по правилам ESLint
+
+```bash
+pnpm lint --fix
+```
+
+📌 Исправит ошибки линтинга и стиль, включая JSDoc, пробелы, отступы, `no-unused-vars`, и т.д.
+
+---
+
+### 3. 🧪 Запуск тестов
+
+```bash
+pnpm test
+```
+
+📌 Запускает все тесты (через Vitest) и проверяет, что код не ломается.
+
+---
+
+### 4. 🧪 Проверка покрытия (по желанию)
+
+```bash
+pnpm coverage
+```
+
+📌 Генерирует `coverage/lcov.info` и печатает отчёт в консоль.
+
+---
+
+### 5. 🐶 (Автоматически) при `git commit`
+
+```bash
+git add .
+git commit -m "feat: describe your change"
+```
+
+📌 При этом автоматически сработает:
+
+- `npx lint-staged`
+- `npx prettier --write` на staged файлы
+- `eslint --fix` на staged `.js/.ts`
+
+---
+
+## 💡 Рекомендуемая команда на всё:
+
+```bash
+pnpm format && pnpm lint --fix && pnpm test
+```
 
 ---
 
@@ -116,7 +139,9 @@ We use [**Conventional Commits**](https://www.conventionalcommits.org/) for chan
 
 ### Examples:
 
-> `feat(core): add corrMatrix support` > `fix(frame): handle NaN edge case in rollingMean` > `docs(readme): add usage examples`
+> `feat(core): add corrMatrix support`  
+> `fix(frame): handle NaN edge case in rollingMean`  
+> `docs(readme): add usage examples`
 
 Common types:
 
@@ -143,7 +168,7 @@ Common types:
 
 ## 🧪 Testing and Coverage
 
-- Run tests via `vitest run`
+- Run tests via `pnpm test`
 - Coverage is uploaded to Codecov
 - Benchmarks are located in `benchmarks/`
 - Guard tests protect against performance/memory regressions
@@ -152,7 +177,7 @@ Common types:
 
 ## 🐞 Bug Reports / Feature Requests
 
-Use [GitHub Issues](https://github.com/a3ka/tinyframejs/issues) for:
+Use [GitHub Issues](https://github.com/AlphaQuantJS/tinyframejs/issues) for:
 
 - Bugs and regressions
 - Feature suggestions
@@ -173,9 +198,9 @@ We tag beginner-friendly tasks as `good first issue`.
 
 - Ask in GitHub Discussions
 - Submit new ideas via PR or Issues
-- Mention us on Twitter: [@TinyFrameJS](https://twitter.com/TinyFrameJS)
+- Mention us on Twitter: [@AlphaQuantJS](https://twitter.com/AlphaQuantJS)
 
 ---
 
 Thanks again for being part of the TinyFrameJS open-source journey 🙌
-Let’s build next-gen tools for financial analysis and large-scale data processing in JavaScript together ⚡
+Let's build next-gen tools for financial analysis and large-scale data processing in JavaScript together ⚡

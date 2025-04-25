@@ -194,7 +194,9 @@ describe('getColumn', () => {
 
     const frame = createFrame(data);
 
-    expect(() => getColumn(frame, 'b')).toThrow("Column 'b' not found");
+    expect(() => getColumn(frame, 'b')).toThrow(
+      'Column \u0027b\u0027 not found',
+    );
   });
 });
 
@@ -218,6 +220,8 @@ describe('validateColumn', () => {
 
     const frame = createFrame(data);
 
-    expect(() => validateColumn(frame, 'b')).toThrow("Column 'b' not found");
+    expect(() => validateColumn(frame, 'b')).toThrow(
+      'Column \u0027b\u0027 not found',
+    );
   });
 });

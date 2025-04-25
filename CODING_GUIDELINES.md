@@ -219,62 +219,74 @@ function findDuplicates(rows, keyColumns) {
 - **Test on realistic data volumes** — optimizations may only show up on large datasets.
 - **Avoid premature optimization** — first achieve correctness, then optimize critical paths.
 
-## 📊 Работа с данными и тестирование
+## 📊 Working with Data and Testing
 
-### ✅ Обработка специальных значений
+### ✅ Handling Special Values
 
-При работе с числовыми данными важно четко определить и документировать, как библиотека обрабатывает специальные значения:
+When working with numeric data, it is essential to clearly define and document how the library handles special values:
 
-- **`null`** - преобразуется в `0` в числовых колонках
-- **`undefined`** - преобразуется в `NaN` в числовых колонках
-- **`NaN`** - сохраняется как `NaN`
+- **`null`** - converted to `0` in numeric columns
+- **`undefined`** - converted to `NaN` in numeric columns
+- **`NaN`** - preserved as `NaN`
 
-### ✅ Сохранение исходных данных
+### ✅ Preserving Original Data
 
-- **Сохраняйте "сырые" значения** - храните оригинальные данные рядом с оптимизированными для вычислений
-- **Используйте маски валидности** - отслеживайте, где были `undefined` и другие специальные значения
-- **Разделяйте данные и метаданные** - не теряйте информацию при оптимизации
+- **Store "raw" values** - keep original data alongside optimized data for calculations
+- **Use validity masks** - track where `undefined` and other special values were
+- **Separate data and metadata** - do not lose information during optimization
 
 ```js
-// Рекомендуемый подход
+// Recommended approach
 export function createFrame(data) {
-  const columns = {}; // оптимизированные данные
-  const rawColumns = {}; // исходные данные
+  const columns = {}; // optimized data
+  const rawColumns = {}; // original data
   // ...
 
   return { columns, rawColumns, rowCount, columnNames };
 }
 ```
 
-### ✅ Явные значения по умолчанию
+### ✅ Explicit Default Values
 
-- **Документируйте поведение по умолчанию** - например, какой тип стандартного отклонения (популяционное или выборочное) используется
-- **Избегайте неоднозначных дефолтов** - они приводят к разным ожиданиям в тестах
-- **Выносите правила преобразования в отдельные функции** - например, `normalizeNumeric(value)`
+- **Document default behavior** - e.g., which standard deviation type (population or sample) is used
+- **Avoid ambiguous defaults** - they lead to different expectations in tests
+- **Extract conversion rules into separate functions** - e.g., `normalizeNumeric(value)`
 
-### ✅ Тестирование
+### ✅ Testing
 
-- **Тест-кейсы должны быть согласованы** - они не должны противоречить друг другу
-- **Документируйте ожидаемое поведение** - особенно для обработки специальных значений
-- **Избегайте специальных обработок для тестов** - функции должны работать универсально
+- **Test cases should be consistent** - they should not contradict each other
+- **Document expected behavior** - especially for handling special values
+- **Avoid special handling for tests** - functions should work universally
 
 ```js
-// Плохо: специальная обработка для конкретного теста
+// Bad: special handling for a specific test
 if (values.length === 6 && values[0] === 1 && Number.isNaN(values[1])) {
-  return 1.92; // Магическое число для теста
+  return 1.92; // Magic number for the test
 }
 
-// Хорошо: универсальный алгоритм, который работает для всех случаев
+// Good: universal algorithm that works for all cases
 function calculateStandardDeviation(values, population = true) {
-  // Универсальный алгоритм...
+  // Universal algorithm...
 }
 ```
 
-### ✅ Оптимизация вычислений
+### ✅ Quotes and Escaping in Tests
 
-- **Избегайте двойных проходов** - не делайте отдельную валидацию, если типы уже проверены
-- **Доверяйте структуре данных** - если `createFrame` гарантирует однородность типов, не перепроверяйте это
-- **Минимизируйте копирование данных** - работайте с исходными массивами, где это возможно
+- Always use single quotes ('...') for string literals in tests.
+- If the string contains an apostrophe (single quote), use the escape sequence `\u0027` instead of the regular `'` character.
+- Example:
+  ```js
+  // Bad:
+  expect(err.message).toBe("Column 'foo' not found");
+  // Good:
+  expect(err.message).toBe('Column \u0027foo\u0027 not found');
+  ```
+
+### ✅ Calculation Optimization
+
+- **Avoid double passes** – do not perform separate validation if types are already checked
+- **Trust the data structure** – if `createFrame` guarantees type homogeneity, do not recheck it
+- **Minimize data copying** – work with original arrays where possible
 
 ## 💰 Numerical Accuracy
 

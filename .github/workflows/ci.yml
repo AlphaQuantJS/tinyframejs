@@ -29,6 +29,9 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+      - name: Check Prettier version
+        run: pnpm prettier --version
+
       - name: Format check
         run: pnpm format:check
 

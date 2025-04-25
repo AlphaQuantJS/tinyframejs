@@ -64,9 +64,11 @@ export default [
         },
       ],
       'max-len': [
-        'error',
+        'warn',
         {
-          code: 80,
+          code: 100,
+          ignoreStrings: true,
+          ignoreTemplateLiterals: true,
           ignoreUrls: true,
         },
       ],

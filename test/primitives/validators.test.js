@@ -1,3 +1,7 @@
+/**
+ * Unit tests for validators.js
+ */
+
 import {
   validateColumn,
   validateColumnLengths,

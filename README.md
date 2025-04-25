@@ -1,6 +1,6 @@
-# tinyframejs
+# TinyFrameJS
 
-**tinyframejs** is a high-performance JavaScript/TypeScript package for working with tabular financial data, powered by a custom in-memory data structure inspired by Pandas but optimized for the JavaScript ecosystem.
+**TinyFrameJS** is a high-performance JavaScript/TypeScript package for working with tabular financial data, powered by a custom in-memory data structure inspired by Pandas but optimized for the JavaScript ecosystem.
 
 It is built as a lightweight, zero-dependency data engine using `TypedArray` for efficient memory layout and numerical operations.
 
@@ -14,7 +14,7 @@ We address the lack of fast, memory-efficient tabular computation in JS, enablin
 
 ---
 
-## 🔍 Why tinyframejs?
+## 🔍 Why TinyFrameJS?
 
 `tinyframejs` is a low-level, high-performance data engine chosen for its simplicity, speed, and zero dependencies:
 
@@ -175,7 +175,7 @@ If you like what we're building, please consider:
 - ⭐️ Starring this repository
 - 🐦 Sharing on Twitter / Reddit
 - 👨‍💻 Submitting a PR
-- 💬 Giving feedback in [Discussions](https://github.com/a3ka/tinyframejs/discussions)
+- 💬 Giving feedback in [Discussions](https://github.com/a3ka/alphaquantjs/discussions)
 
 Together we can bring **efficient data tools to the web**.
 

@@ -20,10 +20,10 @@
 
 /**
  * @typedef {Object} TinyFrameOptions
- * @property {boolean} [useTypedArrays=true]      Convert numeric columns to the tightest TypedArray
- * @property {boolean} [saveRawData=false]        Store a lazily materialised copy of raw input
+ * @property {boolean} [useTypedArrays=true]   Convert numeric columns to the tightest TypedArray
+ * @property {boolean} [saveRawData=false]     Store a lazily materialised copy of raw input
  * @property {'none'|'shallow'|'deep'} [copy='shallow']   Control column copy policy
- * @property {boolean} [freeze=false]             Freeze resulting frame to prevent accidental mutation
+ * @property {boolean} [freeze=false]          Freeze resulting frame to prevent accidental mutation
  */
 
 /**
@@ -101,6 +101,7 @@ function createFrame(data, options = {}) {
 /**
  * @param {TinyFrame} src @param {TinyFrameOptions} opts
  * @param opts
+ * @returns {TinyFrame} A cloned TinyFrame object
  */
 function cloneFrame(src, opts) {
   /** @type {Record<string,any[]|TypedArray>} */ const cols = {};
@@ -217,7 +218,11 @@ function getLength(arr) {
  * Helper: dtype detection & conversion
  * -----------------------------------------------------------*/
 
-/** @param {any[]} arr */
+/**
+ * Detects the most suitable DType for an array
+ * @param {any[]} arr
+ * @returns {DType} Detected data type
+ */
 function detectDType(arr) {
   let numeric = true,
     int = true,
@@ -246,14 +251,20 @@ function detectDType(arr) {
   return 'f64';
 }
 
-/** @param {DType} dt */
+/**
+ * Checks if dtype is numeric
+ * @param {DType} dt
+ * @returns {boolean} True if dtype is numeric
+ */
 function isNumericDType(dt) {
   return dt !== 'str';
 }
 
 /**
- * @param {any[]} arr @param {DType} dt
- * @param dt
+ * Converts array to TypedArray by dtype
+ * @param {any[]} arr
+ * @param {DType} dt
+ * @returns {TypedArray} Converted typed array
  */
 function toTyped(arr, dt) {
   switch (dt) {
@@ -329,12 +340,20 @@ function materialiseRaw(obj) {
  * Public helper utilities (unchanged interface)
  * -----------------------------------------------------------*/
 
-/** @param {Array<any>|TypedArray} arr */
+/**
+ * Checks if array is numeric or TypedArray
+ * @param {Array<any>|TypedArray} arr
+ * @returns {boolean} True if array is numeric
+ */
 function isNumericArray(arr) {
   return ArrayBuffer.isView(arr) || detectDType(arr) !== 'str';
 }
 
-/** @param {TinyFrame} frame */
+/**
+ * Converts TinyFrame to array of objects
+ * @param {TinyFrame} frame
+ * @returns {Array<Object>} Array of row objects
+ */
 function toArray(frame) {
   const { columns, rowCount, columnNames } = frame;
   const rows = new Array(rowCount);
@@ -346,14 +365,20 @@ function toArray(frame) {
   return rows;
 }
 
-/** @param {TinyFrame} frame */
+/**
+ * Returns column names from TinyFrame
+ * @param {TinyFrame} frame
+ * @returns {string[]} Array of column names
+ */
 function getColumnNames(frame) {
   return frame.columnNames;
 }
 
 /**
- * @param {TinyFrame} frame @param {string} name
- * @param name
+ * Returns column by name from TinyFrame
+ * @param {TinyFrame} frame
+ * @param {string} name
+ * @returns {Array<any>|TypedArray} The column data
  */
 function getColumn(frame, name) {
   validateColumn(frame, name);

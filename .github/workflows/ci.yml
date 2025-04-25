@@ -32,6 +32,12 @@ jobs:
       - name: Check Prettier version
         run: pnpm prettier --version
 
+      - name: Debug ­– Prettier diff
+        run: |
+          cp src/primitives/createFrame.js /tmp/before.js
+          pnpm prettier --write src/primitives/createFrame.js
+          diff -u /tmp/before.js src/primitives/createFrame.js || true
+
       - name: Format check
         run: pnpm format:check
 

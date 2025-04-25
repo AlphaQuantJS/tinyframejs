@@ -1,24 +1,24 @@
-# @alphaquant/core
+# tinyframejs
 
-**@alphaquant/core** is a high-performance JavaScript/TypeScript package for working with tabular financial data, powered by a custom in-memory data structure inspired by Pandas but optimized for the JavaScript ecosystem.
+**tinyframejs** is a high-performance JavaScript/TypeScript package for working with tabular financial data, powered by a custom in-memory data structure inspired by Pandas but optimized for the JavaScript ecosystem.
 
-It is built on top of **TinyFrame**, a lightweight, zero-dependency data engine using `TypedArray` for efficient memory layout and numerical operations.
+It is built as a lightweight, zero-dependency data engine using `TypedArray` for efficient memory layout and numerical operations.
 
 ---
 
 ## 🚀 Mission
 
-AlphaQuant's mission is to **bring scalable quantitative finance tools to the JavaScript ecosystem**, enabling seamless analysis, modeling, and algorithmic research in environments ranging from browsers to Node.js.
+TinyFrame's mission is to **bring scalable data processing tools to the JavaScript ecosystem**, enabling seamless analysis, modeling, and algorithmic research in environments ranging from browsers to Node.js.
 
-We address the lack of fast, memory-efficient tabular computation in JS, enabling developers to perform financial analytics, statistical preprocessing, and time-series transformations **without switching to Python or R**.
+We address the lack of fast, memory-efficient tabular computation in JS, enabling developers to perform analytics, statistical preprocessing, and time-series transformations **without switching to Python or R**.
 
 ---
 
-## 🔍 Why @alphaquant/core?
+## 🔍 Why tinyframejs?
 
-`@alphaquant/core` is built upon **TinyFrame** — a low-level, high-performance data engine chosen as the internal data representation layer for its simplicity, speed, and zero dependencies. We selected TinyFrame as the foundational layer for its:
+`tinyframejs` is a low-level, high-performance data engine chosen for its simplicity, speed, and zero dependencies:
 
-- 🔥 It is 100% written in TypeScript
+- 🔥 It is 100% written in JavaScript
 - 🧠 Operates on `Float64Array` / `Int32Array` for vectorized performance
 - ⚡ Outperforms traditional object/array-based processing by 10–100x
 - 🧼 Clean modular functions allow tree-shaking and maximum composability
@@ -29,12 +29,12 @@ We address the lack of fast, memory-efficient tabular computation in JS, enablin
 
 ## 📊 Benchmark Results (vs competitors)
 
-| Operation     | @alphaquant/core | Pandas (Python) | Data-Forge (JS) | Notes                      |
-| ------------- | ---------------- | --------------- | --------------- | -------------------------- |
-| `rollingMean` | ✅ ~50ms         | 🟢 ~5ms         | ❌ ~400ms       | JS now on par with Python  |
-| `normalize`   | ✅ ~35ms         | 🟢 ~6ms         | ❌ ~300ms       | Memory: 10x more efficient |
-| `corrMatrix`  | ✅ ~60ms         | 🟢 ~8ms         | ❌ ~500ms       | TypedArray wins            |
-| `dropNaN`     | ✅ ~20ms         | 🟢 ~20ms        | ❌ ~100ms       | Parity achieved            |
+| Operation     | tinyframejs | Pandas (Python) | Data-Forge (JS) | Notes                      |
+| ------------- | ----------- | --------------- | --------------- | -------------------------- |
+| `rollingMean` | ✅ ~50ms    | 🟢 ~5ms         | ❌ ~400ms       | JS now on par with Python  |
+| `normalize`   | ✅ ~35ms    | 🟢 ~6ms         | ❌ ~300ms       | Memory: 10x more efficient |
+| `corrMatrix`  | ✅ ~60ms    | 🟢 ~8ms         | ❌ ~500ms       | TypedArray wins            |
+| `dropNaN`     | ✅ ~20ms    | 🟢 ~20ms        | ❌ ~100ms       | Parity achieved            |
 
 > All results measured on 100,000 rows × 10 columns. See [`benchmark_tiny.js`](./benchmarks/benchmark_tiny.js) for test script.
 
@@ -43,12 +43,12 @@ We address the lack of fast, memory-efficient tabular computation in JS, enablin
 ## 📦 Package Structure
 
 ```bash
-alphaquant-core/
+tinyframejs/
 ├── src/
 │   ├── frame/              # TinyFrame structure and primitives
 │   ├── methods/            # Data operations: groupBy, agg, pivot, etc.
 │   ├── computation/        # zscore, normalize, mean, std
-│   └── AQDataFrame.ts      # Chainable functional wrapper (fluent API)
+│   └── DataFrame.js        # Chainable functional wrapper (fluent API)
 ├── test/                   # Vitest unit tests
 ├── examples/               # Usage examples
 ├── benchmarks/             # Benchmark suite for performance testing
@@ -66,10 +66,10 @@ alphaquant-core/
 
 ### Construction
 
-```ts
-import { AQDataFrame } from '@alphaquant/core';
+```js
+import { DataFrame } from 'tinyframejs';
 
-const df = new AQDataFrame({
+const df = new DataFrame({
   date: ['2023-01-01', '2023-01-02'],
   price: [100, 105],
   volume: [1000, 1500],
@@ -78,20 +78,20 @@ const df = new AQDataFrame({
 
 ### Preprocessing
 
-```ts
+```js
 df.setIndex('date').normalize('price').rollingMean('price', 2).dropNaN();
 ```
 
 ### Statistics
 
-```ts
+```js
 const stats = df.describe();
 const corr = df.corrMatrix();
 ```
 
 ### Grouping
 
-```ts
+```js
 const grouped = df.groupByAgg(['sector'], {
   price: 'mean',
   volume: 'sum',
@@ -100,7 +100,7 @@ const grouped = df.groupByAgg(['sector'], {
 
 ### Reshaping
 
-```ts
+```js
 df.pivot('date', 'symbol', 'price');
 df.melt(['date'], ['price', 'volume']);
 ```
@@ -111,7 +111,7 @@ More in [`examples/`](./examples/)
 
 ## 🧪 Testing
 
-We use [Vitest](https://vitest.dev/) for blazing-fast unit testing with full TypeScript + ESM support.
+We use [Vitest](https://vitest.dev/) for blazing-fast unit testing with full JavaScript + ESM support.
 
 To run tests:
 
@@ -126,7 +126,7 @@ npm run test:watch
 
 ```bash
 npm run lint       # Lint code with ESLint
-npm run build      # Build TypeScript
+npm run build      # Build project
 npm run test       # Run unit tests
 npm run benchmark  # Run performance suite
 ```
@@ -137,11 +137,10 @@ CI/CD is automated via GitHub Actions + Changesets. See [`ci.yml`](.github/workf
 
 ## 💼 Roadmap
 
-Our roadmap is focused on making `@alphaquant/core` the most efficient and intuitive tool for tabular and financial computation in JavaScript:
+Our roadmap is focused on making `tinyframejs` the most efficient and intuitive tool for tabular and financial computation in JavaScript:
 
-- [x] Full integration with TinyFrame (TypedArray backend)
 - [x] Implementation of core statistical and preprocessing functions ([`src/computation`](./src/computation))
-- [x] Fluent `AQDataFrame` API for one-liner workflows ([`src/AQDataFrame.ts`](./src/AQDataFrame.ts))
+- [x] Fluent `DataFrame` API for one-liner workflows ([`src/DataFrame.js`](./src/DataFrame.js))
 - [x] Benchmark comparisons vs Python/Pandas and JS/DataForge ([`benchmarks/`](./benchmarks))
 - [ ] Expand supported operations: aggregation, filtering, windowing ([`src/methods`](./src/methods))
 - [ ] Optimize for 1M+ rows: memory use, GC pressure, time complexity ([`benchmark_tiny.js`](./benchmarks/benchmark_tiny.js))
@@ -176,12 +175,12 @@ If you like what we're building, please consider:
 - ⭐️ Starring this repository
 - 🐦 Sharing on Twitter / Reddit
 - 👨‍💻 Submitting a PR
-- 💬 Giving feedback in [Discussions](https://github.com/alphaquant/alphaquant/discussions)
+- 💬 Giving feedback in [Discussions](https://github.com/a3ka/tinyframejs/discussions)
 
-Together we can bring **quant tools to the web**.
+Together we can bring **efficient data tools to the web**.
 
 ---
 
 ## 📜 License
 
-MIT © AlphaQuantJS — use freely, build boldly.
+MIT © TinyFrameJS — use freely, build boldly.

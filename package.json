@@ -1,7 +1,7 @@
 {
-  "name": "alphaquant-core",
+  "name": "tinyframejs",
   "version": "1.0.0",
-  "description": "High-performance tabular engine for quantitative JS",
+  "description": "Lightweight, high-performance tabular data engine for JavaScript",
   "type": "module",
   "files": [
     "src"

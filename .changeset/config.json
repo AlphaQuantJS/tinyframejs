@@ -1,0 +1,9 @@
+{
+  "changelog": [
+    "@changesets/changelog",
+    { "repo": "AlphaQuantJS/tinyframejs" }
+  ],
+  "commit": true,
+  "access": "public",
+  "baseBranch": "main"
+}

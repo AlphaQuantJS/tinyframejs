@@ -1,0 +1,11 @@
+{
+  "name": "pr-codex-local",
+  "version": "1.0.0",
+  "description": "Local action for PR Codex AI review",
+  "main": "index.js",
+  "dependencies": {
+    "@actions/core": "^1.10.0",
+    "@actions/github": "^5.1.1",
+    "pr-codex": "^1.0.0"
+  }
+}

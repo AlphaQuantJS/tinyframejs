@@ -1,12 +1,12 @@
-# 🤝 Contributing to @alphaquant/core
+# 🤝 Contributing to tinyframejs
 
-Thank you for your interest in contributing to **@alphaquant/core**, the high-performance JavaScript engine for financial tabular data. We welcome contributions of all kinds — code, docs, benchmarks, ideas.
+Thank you for your interest in contributing to **tinyframejs**, the high-performance JavaScript engine for financial tabular data. We welcome contributions of all kinds — code, docs, benchmarks, ideas.
 
 ---
 
 ## 🧰 Repository Overview
 
-This repository is a standalone part of the [AlphaQuantJS](https://github.com/AlphaQuantJS) ecosystem and contains:
+This repository is a standalone part of the [TinyFrameJS](https://github.com/a3ka/tinyframejs) ecosystem and contains:
 
 - ✅ The core tabular engine built on TypedArray structures (TinyFrame)
 - ✅ Functional APIs for stats, filtering, reshaping
@@ -23,8 +23,8 @@ Project structure is in [`README.md`](./README.md#-package-structure)
 1. **Fork this repo** on GitHub
 2. **Clone your fork** locally:
    ```bash
-   git clone git@github.com:yourname/alphaquant-core.git
-   cd alphaquant-core
+   git clone git@github.com:yourname/tinyframejs.git
+   cd tinyframejs
    npm install
    ```
 3. **Create a feature branch:**
@@ -59,6 +59,9 @@ Please review our [`Coding Guidelines`](./CODING_GUIDELINES.md) for:
 - [ ] Descriptive commit message (see below)
 - [ ] Linked to a GitHub Issue (if applicable)
 - [ ] Clear description in PR body of what was changed and why
+- [ ] If change is test-only or doc-only, ensure CI does **not** fail due to lack of coverage
+- [ ] If no tests are added, check that Vitest is configured with `passWithNoTests: true` and Codecov uses `fail_ci_if_error: false` or `handle_no_reports_found: false`
+- [ ] If new code is added, ensure at least minimal test coverage is present (to trigger coverage report upload)
 
 ---
 
@@ -149,7 +152,7 @@ Common types:
 
 ## 🐞 Bug Reports / Feature Requests
 
-Use [GitHub Issues](https://github.com/AlphaQuantJS/alphaquant-core/issues) for:
+Use [GitHub Issues](https://github.com/a3ka/tinyframejs/issues) for:
 
 - Bugs and regressions
 - Feature suggestions
@@ -170,9 +173,9 @@ We tag beginner-friendly tasks as `good first issue`.
 
 - Ask in GitHub Discussions
 - Submit new ideas via PR or Issues
-- Mention us on Twitter: [@AlphaQuantJS](https://twitter.com/AlphaQuantJS)
+- Mention us on Twitter: [@TinyFrameJS](https://twitter.com/TinyFrameJS)
 
 ---
 
-Thanks again for being part of the AlphaQuantJS open-source journey 🙌
+Thanks again for being part of the TinyFrameJS open-source journey 🙌
 Let’s build next-gen tools for financial analysis and large-scale data processing in JavaScript together ⚡

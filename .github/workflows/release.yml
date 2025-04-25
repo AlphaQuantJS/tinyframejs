@@ -1,0 +1,43 @@
+# .github/workflows/release.yml
+name: Release
+
+# This workflow will only run when there are changes in the .changeset/ directory on main
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.changeset/**'
+
+permissions:
+  contents: write # required for creating tags
+  id-token: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      # 1) Checkout the repository
+      - uses: actions/checkout@v4
+
+      # 2) Set up Node.js and pnpm
+      - name: Setup Node & pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          node-version: 20
+
+      # 3) Install dependencies
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # 4) Run the Changesets Action, which:
+      #    • bumps package versions based on changesets
+      #    • generates or updates CHANGELOG.md
+      #    • commits and tags the version bump
+      #    • publishes the package to npm
+      - name: Bump & publish
+        uses: changesets/action@v1
+        with:
+          publish: pnpm publish --access public
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

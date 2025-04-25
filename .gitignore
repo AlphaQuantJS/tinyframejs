@@ -48,11 +48,5 @@ coverage/
 
 
 TODO.md
-CONTEXT*
+#CONTEXT*
 CODING_GUIDELINES.ru.md
-TZ.md
-/packages/core/benchmark/
-
-/packages/core/OPTIMASATION_PLAN.md
-/packages/core/RELEASE_CHECKLIST.md
-/packages/core/__benchmarks__/

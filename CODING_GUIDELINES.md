@@ -1,6 +1,6 @@
-# 📏 AlphaQuant Coding Guidelines
+# 📏 TinyFrame Coding Guidelines
 
-This document outlines the **best practices** for writing high-performance, accurate, and maintainable JavaScript code in the context of **quantitative finance**. It is intended for contributors to the AlphaQuant project, which runs on **Node.js** and in the **browser** (V8 engine).
+This document outlines the **best practices** for writing high-performance, accurate, and maintainable JavaScript code in the context of **data processing**. It is intended for contributors to the TinyFrame project, which runs on **Node.js** and in the **browser** (V8 engine).
 
 ## ⚡ Performance Recommendations
 
@@ -438,4 +438,4 @@ Write code that is:
 - **Modular** — clear separation of responsibilities
 - **Predictable** — easy for V8 to generate optimized machine code
 
-Thank you for keeping AlphaQuant fast and reliable ⚡
+Thank you for keeping TinyFrame fast and reliable ⚡

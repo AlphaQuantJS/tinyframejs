@@ -6,7 +6,7 @@ import {
   createFrame,
   getColumn,
   validateColumn,
-} from '../src/primitives/createFrame.js';
+} from '../../src/primitives/createFrame.js';
 import { describe, test, expect } from 'vitest';
 
 describe('createFrame', () => {

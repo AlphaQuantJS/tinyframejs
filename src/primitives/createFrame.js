@@ -1,3 +1,5 @@
+import { validateColumn } from './validators.js';
+
 /* eslint-disable prefer-const */
 
 /** @typedef {import('./types').DType} DType */
@@ -23,14 +25,7 @@
 /** -----------------------------------------------------------
  * Public API
  * -----------------------------------------------------------*/
-export {
-  createFrame,
-  isNumericArray,
-  toArray,
-  getColumnNames,
-  getColumn,
-  validateColumn,
-};
+export { createFrame, isNumericArray, toArray, getColumnNames, getColumn };
 
 /**
  * Create a TinyFrame from rows, columns or an existing frame.
@@ -370,12 +365,4 @@ function getColumnNames(frame) {
 function getColumn(frame, name) {
   validateColumn(frame, name);
   return frame.columns[name];
-}
-
-/**
- * @param {TinyFrame} frame @param {string} name
- * @param name
- */
-function validateColumn(frame, name) {
-  if (!frame.columns[name]) throw new Error(`Column '${name}' not found`);
 }

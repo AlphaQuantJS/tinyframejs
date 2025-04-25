@@ -1,4 +1,4 @@
-## Структура проекта 
+## 📦 Структура проекта tinyframejs (актуализировано)
 
 tinyframejs/
 ├── src/
@@ -8,6 +8,34 @@ tinyframejs/
 │   │   ├── validators.js    # Валидаторы входных данных
 │   │   └── index.js         # Экспорты
 │   │
+│   ├── io/                     # Модуль ввода-вывода
+│   │   ├── readers/            # Чтение из разных источников
+│   │   │   ├── csv.js          # Чтение CSV
+│   │   │   ├── tsv.js          # Чтение TSV
+│   │   │   ├── excel.js        # Чтение XLSX/XLS
+│   │   │   ├── json.js         # Чтение JSON
+│   │   │   ├── sql.js          # Чтение из SQL
+│   │   │   ├── api/            # Чтение из API
+│   │   │   │   ├── common.js   # Общие функции для API
+│   │   │   │   ├── crypto.js   # API криптобирж
+│   │   │   │   ├── stocks.js   # API фондовых бирж
+│   │   │   │   └── index.js
+│   │   │   └── index.js
+│   │   ├── writers/            # Запись в разные форматы
+│   │   │   ├── csv.js          # Запись в CSV
+│   │   │   ├── excel.js        # Запись в XLSX
+│   │   │   ├── json.js         # Запись в JSON
+│   │   │   └── index.js
+│   │   ├── parsers/            # Парсеры для разных форматов
+│   │   │   ├── dateParser.js   # Парсинг дат
+│   │   │   ├── numberParser.js # Парсинг чисел
+│   │   │   └── index.js
+│   │   ├── transformers/       # Преобразование "сырых" данных в tinyFrame
+│   │   │   ├── jsonToFrame.js
+│   │   │   ├── arrayToFrame.js
+│   │   │   ├── apiToFrame.js
+│   │   │   └── index.js
+│   │   └── index.js            # Общий экспорт IO-функций
 │   ├── computation/         # Вычислительные функции
 │   │   ├── corr.js          # Корреляция
 │   │   ├── normalize.js     # Нормализация

@@ -2,11 +2,7 @@
  * Unit tests for createFrame.js
  */
 
-import {
-  createFrame,
-  getColumn,
-  validateColumn,
-} from '../../src/primitives/createFrame.js';
+import { createFrame, getColumn } from '../../src/primitives/createFrame.js';
 import { describe, test, expect } from 'vitest';
 
 describe('createFrame', () => {
@@ -195,32 +191,6 @@ describe('getColumn', () => {
     const frame = createFrame(data);
 
     expect(() => getColumn(frame, 'b')).toThrow(
-      'Column \u0027b\u0027 not found',
-    );
-  });
-});
-
-describe('validateColumn', () => {
-  test('should not throw for valid column', () => {
-    const data = {
-      a: [1, 2, 3],
-      b: ['a', 'b', 'c'],
-    };
-
-    const frame = createFrame(data);
-
-    expect(() => validateColumn(frame, 'a')).not.toThrow();
-    expect(() => validateColumn(frame, 'b')).not.toThrow();
-  });
-
-  test('should throw for non-existent column', () => {
-    const data = {
-      a: [1, 2, 3],
-    };
-
-    const frame = createFrame(data);
-
-    expect(() => validateColumn(frame, 'b')).toThrow(
       'Column \u0027b\u0027 not found',
     );
   });

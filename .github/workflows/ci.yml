@@ -34,9 +34,9 @@ jobs:
 
       - name: Debug ­– Prettier diff
         run: |
-          cp src/primitives/createFrame.js /tmp/before.js
-          pnpm prettier --write src/primitives/createFrame.js
-          diff -u /tmp/before.js src/primitives/createFrame.js || true
+          cp test/methods/aggregation/count.test.js /tmp/before.js
+          pnpm prettier --write test/methods/aggregation/count.test.js
+          diff -u /tmp/before.js test/methods/aggregation/count.test.js || true
 
       - name: Format check
         run: pnpm format:check

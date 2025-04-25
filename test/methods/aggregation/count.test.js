@@ -40,7 +40,7 @@ describe('count', () => {
   });
 
   test('should throw error for non-existent column', () => {
-    expect(() => count(frame, 'd')).toThrow("Column 'd' not found");
+    expect(() => count(frame, 'd')).toThrow('Column \u0027d\u0027 not found');
   });
 
   test('should throw error for invalid frame', () => {

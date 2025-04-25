@@ -13,7 +13,7 @@ node_modules
 .env.production.local
 
 # Testing
-coverage
+#coverage
 
 # Turbo
 .turbo

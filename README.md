@@ -1,29 +1,26 @@
 # TinyFrameJS
 
-**TinyFrameJS** is a high-performance JavaScript/TypeScript package for working with tabular financial data, powered by a custom in-memory data structure inspired by Pandas but optimized for the JavaScript ecosystem.
+**TinyFrameJS** constitutes an advanced, high-performance JavaScript framework tailored for processing large-scale tabular and financial data. Architected atop a bespoke in-memory representation inspired by columnar data paradigms (such as Pandas), TinyFrameJS is rigorously optimized for the JavaScript runtime ecosystem.
 
-It is built as a lightweight, zero-dependency data engine using `TypedArray` for efficient memory layout and numerical operations.
-
----
-
-## 🚀 Mission
-
-TinyFrame's mission is to **bring scalable data processing tools to the JavaScript ecosystem**, enabling seamless analysis, modeling, and algorithmic research in environments ranging from browsers to Node.js.
-
-We address the lack of fast, memory-efficient tabular computation in JS, enabling developers to perform analytics, statistical preprocessing, and time-series transformations **without switching to Python or R**.
+It leverages `TypedArray`-based memory management to enable low-latency, high-throughput operations, offering computational efficiency approaching that of systems implemented in native code, but with the accessibility and flexibility of JavaScript.
 
 ---
 
-## 🔍 Why TinyFrameJS?
+## 🚀 Mission Statement
 
-`tinyframejs` is a low-level, high-performance data engine chosen for its simplicity, speed, and zero dependencies:
+TinyFrameJS endeavors to establish a scalable, memory-efficient, and performant infrastructure for analytical and quantitative workflows in JavaScript. It obviates the need to offload workloads to Python or R by providing a native, fluent API for statistical computation, data transformation, and time-series modeling directly within the JS execution environment (Node.js or browser).
 
-- 🔥 It is 100% written in JavaScript
-- 🧠 Operates on `Float64Array` / `Int32Array` for vectorized performance
-- ⚡ Outperforms traditional object/array-based processing by 10–100x
-- 🧼 Clean modular functions allow tree-shaking and maximum composability
+---
 
-> TinyFrame is used under the MIT license. See full license in [`LICENSE`](./LICENSE).
+## 🔥 Core Differentiators
+
+- Entirely JavaScript-native with zero binary dependencies (no WebAssembly or C++ bindings required)
+- Operates directly on `Float64Array` and `Int32Array` structures to ensure dense memory layout and consistent type uniformity
+- Achieves 10× to 100× performance gains over traditional JS object/array workflows
+- DataFrame prototype is auto-extended at runtime; no manual augmentation or external registration required
+- Modular design enables method-level tree-shaking for highly customized builds
+
+> Released under the MIT license, ensuring unrestricted academic and commercial application.
 
 ---
 
@@ -40,33 +37,94 @@ We address the lack of fast, memory-efficient tabular computation in JS, enablin
 
 ---
 
-## 📦 Package Structure
+## 📦 Project Structure Overview
 
 ```bash
-tinyframejs/
-├── src/
-│   ├── frame/              # TinyFrame structure and primitives
-│   ├── methods/            # Data operations: groupBy, agg, pivot, etc.
-│   ├── computation/        # zscore, normalize, mean, std
-│   └── DataFrame.js        # Chainable functional wrapper (fluent API)
-├── test/                   # Vitest unit tests
-├── examples/               # Usage examples
-├── benchmarks/             # Benchmark suite for performance testing
-├── dist/                   # Compiled output (auto-generated)
-├── package.json            # npm manifest
-├── tsconfig.json           # TypeScript config
-├── README.md               # This file
-├── LICENSE                 # MIT license
-└── .github/workflows/ci.yml # GitHub Actions workflow
+src/
+├── core/                # Foundational logic: validators, type guards, runtime enforcement
+├── io/                  # Input/output abstraction layer: CSV, XLSX, JSON, SQL, APIs
+├── methods/             # Modular operations: aggregation, filtering, sorting, transforms, rolling
+│   ├── aggregation/
+│   ├── filtering/
+│   ├── sorting/
+│   ├── transform/
+│   ├── rolling/
+│   ├── raw.js           # Unified export of method definitions
+│   ├── inject.js        # Dependency injection wrapper for stateful functions
+│   └── autoExtend.js    # Runtime auto-extension of DataFrame.prototype
+├── frame/               # TinyFrame core representation + DataFrame chainable API class
+├── display/             # Rendering modules for console and web visualization
+├── utils/               # Low-level array, math, and hashing utilities
+├── loader.js            # Global pre-initialization logic (invokes auto-extension)
+├── types.js             # Global TS type definitions
+└── index.js             # Public API surface of the library
 ```
 
 ---
 
-## 🧠 API Highlights
+## 🧠 Architecture Design
 
-### Construction
+### Data Flow Pipeline
+
+TinyFrameJS follows a clear data flow from raw inputs to the fluent API:
+
+```mermaid
+graph TD
+    input[Raw Data: CSV, JSON, API] --> reader[reader.js]
+    reader --> createFrame[createFrame.js]
+    createFrame --> tf[TinyFrame Structure]
+    tf --> df[DataFrame Wrapper]
+    df --> auto[Auto-Extended Methods]
+    auto --> user[User API: df.sort().dropNaN().head().count()]
+```
+
+### Auto-Extension Mechanism
+
+One of TinyFrameJS's key innovations is its **automatic method extension**:
+
+1. All methods are defined as pure, curried functions with dependency injection
+2. The `inject.js` module centralizes dependencies like validators
+3. The `autoExtend.js` module automatically attaches all methods to `DataFrame.prototype`
+4. This happens once at runtime initialization
+
+This approach provides several benefits:
+
+- **Zero boilerplate**: No manual registration of methods
+- **Tree-shakable**: Unused methods can be eliminated by bundlers
+- **Fluent API**: Methods can be chained naturally
+- **Clean separation**: Core logic vs. API surface
+
+### Method Types
+
+TinyFrameJS methods fall into two categories:
+
+1. **Transformation methods** (e.g., `sort()`, `dropNaN()`, `head()`)
+
+   - Return a new DataFrame instance
+   - Can be chained with other methods
+
+2. **Aggregation methods** (e.g., `count()`, `mean()`, `sum()`)
+   - Return a scalar value or array
+   - Typically terminate a method chain
+
+Example of combined usage:
 
 ```js
+// Chain transformations and end with aggregation
+const result = df
+  .sort('price') // transformation → returns new DataFrame
+  .dropNaN('volume') // transformation → returns new DataFrame
+  .head(10) // transformation → returns new DataFrame
+  .mean('price'); // aggregation → returns number
+```
+
+---
+
+## 🧠 API Design Paradigm
+
+### Instantiation
+
+```ts
 import { DataFrame } from 'tinyframejs';
 
 const df = new DataFrame({
@@ -76,89 +134,102 @@ const df = new DataFrame({
 });
 ```
 
-### Preprocessing
+### Declarative Transformation Pipeline
 
-```js
-df.setIndex('date').normalize('price').rollingMean('price', 2).dropNaN();
+```ts
+const top10 = df.sort('price').dropNaN('price').head(10).count('price');
 ```
 
-### Statistics
+**Core methods include:**
 
-```js
-const stats = df.describe();
-const corr = df.corrMatrix();
-```
+- Row-wise transformations: `dropNaN`, `fillNaN`, `head`, `sort`, `diff`, `cumsum`
+- Aggregations: `count`, `mean`, `sum`, `min`, `max`
+- Rolling statistics: `rollingMean`, `rollingStd`, etc.
 
-### Grouping
+All methods are automatically attached via runtime bootstrap — no explicit extension required.
 
-```js
-const grouped = df.groupByAgg(['sector'], {
+### Grouped Aggregation
+
+```ts
+const grouped = df.groupBy(['sector']).aggregate({
   price: 'mean',
   volume: 'sum',
 });
 ```
 
-### Reshaping
+### Reshape Operations
 
-```js
+```ts
 df.pivot('date', 'symbol', 'price');
 df.melt(['date'], ['price', 'volume']);
 ```
 
-More in [`examples/`](./examples/)
+Additional idioms and usage scenarios available in [`examples/`](./examples).
 
 ---
 
-## 🧪 Testing
+## 🚀 Future Enhancements
 
-We use [Vitest](https://vitest.dev/) for blazing-fast unit testing with full JavaScript + ESM support.
+TinyFrameJS roadmap includes several performance-focused enhancements:
 
-To run tests:
+### StreamingFrame
 
-```bash
-npm run test
-npm run test:watch
-```
+For processing massive datasets that don't fit in memory:
+
+- Chunk-based processing of large files
+- Streaming API for continuous data ingestion
+- Memory-efficient operations on datasets with 10M+ rows
+
+### LazyPipeline
+
+For optimized execution of complex transformations:
+
+- Deferred execution until results are needed
+- Automatic operation fusion and optimization
+- Reduced intermediate allocations
+
+### Memory Optimization
+
+- Batch mutations to reduce allocations
+- Improved encapsulation of internal structures
+- Optimized cloning strategies for transformations
 
 ---
 
-## 🧪 Development Workflow
+## 🛠 Development Workflow
 
 ```bash
-npm run lint       # Lint code with ESLint
-npm run build      # Build project
-npm run test       # Run unit tests
-npm run benchmark  # Run performance suite
+npm run lint        # Lint codebase with ESLint
+npm run build       # Compile into dist/
+npm run test        # Execute unit tests (Vitest)
+npm run benchmark   # Launch performance suite
 ```
 
 CI/CD is automated via GitHub Actions + Changesets. See [`ci.yml`](.github/workflows/ci.yml).
 
 ---
 
-## 💼 Roadmap
+## 🛣 Roadmap
 
-Our roadmap is focused on making `tinyframejs` the most efficient and intuitive tool for tabular and financial computation in JavaScript:
-
-- [x] Implementation of core statistical and preprocessing functions ([`src/computation`](./src/computation))
-- [x] Fluent `DataFrame` API for one-liner workflows ([`src/DataFrame.js`](./src/DataFrame.js))
-- [x] Benchmark comparisons vs Python/Pandas and JS/DataForge ([`benchmarks/`](./benchmarks))
-- [ ] Expand supported operations: aggregation, filtering, windowing ([`src/methods`](./src/methods))
-- [ ] Optimize for 1M+ rows: memory use, GC pressure, time complexity ([`benchmark_tiny.js`](./benchmarks/benchmark_tiny.js))
-- [ ] Enhance API usability: auto-chaining, defaults, type inference
-- [ ] Developer ergonomics: better errors, input validation ([`test/`](./test))
-- [ ] Improve documentation with live-coded examples ([`examples/`](./examples))
+- [x] Fully declarative DataFrame interface
+- [x] TypedArray-powered core computation
+- [x] Auto-attached methods via runtime extension
+- [x] Competitive performance with compiled backends
+- [ ] Expand statistical/transform methods and rolling ops
+- [ ] StreamingFrame: chunk-wise ingestion for massive datasets
+- [ ] Lazy evaluation framework: `.pipe()` + deferred execution
+- [ ] WebAssembly integration for CPU-bound operations
+- [ ] Documentation with real-time interactive notebooks
 
 ---
 
-## 🤝 Contributing
+## 🤝 Contributing Guidelines
 
-We welcome contributors of all levels 🙌
+- Fork → Feature Branch → Pull Request
+- Adopt Conventional Commits (e.g., `feat:`, `fix:`, `docs:`)
+- Ensure all changes pass `lint`, `test`, and CI gates
 
-- Fork → Branch → Code → Pull Request
-- Follow [Conventional Commits](https://www.conventionalcommits.org/)
-- Linting, testing and CI will run on PR automatically
-
-See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for details
+Refer to [`CONTRIBUTING.md`](./CONTRIBUTING.md) for detailed guidelines.
 
 ---
 
@@ -183,4 +254,4 @@ Together we can bring **efficient data tools to the web**.
 
 ## 📜 License
 
-MIT © TinyFrameJS — use freely, build boldly.
+MIT © TinyFrameJS authors. Use freely. Build boldly.

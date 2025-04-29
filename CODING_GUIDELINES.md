@@ -288,6 +288,206 @@ function calculateStandardDeviation(values, population = true) {
 - **Trust the data structure** – if `createFrame` guarantees type homogeneity, do not recheck it
 - **Minimize data copying** – work with original arrays where possible
 
+## 🏗️ Method Development Guidelines
+
+### ✅ Method Structure Pattern
+
+All methods in TinyFrameJS follow a consistent pattern with dependency injection:
+
+```js
+/**
+ * Method description with clear explanation of what it does.
+ *
+ * @param {{ validateColumn(frame, column): void }} deps - Injected dependencies
+ * @returns {(frame: TinyFrame, column: string) => number|TinyFrame} - Function that operates on frame
+ */
+export const methodName =
+  ({ validateColumn }) =>
+  (frame, column) => {
+    // Validation
+    validateColumn(frame, column);
+
+    // Implementation
+    // ...
+
+    // Return value or new TinyFrame
+  };
+```
+
+This pattern enables:
+
+- **Centralized dependency injection** - dependencies are injected once
+- **Testability** - methods can be tested in isolation with mock dependencies
+- **Consistency** - all methods follow the same structure
+
+### ✅ Method Types
+
+TinyFrameJS distinguishes between two types of methods:
+
+1. **Transformation methods** - return a new TinyFrame:
+
+```js
+export const sort =
+  ({ validateColumn }) =>
+  (frame, column) => {
+    validateColumn(frame, column);
+
+    // Create indices for sorting
+    const arr = frame.columns[column];
+    const sortedIndices = [...arr.keys()].sort((a, b) => arr[a] - arr[b]);
+
+    // Create a new frame with sorted data
+    const sortedFrame = frame.clone();
+    for (const col of Object.keys(frame.columns)) {
+      sortedFrame.columns[col] = sortedIndices.map(
+        (i) => frame.columns[col][i],
+      );
+    }
+
+    return sortedFrame; // Returns a new TinyFrame
+  };
+```
+
+2. **Aggregation methods** - return a scalar value:
+
+```js
+export const count =
+  ({ validateColumn }) =>
+  (frame, column) => {
+    validateColumn(frame, column);
+    return frame.columns[column].length; // Returns a number
+  };
+```
+
+### ✅ File Organization
+
+Follow these guidelines for organizing method files:
+
+1. **File naming**: Use the method name (e.g., `count.js`, `sort.js`)
+2. **Directory structure**:
+   - `/src/methods/aggregation/` - Aggregation methods
+   - `/src/methods/filtering/` - Filtering methods
+   - `/src/methods/transform/` - Transformation methods
+3. **Integration**:
+   - Add your method to `raw.js` for central export
+   - Methods are automatically attached to DataFrame.prototype by `autoExtend.js`
+
+### ✅ Testing Methods
+
+When writing tests for DataFrame methods:
+
+1. **Test file location**: `/test/methods/{category}/{methodName}.test.js`
+2. **Test with DataFrame API**: Test through the DataFrame interface, not the raw functions
+3. **Test both success and error cases**
+4. **For transformation methods**: Verify the returned DataFrame has the expected structure
+5. **For aggregation methods**: Verify the returned value is correct
+
+Example test structure:
+
+```js
+import { describe, test, expect } from 'vitest';
+import { DataFrame } from '../../../src/core/DataFrame.js';
+
+describe('DataFrame.methodName', () => {
+  const df = DataFrame.create({
+    a: [1, 2, 3],
+    b: [10, 20, 30],
+  });
+
+  test('performs expected operation', () => {
+    // For transformation method
+    const result = df.methodName('a');
+    expect(result).toBeInstanceOf(DataFrame);
+    expect(result.columns).toContain('a');
+
+    // For aggregation method
+    const value = df.methodName('a');
+    expect(value).toBe(expectedValue);
+  });
+
+  test('throws on invalid input', () => {
+    expect(() => df.methodName('nonexistent')).toThrow();
+  });
+});
+```
+
+## 🔄 Architectural Principles
+
+### ✅ Centralized Dependency Injection
+
+TinyFrameJS uses a centralized dependency injection pattern:
+
+1. **Dependencies defined once** in `inject.js`
+2. **Methods receive dependencies** as their first argument
+3. **No direct imports** of utilities in method files
+4. **Easier testing** - dependencies can be mocked
+
+```js
+// inject.js
+import * as rawFns from './raw.js';
+import { validateColumn } from '../core/validators.js';
+
+const deps = {
+  validateColumn,
+  // Add more dependencies here
+};
+
+export function injectMethods() {
+  return Object.fromEntries(
+    Object.entries(rawFns).map(([name, fn]) => [
+      name,
+      fn(deps), // Inject dependencies into each method
+    ]),
+  );
+}
+```
+
+### ✅ Auto-Extension Pattern
+
+The auto-extension pattern allows methods to be automatically attached to DataFrame.prototype:
+
+1. **Methods defined as pure functions** in individual files
+2. **Exported from `raw.js`** for centralized collection
+3. **Dependencies injected** via `inject.js`
+4. **Attached to DataFrame.prototype** by `autoExtend.js`
+
+This approach:
+
+- **Eliminates boilerplate** - no manual registration of methods
+- **Improves maintainability** - methods are isolated and focused
+- **Enables tree-shaking** - unused methods can be eliminated by bundlers
+
+### ✅ Transformation vs. Aggregation
+
+When implementing a new method, decide whether it's a transformation or aggregation:
+
+1. **Transformation methods**:
+
+   - Return a new DataFrame/TinyFrame
+   - Can be chained with other methods
+   - Example: `sort()`, `dropNaN()`, `head()`
+
+2. **Aggregation methods**:
+   - Return a scalar value or array
+   - Typically terminate a method chain
+   - Example: `count()`, `mean()`, `sum()`
+
+This distinction is handled automatically by `autoExtend.js`:
+
+```js
+// In autoExtend.js
+DataFrame.prototype[name] = function (...args) {
+  const result = methodFn(this._frame, ...args);
+
+  // If result is a TinyFrame, wrap it in DataFrame
+  if (result?.columns) {
+    return new DataFrame(result);
+  }
+  // Otherwise return the value directly
+  return result;
+};
+```
+
 ## 💰 Numerical Accuracy
 
 ### ✅ Use Integers for Money (e.g., cents)

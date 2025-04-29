@@ -2,7 +2,7 @@
  * Unit tests for createFrame.js
  */
 
-import { createFrame, getColumn } from '../../src/primitives/createFrame.js';
+import { createFrame, getColumn } from '../../src/core/createFrame.js';
 import { describe, test, expect } from 'vitest';
 
 describe('createFrame', () => {

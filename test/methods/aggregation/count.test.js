@@ -1,51 +1,41 @@
-/**
- * Tests for agg/count.js
- */
-
 import { describe, test, expect } from 'vitest';
-import { createFrame } from '../../../src/primitives/createFrame.js';
-import { count } from '../../../src/methods/aggregation/count.js';
+import { DataFrame } from '../../../src/core/DataFrame.js';
 
-describe('count', () => {
-  // Common test frame for all tests
-  const frame = createFrame({
+describe('DataFrame.count', () => {
+  const df = DataFrame.create({
     a: [1, 2, 3, 4, 5],
     b: [10, 20, 30, 40, 50],
     c: ['x', 'y', 'z', 'w', 'v'],
   });
 
-  // Frame with NaN, null and undefined values
-  const frameWithNaN = createFrame({
+  const dfWithNaN = DataFrame.create({
     a: [1, NaN, 3, null, 5, undefined],
     b: [10, 20, NaN, 40, null, 60],
   });
 
-  test('should count all values in column', () => {
-    expect(count(frame, 'a')).toBe(5);
-    expect(count(frame, 'b')).toBe(5);
-    expect(count(frame, 'c')).toBe(5);
+  test('counts all values in column', () => {
+    expect(df.count('a')).toBe(5);
+    expect(df.count('b')).toBe(5);
+    expect(df.count('c')).toBe(5);
   });
 
-  test('should include NaN, null and undefined in count', () => {
-    expect(count(frameWithNaN, 'a')).toBe(6);
-    expect(count(frameWithNaN, 'b')).toBe(6);
+  test('includes NaN, null, undefined in count', () => {
+    expect(dfWithNaN.count('a')).toBe(6);
+    expect(dfWithNaN.count('b')).toBe(6);
   });
 
-  test('should return 0 for empty frame', () => {
-    const emptyFrame = createFrame({
-      a: [],
-    });
-
-    expect(count(emptyFrame, 'a')).toBe(0);
+  test('returns 0 for empty column', () => {
+    const empty = DataFrame.create({ a: [] });
+    expect(empty.count('a')).toBe(0);
   });
 
-  test('should throw error for non-existent column', () => {
-    expect(() => count(frame, 'd')).toThrow('Column \u0027d\u0027 not found');
+  test('throws on missing column', () => {
+    expect(() => df.count('z')).toThrow(/not found/i);
   });
 
-  test('should throw error for invalid frame', () => {
-    expect(() => count(null, 'a')).toThrow();
-    expect(() => count({}, 'a')).toThrow();
-    expect(() => count({ columns: {} }, 'a')).toThrow();
+  test('throws on corrupted frame', () => {
+    // Create a minimally valid frame but without column 'a'
+    const broken = new DataFrame({ columns: {} });
+    expect(() => broken.count('a')).toThrow();
   });
 });

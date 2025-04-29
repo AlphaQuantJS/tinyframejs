@@ -10,7 +10,7 @@ import {
   validateOptions,
   validateDType,
   validateNumericArray,
-} from '../../src/primitives/validators.js';
+} from '../../src/core/validators.js';
 import { describe, test, expect } from 'vitest';
 
 // Minimal TinyFrame mock for validateColumn

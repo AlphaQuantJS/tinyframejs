@@ -18,6 +18,84 @@ Project structure is in [`README.md`](./README.md#-package-structure)
 
 ---
 
+## 🧩 Module Structure and Plug-and-Play Aggregators
+
+> Enables you to add new aggregators in a plug-and-play fashion — simply create a file in `primitives/` and export it in `index.js`.
+
+### Step-by-Step Guide to Adding a New Aggregator
+
+1. **Create the “primitive” file**  
+   _(Here, `aggregation` is just an example — you may have other module directories, each with their own `primitives/` folder for plug-and-play modules.)_
+   In `methods/aggregation/primitives/`, create `yourNew.js`:
+
+   ```js
+   // methods/aggregation/primitives/yourNew.js
+
+   /**
+    * yourNew — example of a new aggregator
+    *
+    * @param {{ validateColumn(frame, column): void }} deps
+    * @returns {(frame: TinyFrame, column: string) => any}
+    */
+   export const yourNew =
+     ({ validateColumn }) =>
+     (frame, column) => {
+       validateColumn(frame, column);
+       // …your logic here
+       return; /* result */
+     };
+   ```
+
+2. **Register it in the barrel**  
+   Open `methods/aggregation/primitives/index.js` and add:
+
+   ```js
+   // at the top, alongside other exports
+   export { yourNew as _yourNew } from './yourNew.js';
+   ```
+
+3. **Inject dependencies**  
+   Ensure your `index.js` wires it up automatically:
+
+   ```js
+   import * as rawFns from './index.js'; // _yourNew is now part of rawFns
+   import { validateColumn } from '../../../primitives/validators.js';
+
+   const deps = { validateColumn /*, other shared deps */ };
+
+   export const aggregationFunctions = Object.fromEntries(
+     Object.entries(rawFns).map(([key, fn]) => [
+       key.replace(/^_/, ''), // strip the leading “_”
+       fn(deps), // yields a (frame, column) => … function
+     ]),
+   );
+   ```
+
+4. **Facade remains unchanged**  
+   In `methods/aggregation/groupByAgg.js` you don’t need to touch a thing — `yourNew` is picked up automatically:
+
+   ```js
+   import { aggregationFunctions } from './primitives/index.js';
+
+   export function groupByAgg(frame, column, aggName) {
+     const fn = aggregationFunctions[aggName];
+     if (!fn) throw new Error(`Unknown aggregator: ${aggName}`);
+     return fn(frame, column);
+   }
+   ```
+
+5. **Use your new aggregator**
+
+   ```js
+   import { groupByAgg } from 'methods/aggregation';
+
+   const result = groupByAgg(myFrame, 'someColumn', 'yourNew');
+   ```
+
+   That’s it — `yourNew` works out of the box, with no further edits to the facade or other modules.
+
+---
+
 ## 🚀 Getting Started
 
 1. **Fork this repo** on GitHub
@@ -62,64 +140,64 @@ Please review our [`Coding Guidelines`](./CODING_GUIDELINES.md) for:
 
 ---
 
-## ✅ Последовательность действий перед коммитом
+## ✅ Steps Before Commit
 
-### 1. 🔍 Проверка и авто-исправление форматирования (Prettier)
+### 1. 🔍 Check and auto-fix formatting (Prettier)
 
 ```bash
 pnpm format
 ```
 
-📌 Автоматически применит стиль `.prettierrc` ко всем `.js`, `.json`, `.md`, `.yml`, и т.д.
+📌 Automatically applies the `.prettierrc` style to all `.js`, `.json`, `.md`, `.yml`, etc.
 
 ---
 
-### 2. ✅ Авто-исправление кода по правилам ESLint
+### 2. ✅ Auto-fix code with ESLint rules
 
 ```bash
 pnpm lint --fix
 ```
 
-📌 Исправит ошибки линтинга и стиль, включая JSDoc, пробелы, отступы, `no-unused-vars`, и т.д.
+📌 Fixes linting errors and style, including JSDoc, spaces, indents, `no-unused-vars`, etc.
 
 ---
 
-### 3. 🧪 Запуск тестов
+### 3. 🧪 Run tests
 
 ```bash
 pnpm test
 ```
 
-📌 Запускает все тесты (через Vitest) и проверяет, что код не ломается.
+📌 Runs all tests (via Vitest) and checks that code is not broken.
 
 ---
 
-### 4. 🧪 Проверка покрытия (по желанию)
+### 4. 🧪 Check coverage (optional)
 
 ```bash
 pnpm coverage
 ```
 
-📌 Генерирует `coverage/lcov.info` и печатает отчёт в консоль.
+📌 Generates `coverage/lcov.info` and prints the report to the console.
 
 ---
 
-### 5. 🐶 (Автоматически) при `git commit`
+### 5. 🐶 (Automatically) on `git commit`
 
 ```bash
 git add .
 git commit -m "feat: describe your change"
 ```
 
-📌 При этом автоматически сработает:
+📌 This will automatically trigger:
 
 - `npx lint-staged`
-- `npx prettier --write` на staged файлы
-- `eslint --fix` на staged `.js/.ts`
+- `npx prettier --write` on staged files
+- `eslint --fix` on staged `.js/.ts`
 
 ---
 
-## 💡 Рекомендуемая команда на всё:
+## 💡 Recommended one-liner for all:
 
 ```bash
 pnpm format && pnpm lint --fix && pnpm test

@@ -34,9 +34,9 @@ jobs:
 
       - name: Debug ­– Prettier diff
         run: |
-          cp src/core/createFrame.js /tmp/before.js
-          pnpm prettier --write src/core/createFrame.js
-          diff -u /tmp/before.js src/core/createFrame.js || true
+          cp src/methods/autoExtend.js /tmp/before.js
+          pnpm prettier --write src/methods/autoExtend.js
+          diff -u /tmp/before.js src/methods/autoExtend.js || true
 
       - name: Format check
         run: pnpm format:check

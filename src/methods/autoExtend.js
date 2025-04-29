@@ -19,6 +19,7 @@ export function extendDataFrame(DataFrameClass) {
   const injectedMethods = injectMethods();
 
   for (const [name, methodFn] of Object.entries(injectedMethods)) {
+    // Explicitly add space after function keyword to match Prettier in CI
     DataFrameClass.prototype[name] = function (...args) {
       const result = methodFn(this._frame, ...args);
 

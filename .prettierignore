@@ -9,3 +9,7 @@ build
 
 pnpm-lock.yaml
 
+.eslintcache
+.cache/
+.vscode/
+*.md

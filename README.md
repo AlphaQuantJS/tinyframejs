@@ -75,7 +75,7 @@ graph TD
     createFrame --> tf[TinyFrame Structure]
     tf --> df[DataFrame Wrapper]
     df --> auto[Auto-Extended Methods]
-    auto --> user[User API: df.sort().dropNaN().head().count()]
+    auto --> user["User API: df.sort().dropNaN().head().count()"]
 ```
 
 ### Auto-Extension Mechanism

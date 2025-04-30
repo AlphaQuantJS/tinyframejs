@@ -1,0 +1,77 @@
+{
+  "chart": {
+    "result": [
+      {
+        "meta": {
+          "currency": "USD",
+          "symbol": "MSFT",
+          "exchangeName": "NMS",
+          "instrumentType": "EQUITY",
+          "firstTradeDate": 511108200,
+          "regularMarketTime": 1672963199,
+          "gmtoffset": -18000,
+          "timezone": "EST",
+          "exchangeTimezoneName": "America/New_York",
+          "regularMarketPrice": 222.31,
+          "chartPreviousClose": 217.9,
+          "priceHint": 2,
+          "currentTradingPeriod": {
+            "pre": {
+              "timezone": "EST",
+              "start": 1672902000,
+              "end": 1672921800,
+              "gmtoffset": -18000
+            },
+            "regular": {
+              "timezone": "EST",
+              "start": 1672921800,
+              "end": 1672945200,
+              "gmtoffset": -18000
+            },
+            "post": {
+              "timezone": "EST",
+              "start": 1672945200,
+              "end": 1672959600,
+              "gmtoffset": -18000
+            }
+          },
+          "dataGranularity": "1d",
+          "range": "5d",
+          "validRanges": [
+            "1d",
+            "5d",
+            "1mo",
+            "3mo",
+            "6mo",
+            "1y",
+            "2y",
+            "5y",
+            "10y",
+            "ytd",
+            "max"
+          ]
+        },
+        "timestamp": [
+          1672531200, 1672617600, 1672704000, 1672790400, 1672876800
+        ],
+        "indicators": {
+          "quote": [
+            {
+              "open": [217.9, 218.94, 220.0, 221.84, 220.22],
+              "high": [220.82, 220.08, 222.3, 223.1, 225.01],
+              "low": [216.5, 217.35, 218.76, 219.35, 219.0],
+              "close": [218.94, 220.0, 221.84, 220.22, 222.31],
+              "volume": [21884000, 20675000, 22362000, 25056000, 28567000]
+            }
+          ],
+          "adjclose": [
+            {
+              "adjclose": [218.94, 220.0, 221.84, 220.22, 222.31]
+            }
+          ]
+        }
+      }
+    ],
+    "error": null
+  }
+}

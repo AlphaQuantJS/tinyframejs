@@ -1,11 +1,19 @@
 /**
- * Unit tests for mean.js
+ * Unit tests for the mean method
+ *
+ * These tests verify the functionality of the mean method, which calculates
+ * the average value of numeric data in a specified DataFrame column.
+ *
+ * @module test/methods/aggregation/mean.test
  */
 
 import { mean } from '../../../src/methods/aggregation/mean.js';
 import { DataFrame } from '../../../src/core/DataFrame.js';
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 
+/**
+ * Tests for the mean function
+ */
 describe('mean', () => {
   // Mock the validateColumn dependency
   const validateColumn = vi.fn();
@@ -84,6 +92,9 @@ describe('mean', () => {
   });
 });
 
+/**
+ * Tests for the DataFrame.mean method
+ */
 describe('DataFrame.mean', () => {
   test('should calculate mean via DataFrame method', () => {
     // Create a DataFrame with test data

@@ -1,11 +1,19 @@
 /**
- * Unit tests for sort.js
+ * Unit tests for the sort method
+ *
+ * These tests verify the functionality of the sort method, which sorts
+ * DataFrame data by a specified column in ascending order.
+ *
+ * @module test/methods/aggregation/sort.test
  */
 
 import { sort } from '../../../src/methods/aggregation/sort.js';
 import { DataFrame } from '../../../src/core/DataFrame.js';
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 
+/**
+ * Tests for the sort function
+ */
 describe('sort', () => {
   // Mock the validateColumn dependency
   const validateColumn = vi.fn();
@@ -107,6 +115,9 @@ describe('sort', () => {
   });
 });
 
+/**
+ * Tests for the DataFrame.sort method
+ */
 describe('DataFrame.sort', () => {
   test('should sort DataFrame by specified column', () => {
     // Create a DataFrame with test data

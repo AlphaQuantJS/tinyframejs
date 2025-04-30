@@ -5,7 +5,15 @@
 import { createFrame, getColumn } from '../../src/core/createFrame.js';
 import { describe, test, expect } from 'vitest';
 
+/**
+ * Tests for the createFrame function
+ * Verifies frame creation from different data sources and with various options
+ */
 describe('createFrame', () => {
+  /**
+   * Tests creating a frame from object data (column-oriented)
+   * Each property of the object becomes a column in the frame
+   */
   test('should create a frame from object data', () => {
     const data = {
       a: [1, 2, 3],
@@ -21,6 +29,10 @@ describe('createFrame', () => {
     expect(frame.columns.b).toEqual(['a', 'b', 'c']);
   });
 
+  /**
+   * Tests creating a frame from an array of objects (row-oriented)
+   * Each object in the array becomes a row in the frame
+   */
   test('should create a frame from array of objects', () => {
     const data = [
       { a: 1, b: 'a' },
@@ -37,6 +49,10 @@ describe('createFrame', () => {
     expect(frame.columns.b).toEqual(['a', 'b', 'c']);
   });
 
+  /**
+   * Tests creating a frame from another frame
+   * Verifies that the new frame is a copy of the original frame
+   */
   test('should create a frame from another frame', () => {
     // Use data that will definitely be converted to Float64Array
     const data = {
@@ -63,6 +79,10 @@ describe('createFrame', () => {
     expect(frame2.columns.a[0]).toBe(1.1);
   });
 
+  /**
+   * Tests creating a frame from empty data
+   * Verifies that the frame is created with zero rows and columns
+   */
   test('should handle empty data', () => {
     const data = {};
 
@@ -72,6 +92,10 @@ describe('createFrame', () => {
     expect(Object.keys(frame.columns)).toEqual([]);
   });
 
+  /**
+   * Tests creating a frame from invalid data (null or undefined)
+   * Verifies that an error is thrown
+   */
   test('should throw error for invalid data', () => {
     expect(() => createFrame(null)).toThrow(
       'Input data cannot be null or undefined',
@@ -81,6 +105,10 @@ describe('createFrame', () => {
     );
   });
 
+  /**
+   * Tests detecting numeric columns and using TypedArrays
+   * Verifies that TypedArrays are used for numeric columns
+   */
   test('should detect numeric columns and use TypedArrays', () => {
     const data = {
       a: [1, 2, 3],
@@ -95,6 +123,10 @@ describe('createFrame', () => {
     expect(Array.isArray(frame.columns.c)).toBe(true);
   });
 
+  /**
+   * Tests not using TypedArrays when disabled
+   * Verifies that TypedArrays are not used when the option is disabled
+   */
   test('should not use TypedArrays when disabled', () => {
     const data = {
       a: [1, 2, 3],
@@ -107,6 +139,10 @@ describe('createFrame', () => {
     expect(Array.isArray(frame.columns.b)).toBe(true);
   });
 
+  /**
+   * Tests handling mixed types in columns
+   * Verifies that mixed types are handled correctly
+   */
   test('should handle mixed types in columns', () => {
     const data = {
       a: [1, 'string', 3],
@@ -121,6 +157,10 @@ describe('createFrame', () => {
     expect(frame.columns.b).toEqual([4, 5, null]);
   });
 
+  /**
+   * Tests handling NaN values in numeric columns
+   * Verifies that NaN values are handled correctly
+   */
   test('should handle NaN values in numeric columns', () => {
     // Use Float64Array to preserve NaN values
     const data = {
@@ -145,6 +185,10 @@ describe('createFrame', () => {
     expect(isNaN(frame.columns.b[2])).toBe(true);
   });
 
+  /**
+   * Tests handling null and undefined values in numeric columns
+   * Verifies that null and undefined values are handled correctly
+   */
   test('should handle null and undefined values in numeric columns', () => {
     // Use Float64Array to preserve NaN values
     const data = {
@@ -170,7 +214,15 @@ describe('createFrame', () => {
   });
 });
 
+/**
+ * Tests for the getColumn function
+ * Verifies that the function returns the correct column data
+ */
 describe('getColumn', () => {
+  /**
+   * Tests getting a column by name
+   * Verifies that the correct column data is returned
+   */
   test('should return column data', () => {
     const data = {
       a: [1, 2, 3],
@@ -183,6 +235,10 @@ describe('getColumn', () => {
     expect(getColumn(frame, 'b')).toEqual(frame.columns.b);
   });
 
+  /**
+   * Tests getting a non-existent column
+   * Verifies that an error is thrown
+   */
   test('should throw error for non-existent column', () => {
     const data = {
       a: [1, 2, 3],

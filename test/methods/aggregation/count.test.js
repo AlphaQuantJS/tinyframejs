@@ -1,6 +1,18 @@
+/**
+ * Unit tests for the count method
+ *
+ * These tests verify the functionality of the count method, which counts
+ * the number of values in a specified DataFrame column.
+ *
+ * @module test/methods/aggregation/count.test
+ */
+
 import { describe, test, expect } from 'vitest';
 import { DataFrame } from '../../../src/core/DataFrame.js';
 
+/**
+ * Tests for the DataFrame.count method
+ */
 describe('DataFrame.count', () => {
   const df = DataFrame.create({
     a: [1, 2, 3, 4, 5],

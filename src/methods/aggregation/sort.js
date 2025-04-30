@@ -1,7 +1,3 @@
-// methods/aggregation/methods/sort.js
-
-import { createFrame } from '../../core/createFrame.js';
-
 /**
  * sort — returns a new TinyFrame with rows sorted by the specified column (ascending)
  *

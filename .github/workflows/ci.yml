@@ -38,9 +38,9 @@ jobs:
 
       - name: Prettier diff
         run: |
-          cp src/methods/aggregation/count.js /tmp/before.js
-          pnpm prettier --write src/methods/aggregation/count.js
-          diff -u /tmp/before.js src/methods/aggregation/count.js || true
+          cp src/core/createFrame.js /tmp/before.js
+          pnpm prettier --write src/core/createFrame.js
+          diff -u /tmp/before.js src/core/createFrame.js || true
 
       - name: Format check (non-blocking)
         continue-on-error: true

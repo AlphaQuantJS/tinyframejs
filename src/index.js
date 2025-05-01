@@ -20,8 +20,4 @@ export * from './io/index.js';
 // Export aggregation and transformation methods
 export * from './methods/raw.js';
 
-// Export utilities
-export * from './utils/index.js';
-
-// Export display functions
-export * from './display/index.js';
+// Note: Utility and display functions will be added in future versions

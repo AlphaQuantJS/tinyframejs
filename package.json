@@ -1,6 +1,6 @@
 {
   "name": "tinyframejs",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "description": "Lightweight, high-performance tabular data engine for JavaScript",
   "type": "module",
   "main": "./src/index.js",
@@ -67,7 +67,7 @@
     "vitest": "3.1.2"
   },
   "dependencies": {
-    "xlsx": "^0.18.5"
+    "exceljs": "^4.4.0"
   },
   "engines": {
     "node": ">=16.0.0"

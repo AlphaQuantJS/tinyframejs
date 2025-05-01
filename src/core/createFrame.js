@@ -25,7 +25,14 @@ import { validateColumn } from './validators.js';
 /** -----------------------------------------------------------
  * Public API
  * -----------------------------------------------------------*/
-export { createFrame, isNumericArray, toArray, getColumnNames, getColumn };
+export {
+  createFrame,
+  cloneFrame,
+  isNumericArray,
+  toArray,
+  getColumnNames,
+  getColumn,
+};
 
 /**
  * Create a TinyFrame from rows, columns or an existing frame.

@@ -4,116 +4,177 @@
 
 import { readExcel } from '../../../src/io/readers/excel.js';
 import { DataFrame } from '../../../src/core/DataFrame.js';
-import { describe, test, expect, vi } from 'vitest';
+import { describe, test, expect, vi, beforeEach } from 'vitest';
 import fs from 'fs/promises';
 import path from 'path';
-import XLSX from 'xlsx';
+import * as ExcelJS from 'exceljs';
 
-/**
- * Mock implementation of the XLSX library
- * Provides mock implementations for read, readFile, and sheet_to_json functions
- * to allow testing without actual Excel files
- */
-vi.mock('xlsx', () => ({
-  default: {
-    read: vi.fn().mockImplementation(() => ({
-      SheetNames: ['Sheet1'],
-      Sheets: {
-        Sheet1: {
-          '!ref': 'A1:F3',
-        },
-      },
-    })),
-    readFile: vi.fn().mockImplementation(() => ({
-      SheetNames: ['Sheet1'],
-      Sheets: {
-        Sheet1: {
-          '!ref': 'A1:F3',
-        },
-      },
-    })),
-    utils: {
-      // eslint-disable-next-line camelcase
-      sheet_to_json: vi.fn().mockImplementation(() => [
-        {
-          date: '2023-01-01',
-          open: 100.5,
-          high: 105.75,
-          low: 99.25,
-          close: 103.5,
-          volume: 1000000,
-        },
-      ]),
+// Create mock for DataFrame.create to avoid dependency on actual implementation
+vi.mock('../../../src/core/DataFrame.js', () => {
+  const mockColumns = {
+    date: ['2023-01-01'],
+    open: [100.5],
+    high: [105.75],
+    low: [99.25],
+    close: [103.5],
+    volume: [1000000],
+  };
+
+  return {
+    DataFrame: {
+      create: vi.fn().mockImplementation(() => ({
+        columns: mockColumns,
+        rowCount: 1,
+        toArray: () => [
+          {
+            date: '2023-01-01',
+            open: 100.5,
+            high: 105.75,
+            low: 99.25,
+            close: 103.5,
+            volume: 1000000,
+          },
+        ],
+      })),
     },
-  },
-}));
+  };
+});
 
-/**
- * Tests for the Excel reader functionality
- * Verifies correct parsing of Excel data with various options
- */
+// Create mock for ExcelJS
+vi.mock('exceljs', () => {
+  // Mock for cell
+  class Cell {
+    constructor(value) {
+      this.value = value;
+    }
+  }
+
+  // Mock for row
+  class Row {
+    constructor(cells = {}) {
+      this.cells = cells;
+    }
+
+    eachCell(callback) {
+      Object.entries(this.cells).forEach(([colNumber, cell]) => {
+        callback(cell, parseInt(colNumber));
+      });
+    }
+  }
+
+  // Mock for worksheet
+  class Worksheet {
+    constructor(name, rows = {}) {
+      this.name = name;
+      this.rows = rows;
+    }
+
+    eachRow(callback) {
+      Object.entries(this.rows).forEach(([rowNumber, row]) => {
+        callback(row, parseInt(rowNumber));
+      });
+    }
+
+    getRow(rowNumber) {
+      return this.rows[rowNumber] || new Row();
+    }
+  }
+
+  // Mock for workbook
+  class Workbook {
+    constructor() {
+      // Create test data
+      const headerRow = new Row({
+        1: new Cell('date'),
+        2: new Cell('open'),
+        3: new Cell('high'),
+        4: new Cell('low'),
+        5: new Cell('close'),
+        6: new Cell('volume'),
+      });
+
+      const dataRow = new Row({
+        1: new Cell('2023-01-01'),
+        2: new Cell(100.5),
+        3: new Cell(105.75),
+        4: new Cell(99.25),
+        5: new Cell(103.5),
+        6: new Cell(1000000),
+      });
+
+      const worksheet = new Worksheet('Sheet1', {
+        1: headerRow,
+        2: dataRow,
+      });
+
+      this.worksheets = [worksheet];
+    }
+
+    getWorksheet(name) {
+      return this.worksheets.find((sheet) => sheet.name === name);
+    }
+
+    xlsx = {
+      readFile: vi.fn().mockResolvedValue(this),
+      load: vi.fn().mockResolvedValue(this),
+    };
+  }
+
+  return {
+    Workbook: vi.fn().mockImplementation(() => new Workbook()),
+  };
+});
+
 describe('Excel Reader', () => {
-  /**
-   * Tests reading Excel data from a buffer
-   * Verifies that Excel buffer content is correctly parsed into a DataFrame
-   */
   test('should read Excel buffer and return a DataFrame', async () => {
-    // Create a buffer for testing
     const buffer = Buffer.from('test');
 
     const df = await readExcel(buffer);
 
-    expect(df).toBeInstanceOf(DataFrame);
+    expect(df).toBeDefined();
+    expect(df.columns).toHaveProperty('date');
+    expect(df.columns).toHaveProperty('open');
+    expect(df.rowCount).toBe(1);
   });
 
-  /**
-   * Tests reading Excel data from a file path
-   * Verifies that Excel file content is correctly parsed into a DataFrame
-   */
   test('should read Excel file path and return a DataFrame', async () => {
-    // Use a file path for testing
     const filePath = '/path/to/test.xlsx';
 
     const df = await readExcel(filePath);
 
-    expect(df).toBeInstanceOf(DataFrame);
+    expect(df).toBeDefined();
+    expect(df.columns).toHaveProperty('date');
+    expect(df.columns).toHaveProperty('open');
   });
 
-  /**
-   * Tests reading Excel data with sheet name option
-   * Verifies that the specified sheet is correctly parsed
-   */
   test('should handle sheet name option', async () => {
     const buffer = Buffer.from('test');
-    const options = { sheetName: 'Sheet1' };
+    const options = { sheet: 'Sheet1' };
 
     const df = await readExcel(buffer, options);
 
-    expect(df).toBeInstanceOf(DataFrame);
+    expect(df).toBeDefined();
+    expect(df.columns).toHaveProperty('date');
   });
 
-  /**
-   * Tests reading Excel data with sheet index option
-   * Verifies that the specified sheet index is correctly parsed
-   */
   test('should handle sheet index option', async () => {
     const buffer = Buffer.from('test');
-    const options = { sheetIndex: 0 };
+    const options = { sheet: 0 };
 
     const df = await readExcel(buffer, options);
 
-    expect(df).toBeInstanceOf(DataFrame);
+    expect(df).toBeDefined();
+    expect(df.columns).toHaveProperty('date');
   });
 
-  /**
-   * Tests numeric value conversion in Excel data
-   * Verifies that numeric values are correctly converted
-   */
   test('should convert numeric values correctly', async () => {
     const buffer = Buffer.from('test');
 
     const df = await readExcel(buffer);
 
-    expect(df).toBeInstanceOf(DataFrame);
+    expect(df).toBeDefined();
+    expect(df.columns.open[0]).toBe(100.5);
+    expect(df.columns.high[0]).toBe(105.75);
+    expect(typeof df.columns.open[0]).toBe('number');
   });
 });

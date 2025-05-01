@@ -1,17 +1,18 @@
 // src/io/readers/excel.js
 
 import { DataFrame } from '../../core/DataFrame.js';
+import * as ExcelJS from 'exceljs';
 
 /**
  * Reads Excel data and returns a DataFrame.
- * Uses the 'xlsx' package for Excel file parsing.
+ * Uses the 'exceljs' package for Excel file parsing.
  *
  * @param {ArrayBuffer|Uint8Array|string} data
- *   Excel file data as ArrayBuffer, Uint8Array, or base64 string
+ *   Excel file data as ArrayBuffer, Uint8Array, or path to file
  * @param {Object} options
  *   Options for parsing
- * @param {string} [options.sheet='']
- *   Sheet name to read (empty for first sheet)
+ * @param {string|number} [options.sheet='']
+ *   Sheet name or index to read (empty for first sheet)
  * @param {boolean} [options.header=true]
  *   Whether the sheet has a header row
  * @param {boolean} [options.dynamicTyping=true]
@@ -20,21 +21,8 @@ import { DataFrame } from '../../core/DataFrame.js';
  *   Options to pass to DataFrame.create
  * @returns {DataFrame}
  *   DataFrame created from the Excel data
- * @throws {Error}
- *   If the xlsx package is not installed
  */
-export function readExcel(data, options = {}) {
-  // Check if xlsx is available
-  let XLSX;
-  try {
-    // Dynamic import to avoid dependency if not used
-    XLSX = require('xlsx');
-  } catch (e) {
-    throw new Error(
-      'The "xlsx" package is required to read Excel files. Install it with: npm install xlsx',
-    );
-  }
-
+export async function readExcel(data, options = {}) {
   const {
     sheet = '',
     header = true,
@@ -42,50 +30,93 @@ export function readExcel(data, options = {}) {
     frameOptions = {},
   } = options;
 
-  // Parse Excel data
-  const workbook = XLSX.read(data, { type: getDataType(data) });
+  // Create a new workbook
+  const workbook = new ExcelJS.Workbook();
 
-  // Get sheet name - use provided sheet name or first sheet
-  const sheetName = sheet || workbook.SheetNames[0];
-
-  if (!workbook.SheetNames.includes(sheetName)) {
-    throw new Error(`Sheet "${sheetName}" not found in workbook`);
+  // Load the workbook based on data type
+  if (typeof data === 'string') {
+    // Assume it's a file path
+    await workbook.xlsx.readFile(data);
+  } else if (data instanceof ArrayBuffer || data instanceof Uint8Array) {
+    // Handle binary data
+    await workbook.xlsx.load(data);
+  } else {
+    throw new Error('Unsupported data type for Excel reading');
   }
 
-  // Get the worksheet
-  const worksheet = workbook.Sheets[sheetName];
-
-  // Convert to JSON with appropriate options
-  const jsonOptions = {
-    header: header ? 1 : undefined,
-    defval: null,
-    raw: !dynamicTyping,
-  };
-
-  const jsonData = XLSX.utils.sheet_to_json(worksheet, jsonOptions);
-
-  // Create DataFrame from the JSON data
-  return DataFrame.create(jsonData, frameOptions);
-}
-
-/**
- * Determine the data type for xlsx.read based on the input.
- *
- * @param {ArrayBuffer|Uint8Array|string} data - Excel file data
- * @returns {string} Data type string for xlsx.read
- */
-function getDataType(data) {
-  if (data instanceof ArrayBuffer) {
-    return 'array';
-  } else if (data instanceof Uint8Array) {
-    return 'array';
-  } else if (typeof data === 'string') {
-    // Check if it's a base64 string
-    if (/^[A-Za-z0-9+/=]+$/.test(data)) {
-      return 'base64';
+  // Get the worksheet - by name, index, or first sheet
+  let worksheet;
+  if (typeof sheet === 'string' && sheet !== '') {
+    worksheet = workbook.getWorksheet(sheet);
+    if (!worksheet) {
+      throw new Error(`Sheet "${sheet}" not found in workbook`);
     }
-    return 'binary';
+  } else if (typeof sheet === 'number') {
+    worksheet = workbook.worksheets[sheet];
+    if (!worksheet) {
+      throw new Error(`Sheet at index ${sheet} not found in workbook`);
+    }
+  } else {
+    // Use first sheet
+    worksheet = workbook.worksheets[0];
+    if (!worksheet) {
+      throw new Error('No worksheets found in workbook');
+    }
   }
 
-  throw new Error('Unsupported data type for Excel reading');
+  // Convert worksheet to array of objects
+  const rows = [];
+  const headers = [];
+
+  // Extract headers if needed
+  if (header) {
+    const headerRow = worksheet.getRow(1);
+    headerRow.eachCell((cell, colNumber) => {
+      headers[colNumber - 1] = cell.value
+        ? cell.value.toString()
+        : `Column${colNumber}`;
+    });
+  }
+
+  // Process rows
+  const startRow = header ? 2 : 1;
+  worksheet.eachRow((row, rowNumber) => {
+    if (rowNumber >= startRow) {
+      const rowData = {};
+      row.eachCell((cell, colNumber) => {
+        const columnName = headers[colNumber - 1] || `Column${colNumber}`;
+        let value = cell.value;
+
+        // Handle dynamic typing
+        if (dynamicTyping && value !== null && value !== undefined) {
+          if (typeof value === 'object' && value.text) {
+            value = value.text;
+          }
+        }
+
+        rowData[columnName] = value;
+      });
+      rows.push(rowData);
+    }
+  });
+
+  // Convert array of objects to format for DataFrame.create
+  const columnsData = {};
+
+  if (rows.length > 0) {
+    // Initialize arrays for each column
+    Object.keys(rows[0]).forEach((key) => {
+      columnsData[key] = [];
+    });
+
+    // Fill arrays with data
+    rows.forEach((row) => {
+      Object.keys(row).forEach((key) => {
+        columnsData[key].push(row[key]);
+      });
+    });
+  }
+
+  // Create DataFrame using the static create method
+  return DataFrame.create(columnsData, frameOptions);
 }

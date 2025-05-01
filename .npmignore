@@ -1,0 +1,44 @@
+# Development files
+.git
+.github
+.husky
+.vscode
+.idea
+.DS_Store
+.editorconfig
+.eslintcache
+
+# Tests and coverage
+test/
+coverage/
+*.test.js
+vitest.config.js
+
+# Development documentation
+docs/
+todo*.md
+CONTRIBUTING.md
+CHANGELOG.md
+.changeset/
+
+# Configuration files
+.eslintrc.js
+.prettierrc
+.prettierignore
+commitlint.config.js
+lint-staged.config.js
+.windsurfrules
+
+# Scripts and examples
+scripts/
+examples/
+benchmarks/
+
+# Temporary files
+*.log
+*.tmp
+.cache
+.temp
+
+# Dependencies
+node_modules/

@@ -31,7 +31,7 @@
     "release": "pnpm build && changeset publish",
     "prepare": "husky install",
     "precommit": "pnpm format && pnpm lint && pnpm test",
-    "prepublishOnly": "pnpm test && pnpm lint:check",
+    "prepublishOnly": "pnpm test",
     "publish": "npm publish --access public"
   },
   "keywords": [

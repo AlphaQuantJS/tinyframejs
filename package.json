@@ -1,6 +1,6 @@
 {
   "name": "tinyframejs",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Lightweight, high-performance tabular data engine for JavaScript",
   "type": "module",
   "main": "./src/index.js",

@@ -1,7 +1,5 @@
 import { validateColumn } from './validators.js';
 
-/* eslint-disable prefer-const */
-
 /** @typedef {import('./types').DType} DType */
 /** @typedef {import('./types').TinyFrameOptions} TinyFrameOptions */
 /** @typedef {import('./types').TinyFrame} TinyFrame */
@@ -25,14 +23,7 @@ import { validateColumn } from './validators.js';
 /** -----------------------------------------------------------
  * Public API
  * -----------------------------------------------------------*/
-export {
-  createFrame,
-  cloneFrame,
-  isNumericArray,
-  toArray,
-  getColumnNames,
-  getColumn,
-};
+export { createFrame, cloneFrame };
 
 /**
  * Create a TinyFrame from rows, columns or an existing frame.
@@ -136,15 +127,13 @@ function createFrameFromRows(rows, opts) {
       opts.useTypedArrays && isNumericDType(dt) ? toTyped(values, dt) : values;
   }
 
-  /** @type {TinyFrame} */ const frame = {
+  return {
     columns,
     rowCount: rows.length,
     columnNames,
     dtypes,
+    ...(opts.saveRawData ? { rawColumns: materialiseRaw(columns) } : {}),
   };
-
-  if (opts.saveRawData) defineLazyRaw(frame, rows);
-  return frame;
 }
 
 /**
@@ -155,52 +144,47 @@ function createFrameFromRows(rows, opts) {
  */
 function createFrameFromColumns(columnData, rowCount, opts) {
   const columnNames = Object.keys(columnData);
-  if (columnNames.length === 0)
+  if (columnNames.length === 0) {
     return { columns: {}, rowCount: 0, columnNames: [], dtypes: {} };
-  const firstLen = getLength(columnData[columnNames[0]]);
-  const nRows = rowCount ?? firstLen;
+  }
 
   /** @type {Record<string,any[]|TypedArray>} */ const columns = {};
   /** @type {Record<string,DType>} */ const dtypes = {};
 
-  for (const name of columnNames) {
-    const col = columnData[name];
-    if (!Array.isArray(col) && !ArrayBuffer.isView(col))
-      throw new Error(`Column ${name} is not array‑like`);
-    if (getLength(col) !== nRows)
-      throw new Error(`Column ${name} length mismatch`);
-
-    const dt = ArrayBuffer.isView(col) ? mapTAtoDType(col) : detectDType(col);
-    dtypes[name] = dt;
-
-    if (opts.copy === 'none') {
-      columns[name] = col; // share as‑is
-    } else if (opts.useTypedArrays && isNumericDType(dt)) {
-      /* eslint-disable operator-linebreak */
-      columns[name] = ArrayBuffer.isView(col)
-        ? opts.copy === 'shallow'
-          ? cloneTA(col)
-          : col
-        : toTyped(col, dt);
-      /* eslint-enable operator-linebreak */
-    } else {
-      columns[name] =
-        opts.copy === 'shallow' ? [...col] : JSON.parse(JSON.stringify(col));
-    }
+  // Determine row count if not provided
+  let len = rowCount;
+  if (len === null) {
+    len = Math.max(...columnNames.map((k) => getLength(columnData[k])));
   }
 
-  /** @type {TinyFrame} */ const frame = {
+  for (const name of columnNames) {
+    const col = columnData[name];
+
+    // Handle TypedArrays
+    if (ArrayBuffer.isView(col)) {
+      dtypes[name] = mapTAtoDType(col);
+      columns[name] = opts.copy === 'none' ? col : cloneTA(col);
+      continue;
+    }
+
+    // Handle arrays
+    const dt = detectDType(col);
+    dtypes[name] = dt;
+    columns[name] =
+      opts.useTypedArrays && isNumericDType(dt) ? toTyped(col, dt) : [...col];
+  }
+
+  return {
     columns,
-    rowCount: nRows,
+    rowCount: len,
     columnNames,
     dtypes,
+    ...(opts.saveRawData ? { rawColumns: materialiseRaw(columns) } : {}),
   };
-  if (opts.saveRawData) defineLazyRaw(frame, columnData);
-  return frame;
 }
 
 function getLength(arr) {
-  return ArrayBuffer.isView(arr) ? arr.length : arr.length;
+  return ArrayBuffer.isView(arr) ? arr.length : arr.length || 0;
 }
 
 /** -----------------------------------------------------------
@@ -213,13 +197,17 @@ function getLength(arr) {
  * @returns {DType} Detected data type
  */
 function detectDType(arr) {
-  let numeric = true,
-    int = true,
-    unsigned = true,
-    max = 0;
+  if (!arr || arr.length === 0) return 'str';
+  let numeric = false;
+  let int = true;
+  let unsigned = true;
+  let max = 0;
+
   for (const v of arr) {
-    // eslint-disable-next-line eqeqeq
-    if (v == null || Number.isNaN(v)) continue;
+    if (v === null || v === undefined || Number.isNaN(v)) continue;
+    numeric = true;
+    // eslint-disable eqeqeq
+    if (v === null || v === undefined || Number.isNaN(v)) continue;
     // eslint-enable eqeqeq
     if (typeof v !== 'number') return 'str';
     if (!Number.isInteger(v)) int = false;
@@ -283,11 +271,9 @@ function toTyped(arr, dt) {
   }
 }
 
-/* eslint-disable eqeqeq */
 function safeNum(v) {
-  return v == null ? NaN : v;
+  return v === null ? NaN : v;
 }
-/* eslint-enable eqeqeq */
 
 function mapTAtoDType(ta) {
   if (ta instanceof Float64Array) return 'f64';
@@ -330,53 +316,4 @@ function materialiseRaw(obj) {
     out[k] = ArrayBuffer.isView(col) ? Array.from(col) : [...col];
   }
   return out;
-}
-
-/** -----------------------------------------------------------
- * Public helper utilities (unchanged interface)
- * -----------------------------------------------------------*/
-
-/**
- * Checks if array is numeric or TypedArray
- * @param {Array<any>|TypedArray} arr
- * @returns {boolean} True if array is numeric
- */
-function isNumericArray(arr) {
-  return ArrayBuffer.isView(arr) || detectDType(arr) !== 'str';
-}
-
-/**
- * Converts TinyFrame to array of objects
- * @param {TinyFrame} frame
- * @returns {Array<Object>} Array of row objects
- */
-function toArray(frame) {
-  const { columns, rowCount, columnNames } = frame;
-  const rows = new Array(rowCount);
-  for (let i = 0; i < rowCount; i++) {
-    const row = {};
-    for (const name of columnNames) row[name] = columns[name][i];
-    rows[i] = row;
-  }
-  return rows;
-}
-
-/**
- * Returns column names from TinyFrame
- * @param {TinyFrame} frame
- * @returns {string[]} Array of column names
- */
-function getColumnNames(frame) {
-  return frame.columnNames;
-}
-
-/**
- * Returns column by name from TinyFrame
- * @param {TinyFrame} frame
- * @param {string} name
- * @returns {Array<any>|TypedArray} The column data
- */
-function getColumn(frame, name) {
-  validateColumn(frame, name);
-  return frame.columns[name];
 }

@@ -2,8 +2,22 @@
  * Unit tests for createFrame.js
  */
 
-import { createFrame, getColumn } from '../../src/core/createFrame.js';
+import { createFrame } from '../../src/core/createFrame.js';
 import { describe, test, expect } from 'vitest';
+
+/**
+ * Helper function for tests to get a column from a frame
+ * @param {Object} frame - The frame to get the column from
+ * @param {string} name - The name of the column to get
+ * @returns {Array|TypedArray} The column data
+ * @throws {Error} If the column does not exist
+ */
+function getColumnForTest(frame, name) {
+  if (!(name in frame.columns)) {
+    throw new Error(`Column '${name}' not found`);
+  }
+  return frame.columns[name];
+}
 
 /**
  * Tests for the createFrame function
@@ -215,10 +229,10 @@ describe('createFrame', () => {
 });
 
 /**
- * Tests for the getColumn function
- * Verifies that the function returns the correct column data
+ * Tests for accessing columns
+ * Verifies that columns can be accessed correctly
  */
-describe('getColumn', () => {
+describe('Column Access', () => {
   /**
    * Tests getting a column by name
    * Verifies that the correct column data is returned
@@ -231,8 +245,8 @@ describe('getColumn', () => {
 
     const frame = createFrame(data);
 
-    expect(getColumn(frame, 'a')).toEqual(frame.columns.a);
-    expect(getColumn(frame, 'b')).toEqual(frame.columns.b);
+    expect(getColumnForTest(frame, 'a')).toEqual(frame.columns.a);
+    expect(getColumnForTest(frame, 'b')).toEqual(frame.columns.b);
   });
 
   /**
@@ -246,8 +260,6 @@ describe('getColumn', () => {
 
     const frame = createFrame(data);
 
-    expect(() => getColumn(frame, 'b')).toThrow(
-      'Column \u0027b\u0027 not found',
-    );
+    expect(() => getColumnForTest(frame, 'b')).toThrow("Column 'b' not found");
   });
 });

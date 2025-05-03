@@ -5,3 +5,8 @@ export { mean } from './aggregation/mean.js';
 export { sort } from './aggregation/sort.js';
 export { first } from './aggregation/first.js';
 export { print } from './display/print.js';
+export { sum } from './aggregation/sum.js';
+export { min } from './aggregation/min.js';
+export { max } from './aggregation/max.js';
+export { last } from './aggregation/last.js';
+export { median } from './aggregation/median.js';

@@ -42,3 +42,13 @@ benchmarks/
 
 # Dependencies
 node_modules/
+build/
+dist/
+.DS_Store
+
+# Documentation
+../tinyframejs-docs/
+tinyframejs-docs/
+docs-site/
+docs/
+typedoc.json

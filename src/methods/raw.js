@@ -10,3 +10,6 @@ export { min } from './aggregation/min.js';
 export { max } from './aggregation/max.js';
 export { last } from './aggregation/last.js';
 export { median } from './aggregation/median.js';
+export { mode } from './aggregation/mode.js';
+export { std } from './aggregation/std.js';
+export { variance } from './aggregation/variance.js';

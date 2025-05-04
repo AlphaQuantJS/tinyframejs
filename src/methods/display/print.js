@@ -86,14 +86,181 @@ function formatTable(frame, options = {}) {
 }
 
 /**
- * Prints the DataFrame to the console.
+ * Prints the DataFrame to the console in a table format with borders.
  * @param {{ validateColumn(frame, column): void }} deps
- * @returns {(frame: TinyFrame, options?: Object) => void}
+ * @returns {(frame: TinyFrame, rows?: number, cols?: number) => void}
  */
-export const print =
-  () =>
-  (frame, options = {}) => {
-    const formattedTable = formatTable(frame, options);
-    console.log(formattedTable);
-    return frame; // Return the frame for method chaining
+export const print = () => (frame, rows, cols) => {
+  // Set defaults
+  const maxRows = typeof rows === 'number' ? rows : 7;
+  const maxCols = typeof cols === 'number' ? cols : Infinity;
+  const showFirstAndLast = rows === undefined; // Default behavior shows first and last rows
+
+  const columns = Object.keys(frame.columns);
+  const rowCount = frame.rowCount;
+
+  // Determine how many rows to display
+  let rowsToDisplay = [];
+
+  if (showFirstAndLast && rowCount > maxRows * 2) {
+    // Standard behavior: show first and last rows
+    const firstRows = Array.from({ length: maxRows }, (_, i) => i);
+    const lastRows = Array.from(
+      { length: maxRows },
+      (_, i) => rowCount - maxRows + i,
+    );
+    rowsToDisplay = [...firstRows, -1, ...lastRows]; // -1 is a placeholder for the separator
+  } else {
+    // Show only first maxRows rows
+    rowsToDisplay = Array.from(
+      { length: Math.min(maxRows, rowCount) },
+      (_, i) => i,
+    );
+    // Add separator if there are more rows
+    if (rowCount > maxRows) {
+      rowsToDisplay.push(-2); // -2 is a placeholder for the "more rows" message without showing last rows
+    }
+  }
+
+  // Determine visible columns
+  const displayCols = Math.min(maxCols, columns.length);
+  const visibleColumns = columns.slice(0, displayCols);
+
+  // Calculate column widths
+  const columnWidths = {};
+
+  // Initialize with header lengths
+  visibleColumns.forEach((col) => {
+    columnWidths[col] = col.length;
+  });
+
+  // Find the maximum width for each column based on data
+  rowsToDisplay.forEach((rowIdx) => {
+    if (rowIdx >= 0) {
+      // Skip separator placeholders
+      visibleColumns.forEach((col) => {
+        const value = String(frame.columns[col][rowIdx] ?? '');
+        columnWidths[col] = Math.max(columnWidths[col], value.length);
+      });
+    }
+  });
+
+  // Table border characters
+  const border = {
+    topLeft: '┌',
+    topRight: '┐',
+    bottomLeft: '└',
+    bottomRight: '┘',
+    horizontal: '─',
+    vertical: '│',
+    leftT: '├',
+    rightT: '┤',
+    topT: '┬',
+    bottomT: '┴',
+    cross: '┼',
   };
+
+  // Create a formatted table
+  const table = [];
+
+  // Create top border
+  let topBorder = border.topLeft;
+  visibleColumns.forEach((col, i) => {
+    topBorder += border.horizontal.repeat(columnWidths[col] + 2);
+    topBorder += i < visibleColumns.length - 1 ? border.topT : border.topRight;
+  });
+  table.push(topBorder);
+
+  // Add header row
+  let headerRow = border.vertical;
+  visibleColumns.forEach((col) => {
+    headerRow += ' ' + col.padEnd(columnWidths[col]) + ' ' + border.vertical;
+  });
+  table.push(headerRow);
+
+  // Add header separator
+  let headerSeparator = border.leftT;
+  visibleColumns.forEach((col, i) => {
+    headerSeparator += border.horizontal.repeat(columnWidths[col] + 2);
+    headerSeparator +=
+      i < visibleColumns.length - 1 ? border.cross : border.rightT;
+  });
+  table.push(headerSeparator);
+
+  // Add data rows
+  let skipNextRow = false;
+  for (let i = 0; i < rowsToDisplay.length; i++) {
+    const rowIdx = rowsToDisplay[i];
+
+    if (rowIdx === -1 || rowIdx === -2) {
+      // This is a separator placeholder
+      let message;
+      if (rowIdx === -1) {
+        // For first/last display
+        const remainingRows = rowCount - maxRows * 2;
+        message = `... ${remainingRows} more rows ...`;
+      } else {
+        // For showing only first N rows
+        const remainingRows = rowCount - maxRows;
+        message = `... ${remainingRows} more rows ...`;
+      }
+
+      // Create a centered message row
+      let messageRow = border.vertical;
+      const totalWidth = visibleColumns.reduce(
+        (sum, col) => sum + columnWidths[col] + 3,
+        -1,
+      );
+      const paddingLeft = Math.max(
+        0,
+        Math.floor((totalWidth - message.length) / 2),
+      );
+      const paddingRight = Math.max(
+        0,
+        totalWidth - message.length - paddingLeft,
+      );
+      messageRow +=
+        ' '.repeat(paddingLeft) +
+        message +
+        ' '.repeat(paddingRight) +
+        border.vertical;
+      table.push(messageRow);
+
+      if (rowIdx === -1) {
+        skipNextRow = true;
+      }
+    } else if (!skipNextRow) {
+      let dataRow = border.vertical;
+      visibleColumns.forEach((col) => {
+        const value = String(frame.columns[col][rowIdx] ?? '');
+        dataRow +=
+          ' ' + value.padEnd(columnWidths[col]) + ' ' + border.vertical;
+      });
+      table.push(dataRow);
+    } else {
+      skipNextRow = false;
+    }
+  }
+
+  // Add bottom border
+  let bottomBorder = border.bottomLeft;
+  visibleColumns.forEach((col, i) => {
+    bottomBorder += border.horizontal.repeat(columnWidths[col] + 2);
+    bottomBorder +=
+      i < visibleColumns.length - 1 ? border.bottomT : border.bottomRight;
+  });
+  table.push(bottomBorder);
+
+  // Add message about more columns if necessary
+  if (columns.length > maxCols) {
+    table.push(`... and ${columns.length - maxCols} more columns ...`);
+  }
+
+  // Add table size
+  table.push(`[${rowCount} rows x ${columns.length} columns]`);
+
+  // Print the table
+  console.log(table.join('\n'));
+
+  return frame; // Return the frame for method chaining
+};

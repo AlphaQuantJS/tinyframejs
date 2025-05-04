@@ -57,7 +57,7 @@ describe('DataFrame print method', () => {
     consoleSpy.mockRestore();
   });
 
-  it('should respect maxRows option', () => {
+  it('should respect rows limit', () => {
     // Create a frame with many rows
     const largeData = Array.from({ length: 20 }, (_, i) => ({
       id: i,
@@ -71,7 +71,7 @@ describe('DataFrame print method', () => {
 
     // Call print function with row limit
     const printFn = print();
-    printFn(largeDf._frame, { maxRows: 5 });
+    printFn(largeDf._frame, 5);
 
     // Get the output
     const output = consoleSpy.mock.calls[0][0];
@@ -83,7 +83,7 @@ describe('DataFrame print method', () => {
     consoleSpy.mockRestore();
   });
 
-  it('should respect maxCols option', () => {
+  it('should respect cols limit', () => {
     // Create a frame with many columns
     const wideData = [{ col1: 1, col2: 2, col3: 3, col4: 4, col5: 5, col6: 6 }];
 
@@ -94,7 +94,7 @@ describe('DataFrame print method', () => {
 
     // Call print function with column limit
     const printFn = print();
-    printFn(wideDf._frame, { maxCols: 3 });
+    printFn(wideDf._frame, undefined, 3);
 
     // Get the output
     const output = consoleSpy.mock.calls[0][0];

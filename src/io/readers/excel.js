@@ -7,8 +7,8 @@ import * as ExcelJS from 'exceljs';
  * Reads Excel data and returns a DataFrame.
  * Uses the 'exceljs' package for Excel file parsing.
  *
- * @param {ArrayBuffer|Uint8Array|string} data
- *   Excel file data as ArrayBuffer, Uint8Array, or path to file
+ * @param {ArrayBuffer|Uint8Array|string|File|Blob|URL} source
+ *   Excel file data as ArrayBuffer, Uint8Array, path to file, File, Blob, or URL
  * @param {Object} options
  *   Options for parsing
  * @param {string|number} [options.sheet='']
@@ -19,10 +19,10 @@ import * as ExcelJS from 'exceljs';
  *   Whether to automatically detect and convert types
  * @param {Object} [options.frameOptions={}]
  *   Options to pass to DataFrame.create
- * @returns {DataFrame}
- *   DataFrame created from the Excel data
+ * @returns {Promise<DataFrame>}
+ *   Promise resolving to DataFrame created from the Excel data
  */
-export async function readExcel(data, options = {}) {
+export async function readExcel(source, options = {}) {
   const {
     sheet = '',
     header = true,
@@ -33,8 +33,11 @@ export async function readExcel(data, options = {}) {
   // Create a new workbook
   const workbook = new ExcelJS.Workbook();
 
+  // Get data from source
+  const data = await getDataFromSource(source);
+
   // Load the workbook based on data type
-  if (typeof data === 'string') {
+  if (typeof data === 'string' && (data.includes('/') || data.includes('\\'))) {
     // Assume it's a file path
     await workbook.xlsx.readFile(data);
   } else if (data instanceof ArrayBuffer || data instanceof Uint8Array) {
@@ -119,4 +122,52 @@ export async function readExcel(data, options = {}) {
 
   // Create DataFrame using the static create method
   return DataFrame.create(columnsData, frameOptions);
+}
+
+/**
+ * Gets data from various source types.
+ *
+ * @param {ArrayBuffer|Uint8Array|string|File|Blob|URL} source - Source to get data from
+ * @returns {Promise<ArrayBuffer|Uint8Array|string>} Promise resolving to data
+ */
+async function getDataFromSource(source) {
+  // If source is already an ArrayBuffer or Uint8Array
+  if (source instanceof ArrayBuffer || source instanceof Uint8Array) {
+    return source;
+  }
+
+  // If source is a file path (string)
+  if (typeof source === 'string') {
+    // Check if it's a URL
+    if (source.startsWith('http://') || source.startsWith('https://')) {
+      try {
+        const response = await fetch(source);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch ${source}: ${response.statusText}`);
+        }
+        return await response.arrayBuffer();
+      } catch (error) {
+        throw new Error(`Error fetching Excel file: ${error.message}`);
+      }
+    } else if (source.includes('/') || source.includes('\\')) {
+      // Otherwise, assume it's a file path
+      return source;
+    }
+  }
+
+  // If source is a File or Blob
+  if (
+    (typeof File !== 'undefined' && source instanceof File) ||
+    (typeof Blob !== 'undefined' && source instanceof Blob)
+  ) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) =>
+        reject(new Error(`Error reading file: ${error}`));
+      reader.readAsArrayBuffer(source);
+    });
+  }
+
+  throw new Error('Unsupported source type for Excel reading');
 }

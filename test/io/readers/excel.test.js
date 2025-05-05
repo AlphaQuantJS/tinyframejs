@@ -125,7 +125,21 @@ vi.mock('exceljs', () => {
   };
 });
 
+// Mock global fetch
+global.fetch = vi.fn();
+
 describe('Excel Reader', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+
+    // Setup fetch mock response
+    global.fetch.mockResolvedValue({
+      ok: true,
+      arrayBuffer: vi.fn().mockResolvedValue(Buffer.from('test')),
+      statusText: 'OK',
+    });
+  });
+
   test('should read Excel buffer and return a DataFrame', async () => {
     const buffer = Buffer.from('test');
 
@@ -176,5 +190,95 @@ describe('Excel Reader', () => {
     expect(df.columns.open[0]).toBe(100.5);
     expect(df.columns.high[0]).toBe(105.75);
     expect(typeof df.columns.open[0]).toBe('number');
+  });
+
+  test('should read Excel from URL', async () => {
+    const url = 'https://example.com/test.xlsx';
+
+    // Ensure fetch is mocked properly
+    global.fetch.mockImplementationOnce((fetchUrl) => {
+      expect(fetchUrl).toBe(url);
+      return Promise.resolve({
+        ok: true,
+        arrayBuffer: () => Promise.resolve(Buffer.from('test')),
+      });
+    });
+
+    const df = await readExcel(url);
+
+    expect(df).toBeDefined();
+    expect(df.columns).toHaveProperty('date');
+    expect(df.columns).toHaveProperty('open');
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(global.fetch).toHaveBeenCalledWith(url);
+  });
+
+  test('should handle URL fetch error', async () => {
+    const url = 'https://example.com/nonexistent.xlsx';
+
+    // Mock fetch to return an error
+    global.fetch.mockImplementationOnce(() =>
+      Promise.resolve({
+        ok: false,
+        statusText: 'Not Found',
+      }),
+    );
+
+    await expect(readExcel(url)).rejects.toThrow('Failed to fetch');
+  });
+
+  test('should read Excel from File object', async () => {
+    // Mock FileReader
+    class MockFileReader {
+      constructor() {
+        this.result = null;
+        this.onload = null;
+      }
+
+      readAsArrayBuffer(blob) {
+        // Simulate async file reading
+        setTimeout(() => {
+          this.result = Buffer.from('test');
+          if (this.onload) this.onload({ target: this });
+        }, 0);
+      }
+    }
+
+    global.FileReader = MockFileReader;
+
+    // Mock Blob
+    class MockBlob {
+      constructor(parts, options = {}) {
+        this.parts = parts;
+        this.options = options;
+      }
+    }
+
+    // Mock File
+    class MockFile extends MockBlob {
+      constructor(parts, name, options = {}) {
+        super(parts, options);
+        this.name = name;
+        this.lastModified = options.lastModified || Date.now();
+      }
+    }
+
+    global.Blob = MockBlob;
+    global.File = MockFile;
+
+    // Create a mock File
+    const file = new MockFile([Buffer.from('test')], 'test.xlsx', {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+
+    const df = await readExcel(file);
+
+    expect(df).toBeDefined();
+    expect(df.columns).toHaveProperty('date');
+    expect(df.columns).toHaveProperty('open');
+  });
+
+  test('should throw error for unsupported data type', async () => {
+    await expect(readExcel(123)).rejects.toThrow('Unsupported source type');
   });
 });

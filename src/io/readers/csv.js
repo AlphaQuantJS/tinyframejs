@@ -10,7 +10,7 @@ const require = createRequire(import.meta.url);
  * Uses the csv-parse module for parsing if available, or the built-in parser
  * if the external module is not available.
  *
- * @param {string} content - CSV content as a string
+ * @param {string|File|Blob|URL} source - CSV content as a string, path to file, File, Blob, or URL
  * @param {Object} options - Options for parsing
  * @param {string} [options.delimiter=','] - Delimiter character
  * @param {boolean} [options.header=true] - Whether the CSV has a header row
@@ -18,9 +18,9 @@ const require = createRequire(import.meta.url);
  *   detect and convert types
  * @param {boolean} [options.skipEmptyLines=true] - Whether to skip empty lines
  * @param {Object} [options.frameOptions={}] - Options to pass to DataFrame.create
- * @returns {DataFrame} DataFrame created from the CSV
+ * @returns {Promise<DataFrame>} Promise resolving to DataFrame created from the CSV
  */
-export function readCsv(content, options = {}) {
+export async function readCsv(source, options = {}) {
   const {
     delimiter = ',',
     header = true,
@@ -28,6 +28,9 @@ export function readCsv(content, options = {}) {
     skipEmptyLines = true,
     frameOptions = {},
   } = options;
+
+  // Get content from source
+  const content = await getContentFromSource(source);
 
   // Detect environment (Node.js or browser)
   const isNode =
@@ -73,6 +76,64 @@ export function readCsv(content, options = {}) {
       frameOptions,
     });
   }
+}
+
+/**
+ * Gets content from various source types.
+ *
+ * @param {string|File|Blob|URL} source - Source to get content from
+ * @returns {Promise<string>} Promise resolving to content as string
+ */
+async function getContentFromSource(source) {
+  // If source is already a string with CSV content
+  if (
+    typeof source === 'string' &&
+    !source.includes('/') &&
+    !source.includes('\\')
+  ) {
+    return source;
+  }
+
+  // If source is a file path (Node.js)
+  if (
+    typeof source === 'string' &&
+    (source.includes('/') || source.includes('\\')) &&
+    typeof process !== 'undefined' &&
+    process.versions &&
+    process.versions.node
+  ) {
+    const fs = require('fs').promises;
+    return await fs.readFile(source, 'utf8');
+  }
+
+  // If source is a URL or file path (browser)
+  if (typeof source === 'string') {
+    try {
+      const response = await fetch(source);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch ${source}: ${response.statusText}`);
+      }
+      return await response.text();
+    } catch (error) {
+      throw new Error(`Error fetching CSV: ${error.message}`);
+    }
+  }
+
+  // If source is a File or Blob (browser)
+  if (
+    (typeof File !== 'undefined' && source instanceof File) ||
+    (typeof Blob !== 'undefined' && source instanceof Blob)
+  ) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) =>
+        reject(new Error(`Error reading file: ${error}`));
+      reader.readAsText(source);
+    });
+  }
+
+  throw new Error('Unsupported source type for CSV reading');
 }
 
 /**

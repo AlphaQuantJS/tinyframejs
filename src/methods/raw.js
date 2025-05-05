@@ -13,3 +13,16 @@ export { median } from './aggregation/median.js';
 export { mode } from './aggregation/mode.js';
 export { std } from './aggregation/std.js';
 export { variance } from './aggregation/variance.js';
+
+// Filtering and selection methods
+export { select } from './filtering/select.js';
+export { drop } from './filtering/drop.js';
+export { selectByPattern } from './filtering/selectByPattern.js';
+export { filter } from './filtering/filter.js';
+export { query } from './filtering/query.js';
+export { where } from './filtering/where.js';
+export { at } from './filtering/at.js';
+export { iloc } from './filtering/iloc.js';
+export { loc } from './filtering/loc.js';
+export { sample } from './filtering/sample.js';
+export { stratifiedSample } from './filtering/stratifiedSample.js';

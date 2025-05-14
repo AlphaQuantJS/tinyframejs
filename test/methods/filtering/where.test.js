@@ -96,6 +96,61 @@ describe('Where Method', () => {
     ]);
   });
 
+  test('should filter rows using column condition with startsWith operator (camelCase)', () => {
+    const df = DataFrame.create(data);
+    const result = df.where('city', 'startsWith', 'San');
+
+    // Check that the filtered data is correct
+    expect(result.rowCount).toBe(1);
+    expect(result.toArray()).toEqual([
+      { name: 'Bob', age: 30, city: 'San Francisco', salary: 85000 },
+    ]);
+  });
+
+  test('should filter rows using column condition with startswith operator (lowercase)', () => {
+    const df = DataFrame.create(data);
+    const result = df.where('city', 'startswith', 'San');
+
+    // Check that the filtered data is correct
+    expect(result.rowCount).toBe(1);
+    expect(result.toArray()).toEqual([
+      { name: 'Bob', age: 30, city: 'San Francisco', salary: 85000 },
+    ]);
+  });
+
+  test('should filter rows using column condition with endsWith operator (camelCase)', () => {
+    const df = DataFrame.create(data);
+    const result = df.where('city', 'endsWith', 'York');
+
+    // Check that the filtered data is correct
+    expect(result.rowCount).toBe(1);
+    expect(result.toArray()).toEqual([
+      { name: 'Alice', age: 25, city: 'New York', salary: 70000 },
+    ]);
+  });
+
+  test('should filter rows using column condition with endswith operator (lowercase)', () => {
+    const df = DataFrame.create(data);
+    const result = df.where('city', 'endswith', 'York');
+
+    // Check that the filtered data is correct
+    expect(result.rowCount).toBe(1);
+    expect(result.toArray()).toEqual([
+      { name: 'Alice', age: 25, city: 'New York', salary: 70000 },
+    ]);
+  });
+
+  test('should filter rows using column condition with matches operator', () => {
+    const df = DataFrame.create(data);
+    const result = df.where('city', 'matches', '^San');
+
+    // Check that the filtered data is correct
+    expect(result.rowCount).toBe(1);
+    expect(result.toArray()).toEqual([
+      { name: 'Bob', age: 30, city: 'San Francisco', salary: 85000 },
+    ]);
+  });
+
   test('should return empty DataFrame when no rows match', () => {
     const df = DataFrame.create(data);
     const result = df.where('age', '>', 100);

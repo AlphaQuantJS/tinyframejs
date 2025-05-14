@@ -25,7 +25,18 @@ export function extendDataFrame(DataFrameClass) {
 
       // If result has .columns, treat as TinyFrame and wrap in DataFrame
       if (result?.columns) {
-        return new DataFrameClass(result);
+        const dfResult = new DataFrameClass(result);
+
+        // Check if this is a head or tail method result that should be printed
+        if (
+          (name === 'head' || name === 'tail') &&
+          result._meta &&
+          result._meta.shouldPrint
+        ) {
+          return this._handleResult(dfResult);
+        }
+
+        return dfResult;
       }
       // Otherwise, it's an aggregation result (number, array, etc.)
       return result;

@@ -9,7 +9,7 @@
  */
 export const loc =
   ({ validateColumn }) =>
-  (frame, rowIndices, columnNames) => {
+  (frame, rowIndices, columnNames, options = {}) => {
     // Validate input
     if (!Array.isArray(rowIndices)) {
       rowIndices = [rowIndices];
@@ -28,20 +28,32 @@ export const loc =
     columnNames.forEach((column) => validateColumn(frame, column));
 
     // Get the number of rows
-    const rowCount = frame.columns[columnNames[0]]?.length || 0;
+    const originalRowCount = frame.columns[columnNames[0]]?.length || 0;
 
     // Check if row indices are valid
     const maxRowIndex = Math.max(...rowIndices);
-    if (maxRowIndex >= rowCount) {
+    if (maxRowIndex >= originalRowCount) {
       throw new Error(
-        `Row index ${maxRowIndex} is out of bounds (0-${rowCount - 1})`,
+        `Row index ${maxRowIndex} is out of bounds (0-${originalRowCount - 1})`,
       );
     }
 
     // Create a new frame with selected rows and columns
     const result = {
       columns: {},
+      rowCount: rowIndices.length, // Add rowCount property
+      columnNames: [...columnNames], // Add columnNames property
+      dtypes: {}, // Copy dtypes if available
     };
+
+    // Copy dtypes for selected columns
+    if (frame.dtypes) {
+      columnNames.forEach((column) => {
+        if (frame.dtypes[column]) {
+          result.dtypes[column] = frame.dtypes[column];
+        }
+      });
+    }
 
     // Initialize columns in the result
     columnNames.forEach((column) => {
@@ -64,6 +76,12 @@ export const loc =
         result.columns[column] = new Int32Array(result.columns[column]);
       }
     });
+
+    // If this is a direct call (not assigned to a variable), add metadata for printing
+    result._meta = {
+      ...result._meta,
+      shouldPrint: options.print !== false,
+    };
 
     return result;
   };

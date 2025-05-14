@@ -79,6 +79,29 @@ export class DataFrame {
   get frame() {
     return this._frame;
   }
+
+  /**
+   * Handles the result of a DataFrame operation, checking if it should be printed
+   * based on metadata
+   *
+   * @param {DataFrame} result - The DataFrame result to handle
+   * @returns {DataFrame} The same DataFrame result
+   * @private
+   */
+  _handleResult(result) {
+    // Check if the result has metadata indicating it should be printed
+    if (
+      result &&
+      result._frame &&
+      result._frame._meta &&
+      result._frame._meta.shouldPrint
+    ) {
+      result.print();
+      // Clean up the metadata to avoid repeated printing
+      delete result._frame._meta.shouldPrint;
+    }
+    return result;
+  }
 }
 
 // Extend DataFrame with all methods from aggregation, filtering, etc.

@@ -5,6 +5,7 @@ export { drop } from './drop.js';
 export { selectByPattern } from './selectByPattern.js';
 export { filter } from './filter.js';
 export { query } from './query.js';
+export { expr$ } from './expr$.js';
 export { where } from './where.js';
 export { at } from './at.js';
 export { iloc } from './iloc.js';

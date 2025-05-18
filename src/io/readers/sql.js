@@ -5,7 +5,8 @@ import { DataFrame } from '../../core/DataFrame.js';
 /**
  * Converts values to appropriate types based on content.
  * Handles conversion to: boolean, number (integer/float), or formatted date string (YYYY-MM-DD).
- * Empty values, null, and undefined are converted based on the emptyValue parameter.
+ * Empty values, null, and undefined are converted based on the
+ * emptyValue parameter.
  *
  * @param {any} value - The value to convert
  * @param {any} [emptyValue=undefined] - Value to use for empty/null values (undefined, 0, null, or NaN)
@@ -98,9 +99,8 @@ const connectionHandlers = [
     canHandle: (connection) =>
       connection.query.constructor.name === 'AsyncFunction' ||
       connection.query.toString().includes('return new Promise'),
-    executeQuery: async (connection, query, params) => {
-      return await connection.query(query, params);
-    },
+    executeQuery: async (connection, query, params) =>
+      await connection.query(query, params),
   },
   // Callback-based connections (Node.js style)
   {
@@ -119,7 +119,8 @@ const connectionHandlers = [
   // Synchronous connections
   {
     canHandle: () => true, // Fallback handler
-    executeQuery: (connection, query, params) => connection.query(query, params),
+    executeQuery: (connection, query, params) =>
+      connection.query(query, params),
   },
 ];
 
@@ -179,7 +180,7 @@ export async function readSql(connection, query, options = {}) {
   try {
     // Find appropriate handler for the connection type
     const handler = connectionHandlers.find((h) => h.canHandle(connection));
-    
+
     // Execute the query using the handler
     const results = await handler.executeQuery(connection, query, params);
 
@@ -190,15 +191,17 @@ export async function readSql(connection, query, options = {}) {
 
     // Process results to handle null/empty values and type conversion if needed
     let processedResults = results;
-    
+
     if (dynamicTyping || emptyValue !== undefined) {
       processedResults = results.map((row) => {
         const processedRow = {};
         for (const key in row) {
           const value = row[key];
-          processedRow[key] = dynamicTyping 
+          processedRow[key] = dynamicTyping
             ? convertType(value, emptyValue)
-            : (value === null ? emptyValue : value);
+            : value === null
+              ? emptyValue
+              : value;
         }
         return processedRow;
       });
@@ -210,5 +213,3 @@ export async function readSql(connection, query, options = {}) {
     throw new Error(`SQL query execution failed: ${error.message}`);
   }
 }
-
-

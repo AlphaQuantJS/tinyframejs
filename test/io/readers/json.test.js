@@ -159,8 +159,8 @@ describe('JSON Reader', () => {
         { id: 1, name: 'John', value: 100 },
         { id: 2, name: null, value: 200 },
         { id: 3, name: 'Alice', value: null },
-        { id: 4, name: null, value: null }
-      ]
+        { id: 4, name: null, value: null },
+      ],
     };
 
     // Проверяем, что функция readJson успешно обрабатывает null значения
@@ -181,15 +181,15 @@ describe('JSON Reader', () => {
         { id: 1, name: 'John', value: 100 },
         { id: 2, name: null, value: 200 },
         { id: 3, name: 'Alice', value: null },
-        { id: 4, name: null, value: null }
-      ]
+        { id: 4, name: null, value: null },
+      ],
     };
 
-    const df = await readJson(jsonWithNulls, { 
+    const df = await readJson(jsonWithNulls, {
       recordPath: 'data',
-      emptyValue: 0
+      emptyValue: 0,
     });
-    
+
     const data = df.toArray();
 
     // Row with null name
@@ -217,14 +217,14 @@ describe('JSON Reader', () => {
       data: [
         { id: 1, name: 'John', value: 100 },
         { id: 2, name: null, value: 200 },
-        { id: 3, name: 'Alice', value: null }
-      ]
+        { id: 3, name: 'Alice', value: null },
+      ],
     };
 
     // Проверяем, что функция readJson успешно обрабатывает null значения с emptyValue=null
-    const df = await readJson(jsonWithNulls, { 
+    const df = await readJson(jsonWithNulls, {
       recordPath: 'data',
-      emptyValue: null
+      emptyValue: null,
     });
 
     // Проверяем, что DataFrame был создан успешно
@@ -241,14 +241,14 @@ describe('JSON Reader', () => {
       data: [
         { id: 1, name: 'John', value: 100 },
         { id: 2, name: null, value: 200 },
-        { id: 3, name: 'Alice', value: null }
-      ]
+        { id: 3, name: 'Alice', value: null },
+      ],
     };
 
     // Проверяем, что функция readJson успешно обрабатывает null значения с emptyValue=NaN
-    const df = await readJson(jsonWithNulls, { 
+    const df = await readJson(jsonWithNulls, {
       recordPath: 'data',
-      emptyValue: NaN
+      emptyValue: NaN,
     });
 
     // Проверяем, что DataFrame был создан успешно
@@ -265,17 +265,17 @@ describe('JSON Reader', () => {
       data: [
         { id: 1, value: 100, mixed: true },
         { id: 2, value: 200, mixed: 123 },
-        { id: 3, value: 300, mixed: "text" },
-        { id: 4, value: 400, mixed: "2023-01-01" }
-      ]
+        { id: 3, value: 300, mixed: 'text' },
+        { id: 4, value: 400, mixed: '2023-01-01' },
+      ],
     };
 
     // Force using dynamic typing
-    const df = await readJson(polymorphicJson, { 
+    const df = await readJson(polymorphicJson, {
       recordPath: 'data',
-      dynamicTyping: true
+      dynamicTyping: true,
     });
-    
+
     const data = df.toArray();
 
     // Check that types are correctly converted

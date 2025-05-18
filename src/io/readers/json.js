@@ -8,7 +8,8 @@ const require = createRequire(import.meta.url);
 /**
  * Converts values to appropriate types based on content.
  * Handles conversion to: boolean, number (integer/float), or formatted date string (YYYY-MM-DD).
- * Empty values, null, and undefined are converted based on the emptyValue parameter.
+ * Empty values, null, and undefined are converted based on the
+ * emptyValue parameter.
  *
  * @param {any} value - The value to convert
  * @param {any} [emptyValue=undefined] - Value to use for empty/null values (undefined, 0, null, or NaN)
@@ -185,12 +186,11 @@ export async function readJson(source, options = {}) {
 
   try {
     // Get content from source using appropriate handler
-    let content;
     const handler = sourceHandlers.find((h) => h.canHandle(source));
     if (!handler) {
       throw new Error('Unsupported source type for JSON reading');
     }
-    content = await handler.getContent(source);
+    const content = await handler.getContent(source);
 
     // Parse JSON if it's a string
     let data = typeof content === 'string' ? JSON.parse(content) : content;
@@ -222,7 +222,9 @@ export async function readJson(source, options = {}) {
           const processedItem = {};
           for (const key in item) {
             const value = item[key];
-            processedItem[key] = dynamicTyping ? convertType(value, emptyValue) : value;
+            processedItem[key] = dynamicTyping
+              ? convertType(value, emptyValue)
+              : value;
           }
           return processedItem;
         });
@@ -239,7 +241,9 @@ export async function readJson(source, options = {}) {
           const obj = {};
           for (let i = 0; i < headers.length; i++) {
             const value = row[i];
-            obj[headers[i]] = dynamicTyping ? convertType(value, emptyValue) : value;
+            obj[headers[i]] = dynamicTyping
+              ? convertType(value, emptyValue)
+              : value;
           }
           return obj;
         });
@@ -257,7 +261,7 @@ export async function readJson(source, options = {}) {
           for (const key in data) {
             if (Array.isArray(data[key])) {
               processedColumns[key] = data[key].map((value) =>
-                convertType(value, emptyValue)
+                convertType(value, emptyValue),
               );
             } else {
               processedColumns[key] = data[key];
@@ -271,7 +275,9 @@ export async function readJson(source, options = {}) {
         const processedItem = {};
         for (const key in data) {
           const value = data[key];
-          processedItem[key] = dynamicTyping ? convertType(value, emptyValue) : value;
+          processedItem[key] = dynamicTyping
+            ? convertType(value, emptyValue)
+            : value;
         }
         return DataFrame.create([processedItem], frameOptions);
       }
@@ -282,7 +288,3 @@ export async function readJson(source, options = {}) {
     throw new Error(`Error reading JSON: ${error.message}`);
   }
 }
-
-
-
-

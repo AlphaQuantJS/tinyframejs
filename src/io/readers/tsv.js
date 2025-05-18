@@ -5,7 +5,8 @@ import { readCsv } from './csv.js';
 /**
  * Reads a TSV file and returns a DataFrame.
  * TSV (Tab-Separated Values) is a variant of CSV where tabs are used as the delimiter.
- * This function leverages the CSV reader with tab as the default delimiter.
+ * The TSV reader is a wrapper around the CSV reader with tab as the default
+ * delimiter.
  *
  * @param {string|File|Blob|URL} source - TSV content as a string, path to file, File, Blob, or URL
  * @param {Object} options - Options for parsing

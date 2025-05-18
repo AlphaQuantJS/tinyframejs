@@ -63,7 +63,6 @@ vi.mock('../../../src/core/DataFrame.js', () => {
 
 // Создаем моки для тестирования
 describe('SQL Reader', () => {
-
   /**
    * Создаем мок для соединения с базой данных
    * @param {Array} results - Результаты запроса
@@ -240,12 +239,12 @@ describe('SQL Reader', () => {
     const query = 'SELECT id, name, value FROM users';
 
     const df = await readSql(connection, query, { emptyValue: 0 });
-    
+
     // Проверяем, что DataFrame.create был вызван с правильными параметрами
     // Мы не можем проверить точные значения, так как мы мокируем DataFrame.create,
     // но мы можем проверить, что функция была вызвана
     expect(DataFrame.create).toHaveBeenCalled();
-    
+
     // Проверяем, что возвращается наш мок
     expect(df).toEqual(expect.any(Object));
   });
@@ -311,10 +310,10 @@ describe('SQL Reader', () => {
 
     // Force using dynamic typing
     const df = await readSql(connection, query, { dynamicTyping: true });
-    
+
     // Проверяем, что DataFrame.create был вызван с правильными параметрами
     expect(DataFrame.create).toHaveBeenCalled();
-    
+
     // Поскольку мы используем мок, мы не можем проверить реальное преобразование типов,
     // но мы можем проверить, что функция была вызвана с правильными параметрами
     expect(df).toEqual(expect.any(Object));
@@ -335,10 +334,10 @@ describe('SQL Reader', () => {
 
     // Disable dynamic typing
     const df = await readSql(connection, query, { dynamicTyping: false });
-    
+
     // Проверяем, что DataFrame.create был вызван с правильными параметрами
     expect(DataFrame.create).toHaveBeenCalled();
-    
+
     // Поскольку мы используем мок, мы не можем проверить реальное отсутствие преобразования типов,
     // но мы можем проверить, что функция была вызвана с правильными параметрами
     expect(df).toEqual(expect.any(Object));

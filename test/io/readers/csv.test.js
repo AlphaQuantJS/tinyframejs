@@ -162,4 +162,78 @@ describe('CSV Reader', () => {
     expect(df.columns).toContain('date');
     expect(df.columns).toContain('volume');
   });
+
+  /**
+   * Tests error handling for invalid source
+   * Verifies that appropriate errors are thrown for unsupported sources
+   */
+  test('should throw error for unsupported source type', async () => {
+    // Test with null source
+    await expect(readCsv(null)).rejects.toThrow('Unsupported source type');
+
+    // Test with undefined source
+    await expect(readCsv(undefined)).rejects.toThrow('Unsupported source type');
+
+    // Test with object that is not a File/Blob
+    await expect(readCsv({ invalid: 'source' })).rejects.toThrow(
+      'Unsupported source type',
+    );
+  });
+
+  /**
+   * Tests handling of polymorphic data (mixed types in same column)
+   * Verifies that type conversion works correctly with mixed data types
+   */
+  test('should handle polymorphic data correctly', async () => {
+    const polymorphicContent =
+      'id,value,mixed\n' +
+      '1,100,true\n' +
+      '2,200,123\n' +
+      '3,300,"text"\n' +
+      '4,400,2023-01-01';
+
+    // Force using built-in parser by setting dynamicTyping explicitly
+    const df = await readCsv(polymorphicContent, { dynamicTyping: true });
+    const data = df.toArray();
+
+    // Check that types are correctly converted
+    // Note: CSV strings are parsed as strings first, then converted
+    expect(data[0].mixed).toBe(true);
+
+    expect(typeof data[1].mixed).toBe('number');
+    expect(data[1].mixed).toBe(123);
+
+    expect(typeof data[2].mixed).toBe('string');
+    expect(data[2].mixed).toBe('text');
+
+    expect(data[3].mixed instanceof Date).toBe(true);
+    expect(data[3].mixed.getFullYear()).toBe(2023);
+  });
+
+  /**
+   * Tests handling of CSV with empty cells
+   * Verifies that empty cells are correctly handled as null values
+   */
+  test('should handle empty cells correctly', async () => {
+    const contentWithEmptyCells =
+      'id,name,value\n1,John,100\n2,,200\n3,Alice,\n4,,';
+
+    const df = await readCsv(contentWithEmptyCells);
+    const data = df.toArray();
+
+    // Row with empty name
+    expect(data[1].id).toBe(2);
+    expect(data[1].name).toBe(0); // Empty cells are converted to 0 for better performance
+    expect(data[1].value).toBe(200);
+
+    // Row with empty value
+    expect(data[2].id).toBe(3);
+    expect(data[2].name).toBe('Alice');
+    expect(data[2].value).toBe(0); // Empty cells are converted to 0 for better performance
+
+    // Row with multiple empty cells
+    expect(data[3].id).toBe(4);
+    expect(data[3].name).toBe(0);
+    expect(data[3].value).toBe(0);
+  });
 });

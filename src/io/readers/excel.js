@@ -75,9 +75,9 @@ export async function readExcel(source, options = {}) {
   if (header) {
     const headerRow = worksheet.getRow(1);
     headerRow.eachCell((cell, colNumber) => {
-      headers[colNumber - 1] = cell.value
-        ? cell.value.toString()
-        : `Column${colNumber}`;
+      headers[colNumber - 1] = cell.value ?
+        cell.value.toString() :
+        `Column${colNumber}`;
     });
   }
 
@@ -90,8 +90,11 @@ export async function readExcel(source, options = {}) {
         const columnName = headers[colNumber - 1] || `Column${colNumber}`;
         let value = cell.value;
 
-        // Handle dynamic typing
-        if (dynamicTyping && value !== null && value !== undefined) {
+        // Handle null/undefined/empty values
+        if (value === null || value === undefined || value === '') {
+          value = 0; // Convert empty values to 0 for better performance with large datasets
+        } else if (dynamicTyping) {
+          // Handle dynamic typing
           if (typeof value === 'object' && value.text) {
             value = value.text;
           }

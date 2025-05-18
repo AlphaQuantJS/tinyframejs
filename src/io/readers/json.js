@@ -1,7 +1,7 @@
 // src/io/readers/json.js
 
 import { DataFrame } from '../../core/DataFrame.js';
-// Для совместимости с ESM и CommonJS
+// For compatibility with ESM and CommonJS
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 
@@ -49,9 +49,9 @@ export async function readJson(source, options = {}) {
       return DataFrame.create(data, frameOptions);
     } else if (Array.isArray(data[0])) {
       // Array of arrays - convert to objects using first row as headers if available
-      const headers = Array.isArray(data[0])
-        ? data[0]
-        : Array.from({ length: data[0].length }, (_, i) => `column${i}`);
+      const headers = Array.isArray(data[0]) ?
+        data[0] :
+        Array.from({ length: data[0].length }, (_, i) => `column${i}`);
 
       const rows = data.slice(1).map((row) => {
         const obj = {};

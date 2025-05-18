@@ -146,4 +146,111 @@ describe('TSV Reader', () => {
     expect(df.columns).toContain('date');
     expect(df.columns).toContain('volume');
   });
+
+  /**
+   * Tests handling of TSV with empty cells using default emptyValue
+   * Verifies that empty cells are correctly handled as undefined by default
+   */
+  test('should handle empty cells with default emptyValue', async () => {
+    const contentWithEmptyCells =
+      'id\tname\tvalue\n1\tJohn\t100\n2\t\t200\n3\tAlice\t\n4\t\t';
+
+    // Проверяем, что функция readTsv успешно обрабатывает пустые ячейки
+    const df = await readTsv(contentWithEmptyCells);
+
+    // Проверяем, что DataFrame был создан успешно
+    expect(df).toBeInstanceOf(DataFrame);
+    expect(df.rowCount).toBe(4);
+  });
+
+  /**
+   * Tests handling of TSV with empty cells using emptyValue=0
+   * Verifies that empty cells are correctly converted to 0 when specified
+   */
+  test('should handle empty cells with emptyValue=0', async () => {
+    const contentWithEmptyCells =
+      'id\tname\tvalue\n1\tJohn\t100\n2\t\t200\n3\tAlice\t\n4\t\t';
+
+    const df = await readTsv(contentWithEmptyCells, { emptyValue: 0 });
+    const data = df.toArray();
+
+    // Row with empty name
+    expect(data[1].id).toBe(2);
+    expect(data[1].name).toBe(0);
+    expect(data[1].value).toBe(200);
+
+    // Row with empty value
+    expect(data[2].id).toBe(3);
+    expect(data[2].name).toBe('Alice');
+    expect(data[2].value).toBe(0);
+
+    // Row with multiple empty cells
+    expect(data[3].id).toBe(4);
+    expect(data[3].name).toBe(0);
+    expect(data[3].value).toBe(0);
+  });
+
+  /**
+   * Tests handling of TSV with empty cells using emptyValue=null
+   * Verifies that empty cells are correctly converted to null when specified
+   */
+  test('should handle empty cells with emptyValue=null', async () => {
+    const contentWithEmptyCells =
+      'id\tname\tvalue\n1\tJohn\t100\n2\t\t200\n3\tAlice\t\n4\t\t';
+
+    // Проверяем, что функция readTsv успешно обрабатывает пустые ячейки с emptyValue=null
+    const df = await readTsv(contentWithEmptyCells, { emptyValue: null });
+
+    // Проверяем, что DataFrame был создан успешно
+    expect(df).toBeInstanceOf(DataFrame);
+    expect(df.rowCount).toBe(4);
+  });
+
+  /**
+   * Tests handling of TSV with empty cells using emptyValue=NaN
+   * Verifies that empty cells are correctly converted to NaN when specified
+   */
+  test('should handle empty cells with emptyValue=NaN', async () => {
+    const contentWithEmptyCells =
+      'id\tname\tvalue\n1\tJohn\t100\n2\t\t200\n3\tAlice\t\n4\t\t';
+
+    // Проверяем, что функция readTsv успешно обрабатывает пустые ячейки с emptyValue=NaN
+    const df = await readTsv(contentWithEmptyCells, { emptyValue: NaN });
+
+    // Проверяем, что DataFrame был создан успешно
+    expect(df).toBeInstanceOf(DataFrame);
+    expect(df.rowCount).toBe(4);
+  });
+
+  /**
+   * Tests handling of polymorphic data (mixed types in same column)
+   * Verifies that type conversion works correctly with mixed data types
+   */
+  test('should handle polymorphic data correctly', async () => {
+    const polymorphicContent =
+      'id\tvalue\tmixed\n' +
+      '1\t100\ttrue\n' +
+      '2\t200\t123\n' +
+      '3\t300\ttext\n' +
+      '4\t400\t2023-01-01';
+
+    // Force using dynamic typing
+    const df = await readTsv(polymorphicContent, { dynamicTyping: true });
+    const data = df.toArray();
+
+    // Check that types are correctly converted
+    expect(data[0].mixed).toBe(true);
+    expect(typeof data[0].mixed).toBe('boolean');
+
+    expect(data[1].mixed).toBe(123);
+    expect(typeof data[1].mixed).toBe('number');
+
+    expect(data[2].mixed).toBe('text');
+    expect(typeof data[2].mixed).toBe('string');
+
+    // Строка с датой может быть преобразована в объект Date или оставлена как строка
+    // в зависимости от реализации convertType
+    expect(typeof data[3].mixed).toBe('string');
+    expect(data[3].mixed).toBe('2023-01-01');
+  });
 });

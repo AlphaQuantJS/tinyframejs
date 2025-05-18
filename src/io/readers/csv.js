@@ -28,21 +28,38 @@ import { createRequire } from 'module';
 
 /**
  * Converts a string value to its appropriate JavaScript type.
- * Handles conversion to: boolean, number (integer/float), Date, or keeps as string.
- * Empty values, null, and undefined are converted to 0 for better performance with large datasets.
+ * Handles conversion to: boolean, number (integer/float), or formatted date string (YYYY-MM-DD).
+ * Empty values, null, and undefined are converted based on the emptyValue parameter.
  *
  * @param {string} value - The string value to convert
- * @returns {boolean|number|Date|string} The converted value with appropriate type
+ * @param {any} [emptyValue=undefined] - Value to use for empty cells (undefined, 0, null, or NaN)
+ * @returns {boolean|number|string} The converted value with appropriate type
  */
-function convertType(value) {
+function convertType(value, emptyValue = undefined) {
+  /**
+   * Formats a Date object to YYYY-MM-DD string format
+   * @param {Date} date - The date to format
+   * @returns {string} Formatted date string in YYYY-MM-DD format
+   */
+  function formatDateToYYYYMMDD(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
   // Handle null/undefined values and empty strings
   if (value === null || value === undefined || value === '') {
-    return 0;
+    return emptyValue;
   }
 
   // Already a number - return as is
   if (typeof value === 'number') {
     return value;
+  }
+
+  // Handle Date objects - format to YYYY-MM-DD
+  if (value instanceof Date && !isNaN(value.getTime())) {
+    return formatDateToYYYYMMDD(value);
   }
 
   // Only process string values for type conversion
@@ -59,12 +76,15 @@ function convertType(value) {
       return intValue.toString() === value ? intValue : parseFloat(value);
     }
 
-    // Handle date values
-    const datePattern = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}(\.\d{3})?Z?)?$/;
-    if (datePattern.test(value)) {
+    // Handle date values - includes detection for various date formats
+    const isIsoDate =
+      /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}(\.\d{3})?Z?)?$/.test(value);
+    const hasTimeZone = /\d{4}.*GMT|\+\d{4}/.test(value);
+
+    if (isIsoDate || hasTimeZone) {
       const date = new Date(value);
       if (!isNaN(date.getTime())) {
-        return date;
+        return formatDateToYYYYMMDD(date);
       }
     }
   }
@@ -102,15 +122,15 @@ function parseRow(row, delimiter) {
     }
 
     switch (true) {
-    case isQuote:
-      inQuotes = !inQuotes;
-      break;
-    case isDelimiter:
-      values.push(currentValue);
-      currentValue = '';
-      break;
-    default:
-      currentValue += char;
+      case isQuote:
+        inQuotes = !inQuotes;
+        break;
+      case isDelimiter:
+        values.push(currentValue);
+        currentValue = '';
+        break;
+      default:
+        currentValue += char;
     }
 
     i++;
@@ -127,40 +147,44 @@ function parseRow(row, delimiter) {
  * Handles type conversion if requested and ensures proper mapping of values to keys.
  *
  * @param {string[]} values - The parsed row values
- * @param {string[]} headers - The header row values (column names)
+ * @param {string[]} headers - Array of header names (or empty if no headers)
  * @param {boolean} hasHeader - Whether the CSV has a header row
  * @param {boolean} convertTypes - Whether to convert string values to appropriate types
+ * @param {any} [emptyValue=undefined] - Value to use for empty cells
  * @returns {Object} A data object representing the row with proper keys and values
  */
-function createDataObject(values, headers, hasHeader, convertTypes) {
-  // Create empty object without prototype for better performance
-  const obj = Object.create(null);
+function createDataObject(
+  values,
+  headers,
+  hasHeader,
+  convertTypes,
+  emptyValue = undefined,
+) {
+  const data = {};
 
   // Define value processing function
-  const processValue = (value) => (convertTypes ? convertType(value) : value);
+  const processValue = (value) =>
+    convertTypes ? convertType(value, emptyValue) : value;
 
-  if (hasHeader) {
-    // With headers: use column names as keys
-    const headerCount = headers.length;
-
-    for (let i = 0; i < headerCount; i++) {
-      const key = headers[i];
-      const hasValue = i < values.length;
-      const value = hasValue ? values[i] : 0;
-
-      obj[key] = processValue(value);
+  // If we have headers, use them as keys
+  if (hasHeader && headers.length > 0) {
+    // Map each header to its corresponding value
+    for (let i = 0; i < headers.length; i++) {
+      if (i < values.length) {
+        data[headers[i]] = processValue(values[i]);
+      } else {
+        // If there are more headers than values, set missing values to emptyValue
+        data[headers[i]] = processValue('');
+      }
     }
   } else {
-    // Without headers: use indices as keys
-    const valueCount = values.length;
-
-    for (let i = 0; i < valueCount; i++) {
-      const key = i.toString();
-      obj[key] = processValue(values[i]);
+    // No headers, use numeric indices as keys (0-based)
+    for (let i = 0; i < values.length; i++) {
+      data[i] = processValue(values[i]);
     }
   }
 
-  return obj;
+  return data;
 }
 
 /**
@@ -341,8 +365,14 @@ async function getContentFromSource(source) {
  * @property {Error|null} error - Error object if parsing fails, null otherwise
  */
 function tryParseWithCsvParse(content, options) {
-  const { delimiter, header, skipEmptyLines, dynamicTyping, frameOptions } =
-    options;
+  const {
+    delimiter,
+    header,
+    skipEmptyLines,
+    dynamicTyping,
+    frameOptions,
+    emptyValue,
+  } = options;
 
   try {
     const require = createRequire(import.meta.url);
@@ -366,7 +396,7 @@ function tryParseWithCsvParse(content, options) {
         // Process each field in the record
         for (const key in record) {
           // Use the existing convertType function to convert data types
-          record[key] = convertType(record[key]);
+          record[key] = convertType(record[key], emptyValue);
         }
       }
     }
@@ -385,22 +415,29 @@ function tryParseWithCsvParse(content, options) {
  * @param {Object} options - The parsing options
  * @param {string} options.delimiter - The delimiter character
  * @param {boolean} options.header - Whether the CSV has a header row
- * @param {boolean} options.skipEmptyLines - Whether to skip empty lines
  * @param {boolean} options.dynamicTyping - Whether to convert types
+ * @param {boolean} options.skipEmptyLines - Whether to skip empty lines
+ * @param {any} options.emptyValue - Value to use for empty cells
  * @param {Object} options.frameOptions - Options to pass to DataFrame.create
  * @returns {DataFrame} DataFrame created from the parsed CSV data
  */
 function parseWithBuiltIn(content, options) {
-  const { delimiter, header, dynamicTyping, skipEmptyLines, frameOptions } =
-    options;
+  const {
+    delimiter,
+    header,
+    dynamicTyping,
+    skipEmptyLines,
+    emptyValue,
+    frameOptions,
+  } = options;
 
   // Split content into lines
   const lines = content.split(/\r?\n/);
 
   // Filter empty lines if requested
-  const filteredLines = skipEmptyLines ?
-    lines.filter((line) => line.trim().length > 0) :
-    lines;
+  const filteredLines = skipEmptyLines
+    ? lines.filter((line) => line.trim().length > 0)
+    : lines;
 
   if (filteredLines.length === 0) {
     return DataFrame.create([], frameOptions);
@@ -424,7 +461,9 @@ function parseWithBuiltIn(content, options) {
 
     // Parse the row (empty or not)
     const parsedRow = parseRow(line, delimiter);
-    rows.push(createDataObject(parsedRow, headerRow, header, dynamicTyping));
+    rows.push(
+      createDataObject(parsedRow, headerRow, header, dynamicTyping, emptyValue),
+    );
   }
 
   return DataFrame.create(rows, frameOptions);
@@ -485,11 +524,11 @@ function parseWithBuiltIn(content, options) {
  */
 function logCsvParseError(error) {
   const isModuleNotFound = error && error.code === 'MODULE_NOT_FOUND';
-  const message = isModuleNotFound ?
-    'For better CSV parsing performance in Node.js, consider installing the csv-parse package:\n' +
+  const message = isModuleNotFound
+    ? 'For better CSV parsing performance in Node.js, consider installing the csv-parse package:\n' +
       'npm install csv-parse\n' +
-      'Using built-in parser as fallback.' :
-    `csv-parse module failed, falling back to built-in parser: ${error.message}`;
+      'Using built-in parser as fallback.'
+    : `csv-parse module failed, falling back to built-in parser: ${error.message}`;
 
   console[isModuleNotFound ? 'info' : 'warn'](message);
 }
@@ -515,8 +554,21 @@ function logCsvParseError(error) {
  * @param {boolean} [options.header=true] - Whether the CSV has a header row with column names
  * @param {boolean} [options.dynamicTyping=true] - Whether to automatically detect and convert types
  * @param {boolean} [options.skipEmptyLines=true] - Whether to skip empty lines in the CSV
+ * @param {any} [options.emptyValue=undefined] - Value to use for empty cells (undefined, 0, null, or NaN)
  * @param {Object} [options.frameOptions={}] - Additional options to pass to DataFrame.create
  * @returns {Promise<DataFrame>} Promise resolving to DataFrame created from the CSV data
+ *
+ * @example
+ * // Read from a local file (Node.js)
+ * const df = await readCsv('/path/to/data.csv');
+ *
+ * @example
+ * // With undefined as empty value (good for statistical analysis)
+ * const df = await readCsv(source, { emptyValue: undefined });
+ *
+ * @example
+ * // With 0 as empty value (better for performance with large datasets)
+ * const df = await readCsv(source, { emptyValue: 0 });
  */
 export async function readCsv(source, options = {}) {
   // Set defaults for options if not provided
@@ -526,6 +578,8 @@ export async function readCsv(source, options = {}) {
     options.dynamicTyping !== undefined ? options.dynamicTyping : true;
   options.skipEmptyLines =
     options.skipEmptyLines !== undefined ? options.skipEmptyLines : true;
+  options.emptyValue =
+    options.emptyValue !== undefined ? options.emptyValue : undefined;
   options.frameOptions = options.frameOptions || {};
 
   // Get content from the source (file, URL, string, etc.)

@@ -139,7 +139,18 @@ export const print = () => (frame, rows, cols) => {
     if (rowIdx >= 0) {
       // Skip separator placeholders
       visibleColumns.forEach((col) => {
-        const value = String(frame.columns[col][rowIdx] ?? '');
+        const cellValue = frame.columns[col][rowIdx];
+        // Consider the length of strings for null, undefined and NaN
+        let value;
+        if (cellValue === null) {
+          value = 'null';
+        } else if (cellValue === undefined) {
+          value = 'undefined';
+        } else if (Number.isNaN(cellValue)) {
+          value = 'NaN';
+        } else {
+          value = String(cellValue);
+        }
         columnWidths[col] = Math.max(columnWidths[col], value.length);
       });
     }
@@ -232,7 +243,18 @@ export const print = () => (frame, rows, cols) => {
     } else if (!skipNextRow) {
       let dataRow = border.vertical;
       visibleColumns.forEach((col) => {
-        const value = String(frame.columns[col][rowIdx] ?? '');
+        const cellValue = frame.columns[col][rowIdx];
+        // Explicitly display null and undefined
+        let value;
+        if (cellValue === null) {
+          value = 'null';
+        } else if (cellValue === undefined) {
+          value = 'undefined';
+        } else if (Number.isNaN(cellValue)) {
+          value = 'NaN';
+        } else {
+          value = String(cellValue);
+        }
         dataRow +=
           ' ' + value.padEnd(columnWidths[col]) + ' ' + border.vertical;
       });

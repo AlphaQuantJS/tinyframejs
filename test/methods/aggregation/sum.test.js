@@ -54,7 +54,7 @@ describe('sum method', () => {
 
     // Check that it throws an error for non-existent column
     expect(() => sumFn(df._frame, 'nonexistent')).toThrow(
-      "Column 'nonexistent' not found",
+      'Column \'nonexistent\' not found',
     );
   });
 });

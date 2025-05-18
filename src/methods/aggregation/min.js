@@ -6,28 +6,28 @@
  */
 export const min =
   ({ validateColumn }) =>
-  (frame, column) => {
-    validateColumn(frame, column);
+    (frame, column) => {
+      validateColumn(frame, column);
 
-    const values = frame.columns[column];
-    let minValue = Infinity;
-    let hasValidValue = false;
+      const values = frame.columns[column];
+      let minValue = Infinity;
+      let hasValidValue = false;
 
-    for (let i = 0; i < values.length; i++) {
-      const value = values[i];
-      // Skip NaN, null, and undefined values
-      if (value === null || value === undefined || Number.isNaN(value)) {
-        continue;
+      for (let i = 0; i < values.length; i++) {
+        const value = values[i];
+        // Skip NaN, null, and undefined values
+        if (value === null || value === undefined || Number.isNaN(value)) {
+          continue;
+        }
+
+        // Ensure value is a number
+        const numValue = Number(value);
+        if (!Number.isNaN(numValue)) {
+          minValue = Math.min(minValue, numValue);
+          hasValidValue = true;
+        }
       }
 
-      // Ensure value is a number
-      const numValue = Number(value);
-      if (!Number.isNaN(numValue)) {
-        minValue = Math.min(minValue, numValue);
-        hasValidValue = true;
-      }
-    }
-
-    // Return null if no valid values were found
-    return hasValidValue ? minValue : null;
-  };
+      // Return null if no valid values were found
+      return hasValidValue ? minValue : null;
+    };

@@ -28,7 +28,7 @@ describe('Query Method', () => {
 
   test('should handle string equality', () => {
     const df = DataFrame.create(data);
-    const result = df.query("city == 'New York'");
+    const result = df.query('city == \'New York\'');
 
     // Check that the filtered data is correct
     expect(result.rowCount).toBe(1);
@@ -57,7 +57,7 @@ describe('Query Method', () => {
 
   test('should handle string methods in queries', () => {
     const df = DataFrame.create(data);
-    const result = df.query("city.includes('San')");
+    const result = df.query('city.includes(\'San\')');
 
     // Check that the filtered data is correct
     expect(result.rowCount).toBe(1);

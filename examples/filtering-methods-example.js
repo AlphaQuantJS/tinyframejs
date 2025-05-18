@@ -150,12 +150,12 @@ console.log(`Column count: ${emptyResult.columns.length}`);
 // Example 6: Using query() for SQL-like queries
 console.log('\n6. query() method:');
 console.log('\n6.1. Simple query:');
-const queryIT = df.query("department == 'IT'", { print: false });
+const queryIT = df.query('department == \'IT\'', { print: false });
 queryIT.print();
 
 console.log('\n6.2. Complex query:');
 const complexQuery = df.query(
-  "age > 40 and salary > 100000 or city.includes('Francisco')",
+  'age > 40 and salary > 100000 or city.includes(\'Francisco\')',
   { print: false },
 );
 complexQuery.print();

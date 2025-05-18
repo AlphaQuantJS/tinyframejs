@@ -7,9 +7,9 @@
  */
 export const count =
   ({ validateColumn }) =>
-  (frame, column) => {
-    validateColumn(frame, column);
+    (frame, column) => {
+      validateColumn(frame, column);
 
-    // Simply return the length of the column, since we need to count all values
-    return frame.columns[column].length;
-  };
+      // Simply return the length of the column, since we need to count all values
+      return frame.columns[column].length;
+    };

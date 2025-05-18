@@ -100,7 +100,7 @@ console.log('df.filter(row => row.age > 40)');
 df.filter((row) => row.age > 40);
 
 console.log('\n1.2. Using where() with column and operator:');
-console.log("df.where('age', '>', 40);");
+console.log('df.where(\'age\', \'>\', 40);');
 df.where('age', '>', 40);
 
 console.log('\n1.3. Using expr$() with direct expression:');

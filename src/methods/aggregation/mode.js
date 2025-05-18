@@ -7,45 +7,45 @@
  */
 export const mode =
   ({ validateColumn }) =>
-  (frame, column) => {
-    validateColumn(frame, column);
+    (frame, column) => {
+      validateColumn(frame, column);
 
-    const values = frame.columns[column];
-    const length = values.length;
+      const values = frame.columns[column];
+      const length = values.length;
 
-    if (length === 0) {
-      return null;
-    }
-
-    // Count frequency of each value
-    const counts = new Map();
-    let maxCount = 0;
-    let modeValue = null;
-    let hasValidValue = false;
-
-    for (let i = 0; i < length; i++) {
-      const value = values[i];
-
-      // Skip NaN, null, and undefined values
-      if (value === null || value === undefined || Number.isNaN(value)) {
-        continue;
+      if (length === 0) {
+        return null;
       }
 
-      hasValidValue = true;
+      // Count frequency of each value
+      const counts = new Map();
+      let maxCount = 0;
+      let modeValue = null;
+      let hasValidValue = false;
 
-      // Get current count or initialize to 0
-      const count = counts.get(value) || 0;
-      const newCount = count + 1;
+      for (let i = 0; i < length; i++) {
+        const value = values[i];
 
-      // Update the map with new count
-      counts.set(value, newCount);
+        // Skip NaN, null, and undefined values
+        if (value === null || value === undefined || Number.isNaN(value)) {
+          continue;
+        }
 
-      // Update mode if this value has a higher frequency
-      if (newCount > maxCount) {
-        maxCount = newCount;
-        modeValue = value;
+        hasValidValue = true;
+
+        // Get current count or initialize to 0
+        const count = counts.get(value) || 0;
+        const newCount = count + 1;
+
+        // Update the map with new count
+        counts.set(value, newCount);
+
+        // Update mode if this value has a higher frequency
+        if (newCount > maxCount) {
+          maxCount = newCount;
+          modeValue = value;
+        }
       }
-    }
 
-    return hasValidValue ? modeValue : null;
-  };
+      return hasValidValue ? modeValue : null;
+    };

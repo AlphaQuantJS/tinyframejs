@@ -51,9 +51,9 @@ export function arrayToFrame(arrayData, options = {}) {
     } else {
       // Use provided column names or generate them
       colNames =
-        columns.length > 0
-          ? columns
-          : Array.from({ length: firstItem.length }, (_, i) => `column${i}`);
+        columns.length > 0 ?
+          columns :
+          Array.from({ length: firstItem.length }, (_, i) => `column${i}`);
       data = arrayData;
     }
 

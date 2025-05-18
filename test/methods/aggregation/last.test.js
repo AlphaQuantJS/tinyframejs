@@ -45,7 +45,7 @@ describe('last method', () => {
 
     // Check that it throws an error for non-existent column
     expect(() => lastFn(df._frame, 'nonexistent')).toThrow(
-      "Column 'nonexistent' not found",
+      'Column \'nonexistent\' not found',
     );
   });
 

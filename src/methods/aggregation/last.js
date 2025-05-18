@@ -6,15 +6,15 @@
  */
 export const last =
   ({ validateColumn }) =>
-  (frame, column) => {
-    validateColumn(frame, column);
+    (frame, column) => {
+      validateColumn(frame, column);
 
-    const values = frame.columns[column];
-    const length = values.length;
+      const values = frame.columns[column];
+      const length = values.length;
 
-    if (length === 0) {
-      return null;
-    }
+      if (length === 0) {
+        return null;
+      }
 
-    return values[length - 1];
-  };
+      return values[length - 1];
+    };

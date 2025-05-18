@@ -260,6 +260,6 @@ describe('Column Access', () => {
 
     const frame = createFrame(data);
 
-    expect(() => getColumnForTest(frame, 'b')).toThrow("Column 'b' not found");
+    expect(() => getColumnForTest(frame, 'b')).toThrow('Column \'b\' not found');
   });
 });

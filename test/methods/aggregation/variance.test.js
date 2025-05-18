@@ -81,7 +81,7 @@ describe('variance method', () => {
 
     // Check that it throws an error for non-existent column
     expect(() => varianceFn(df._frame, 'nonexistent')).toThrow(
-      "Column 'nonexistent' not found",
+      'Column \'nonexistent\' not found',
     );
   });
 

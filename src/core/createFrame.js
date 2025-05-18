@@ -245,29 +245,29 @@ function isNumericDType(dt) {
  */
 function toTyped(arr, dt) {
   switch (dt) {
-    case 'f64':
-      return Float64Array.from(arr, safeNum);
+  case 'f64':
+    return Float64Array.from(arr, safeNum);
 
-    case 'i32':
-      return Int32Array.from(arr, safeNum);
+  case 'i32':
+    return Int32Array.from(arr, safeNum);
 
-    case 'i16':
-      return Int16Array.from(arr, safeNum);
+  case 'i16':
+    return Int16Array.from(arr, safeNum);
 
-    case 'i8':
-      return Int8Array.from(arr, safeNum);
+  case 'i8':
+    return Int8Array.from(arr, safeNum);
 
-    case 'u32':
-      return Uint32Array.from(arr, safeNum);
+  case 'u32':
+    return Uint32Array.from(arr, safeNum);
 
-    case 'u16':
-      return Uint16Array.from(arr, safeNum);
+  case 'u16':
+    return Uint16Array.from(arr, safeNum);
 
-    case 'u8':
-      return Uint8Array.from(arr, safeNum);
+  case 'u8':
+    return Uint8Array.from(arr, safeNum);
 
-    default:
-      return Float64Array.from(arr, safeNum);
+  default:
+    return Float64Array.from(arr, safeNum);
   }
 }
 

@@ -1,6 +1,27 @@
 // src/io/readers/sql.js
 
 import { DataFrame } from '../../core/DataFrame.js';
+// For compatibility with ESM and CommonJS
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+
+/**
+ * Check if sqlite and sqlite3 are installed and provide helpful error message if not
+ * @returns {Object} The sqlite module
+ * @throws {Error} If sqlite or sqlite3 is not installed
+ */
+function requireSQLite() {
+  try {
+    // Try to require both sqlite and sqlite3
+    require('sqlite3');
+    return require('sqlite');
+  } catch (error) {
+    throw new Error(
+      'The sqlite and sqlite3 packages are required for SQL operations. ' +
+        'Please install them using: npm install sqlite sqlite3',
+    );
+  }
+}
 
 /**
  * Converts values to appropriate types based on content.
@@ -153,6 +174,8 @@ const connectionHandlers = [
  *
  * @example
  * // Using with SQLite
+ * // First make sure sqlite and sqlite3 are installed:
+ * // npm install sqlite sqlite3
  * const sqlite3 = require('sqlite3');
  * const { open } = require('sqlite');
  * const db = await open({

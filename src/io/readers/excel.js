@@ -17,7 +17,24 @@
  */
 
 import { DataFrame } from '../../core/DataFrame.js';
-import ExcelJS from 'exceljs';
+
+/**
+ * Check if exceljs is installed and provide helpful error message if not
+ * @returns {Object} The exceljs module
+ * @throws {Error} If exceljs is not installed
+ */
+function requireExcelJS() {
+  try {
+    return require('exceljs');
+  } catch (error) {
+    throw new Error(
+      'The exceljs package is required for Excel file operations. ' +
+        'Please install it using: npm install exceljs',
+    );
+  }
+}
+
+const ExcelJS = requireExcelJS();
 
 /**
  * Converts a value to its appropriate JavaScript type.

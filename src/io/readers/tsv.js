@@ -8,6 +8,12 @@ import { readCsv } from './csv.js';
  * The TSV reader is a wrapper around the CSV reader with tab as the default
  * delimiter.
  *
+ * Supports all features of the CSV reader, including:
+ * - Automatic environment detection (Node.js, Deno, Bun, browser)
+ * - Batch processing for large files
+ * - Dynamic type conversion
+ * - Various source types (string, file path, URL, File/Blob objects)
+ *
  * @param {string|File|Blob|URL} source - TSV content as a string, path to file, File, Blob, or URL
  * @param {Object} options - Options for parsing
  * @param {string} [options.delimiter='\t'] - Delimiter character (default is tab)
@@ -16,8 +22,9 @@ import { readCsv } from './csv.js';
  * @param {boolean} [options.skipEmptyLines=true] - Whether to skip empty lines
  * @param {any} [options.emptyValue=undefined] - Value to use for empty cells (undefined, 0, null, or NaN)
  * @param {Object} [options.frameOptions={}] - Options to pass to DataFrame.create
- * @returns {Promise<import('../../core/DataFrame.js').DataFrame>}
- *   Promise resolving to DataFrame created from the TSV
+ * @param {number} [options.batchSize] - If specified, enables batch processing with the given batch size
+ * @returns {Promise<import('../../core/DataFrame.js').DataFrame|Object>}
+ *   Promise resolving to DataFrame or batch processor object
  *
  * @example
  * // Read from a local file (Node.js)
@@ -38,6 +45,19 @@ import { readCsv } from './csv.js';
  *   emptyValue: null,
  *   skipEmptyLines: false
  * });
+ *
+ * @example
+ * // Process a large TSV file in batches
+ * const processor = await readTsv('/path/to/large.tsv', { batchSize: 1000 });
+ * await processor.process(batch => {
+ *   // Process each batch of 1000 rows
+ *   console.log(`Processing batch with ${batch.rowCount} rows`);
+ * });
+ *
+ * @example
+ * // Collect all batches into a single DataFrame
+ * const processor = await readTsv('/path/to/large.tsv', { batchSize: 1000 });
+ * const df = await processor.collect();
  */
 export async function readTsv(source, options = {}) {
   try {
@@ -52,4 +72,18 @@ export async function readTsv(source, options = {}) {
   } catch (error) {
     throw new Error(`Error reading TSV: ${error.message}`);
   }
+}
+
+/**
+ * Adds batch processing methods to DataFrame class for TSV data.
+ * This follows a functional approach to extend DataFrame with TSV streaming capabilities.
+ *
+ * @param {Function} DataFrameClass - The DataFrame class to extend
+ * @returns {Function} The extended DataFrame class
+ */
+export function addTsvBatchMethods(DataFrameClass) {
+  // Add readTsv as a static method to DataFrame
+  DataFrameClass.readTsv = readTsv;
+
+  return DataFrameClass;
 }

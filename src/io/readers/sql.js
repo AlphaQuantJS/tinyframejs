@@ -1,9 +1,11 @@
 // src/io/readers/sql.js
 
 import { DataFrame } from '../../core/DataFrame.js';
-// For compatibility with ESM and CommonJS
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
+import {
+  detectEnvironment,
+  safeRequire,
+  isNodeJs,
+} from '../utils/environment.js';
 
 /**
  * Check if sqlite and sqlite3 are installed and provide helpful error message if not
@@ -12,14 +14,18 @@ const require = createRequire(import.meta.url);
  */
 function requireSQLite() {
   try {
-    // Try to require both sqlite and sqlite3
-    require('sqlite3');
-    return require('sqlite');
-  } catch (error) {
+    // Only attempt to require in Node.js environment
+    if (isNodeJs()) {
+      // Try to require both sqlite and sqlite3
+      safeRequire('sqlite3', 'npm install sqlite3');
+      return safeRequire('sqlite', 'npm install sqlite sqlite3');
+    }
     throw new Error(
-      'The sqlite and sqlite3 packages are required for SQL operations. ' +
-        'Please install them using: npm install sqlite sqlite3',
+      'SQL operations are currently only supported in Node.js environment. ' +
+        'For other environments, consider using CSV or JSON formats.',
     );
+  } catch (error) {
+    throw error;
   }
 }
 
@@ -73,9 +79,9 @@ function convertType(value, emptyValue = undefined) {
         test: () => !isNaN(trimmed) && trimmed !== '',
         convert: () => {
           const intValue = parseInt(trimmed, 10);
-          return intValue.toString() === trimmed
-            ? intValue
-            : parseFloat(trimmed);
+          return intValue.toString() === trimmed ?
+            intValue :
+            parseFloat(trimmed);
         },
       },
       // Date values - includes detection for various date formats
@@ -146,8 +152,59 @@ const connectionHandlers = [
 ];
 
 /**
+ * Process SQL query results in batches for large datasets
+ *
+ * @param {Array} results - The query results to process
+ * @param {Object} options - Processing options
+ * @param {any} options.emptyValue - Value to use for empty/null values
+ * @param {boolean} options.dynamicTyping - Whether to auto-detect types
+ * @param {Object} options.frameOptions - Options for DataFrame creation
+ * @param {number} options.batchSize - Size of each batch
+ * @yields {DataFrame} DataFrame for each batch of data
+ */
+async function* processSqlInBatches(results, options) {
+  const {
+    emptyValue = undefined,
+    dynamicTyping = true,
+    frameOptions = {},
+    batchSize = 1000,
+  } = options;
+
+  // Handle empty results
+  if (!Array.isArray(results) || results.length === 0) {
+    yield DataFrame.create([], frameOptions);
+    return;
+  }
+
+  let batch = [];
+
+  for (let i = 0; i < results.length; i++) {
+    const row = results[i];
+    const processedRow = {};
+
+    for (const key in row) {
+      const value = row[key];
+      processedRow[key] = dynamicTyping ?
+        convertType(value, emptyValue) :
+        value === null ?
+          emptyValue :
+          value;
+    }
+
+    batch.push(processedRow);
+
+    // When batch is full or we're at the end, yield a DataFrame
+    if (batch.length >= batchSize || i === results.length - 1) {
+      yield DataFrame.create(batch, frameOptions);
+      batch = [];
+    }
+  }
+}
+
+/**
  * Reads data from a SQL database and returns a DataFrame.
  * This function requires a database connection object that supports a query method.
+ * Supports batch processing for large datasets.
  *
  * @param {Object} connection - Database connection object
  * @param {string} query - SQL query to execute
@@ -156,7 +213,8 @@ const connectionHandlers = [
  * @param {any} [options.emptyValue=undefined] - Value to use for null/empty values in the results
  * @param {boolean} [options.dynamicTyping=true] - Whether to automatically detect and convert types
  * @param {Object} [options.frameOptions={}] - Options to pass to DataFrame.create
- * @returns {Promise<DataFrame>} Promise resolving to DataFrame created from the query results
+ * @param {number} [options.batchSize] - If specified, enables batch processing with the given batch size
+ * @returns {Promise<DataFrame|Object>} Promise resolving to DataFrame or batch processor object
  *
  * @example
  * // Using with a MySQL connection
@@ -191,6 +249,7 @@ export async function readSql(connection, query, options = {}) {
     emptyValue = undefined,
     dynamicTyping = true,
     frameOptions = {},
+    batchSize,
   } = options;
 
   // Validate connection object
@@ -212,6 +271,49 @@ export async function readSql(connection, query, options = {}) {
       return DataFrame.create([], frameOptions);
     }
 
+    // If batchSize is specified, use streaming processing
+    if (batchSize) {
+      return {
+        /**
+         * Process each batch with a callback function
+         * @param {Function} callback - Function to process each batch DataFrame
+         * @returns {Promise<void>} Promise that resolves when processing is complete
+         */
+        process: async (callback) => {
+          const batchGenerator = processSqlInBatches(results, {
+            emptyValue,
+            dynamicTyping,
+            frameOptions,
+            batchSize,
+          });
+
+          for await (const batchDf of batchGenerator) {
+            await callback(batchDf);
+          }
+        },
+
+        /**
+         * Collect all batches into a single DataFrame
+         * @returns {Promise<DataFrame>} Promise resolving to combined DataFrame
+         */
+        collect: async () => {
+          const allData = [];
+          const batchGenerator = processSqlInBatches(results, {
+            emptyValue,
+            dynamicTyping,
+            frameOptions,
+            batchSize,
+          });
+
+          for await (const batchDf of batchGenerator) {
+            allData.push(...batchDf.toArray());
+          }
+
+          return DataFrame.create(allData, frameOptions);
+        },
+      };
+    }
+
     // Process results to handle null/empty values and type conversion if needed
     let processedResults = results;
 
@@ -220,11 +322,11 @@ export async function readSql(connection, query, options = {}) {
         const processedRow = {};
         for (const key in row) {
           const value = row[key];
-          processedRow[key] = dynamicTyping
-            ? convertType(value, emptyValue)
-            : value === null
-              ? emptyValue
-              : value;
+          processedRow[key] = dynamicTyping ?
+            convertType(value, emptyValue) :
+            value === null ?
+              emptyValue :
+              value;
         }
         return processedRow;
       });
@@ -235,4 +337,18 @@ export async function readSql(connection, query, options = {}) {
   } catch (error) {
     throw new Error(`SQL query execution failed: ${error.message}`);
   }
+}
+
+/**
+ * Adds batch processing methods to DataFrame class for SQL data.
+ * This follows a functional approach to extend DataFrame with SQL streaming capabilities.
+ *
+ * @param {Function} DataFrameClass - The DataFrame class to extend
+ * @returns {Function} The extended DataFrame class
+ */
+export function addSqlBatchMethods(DataFrameClass) {
+  // Add readSql as a static method to DataFrame
+  DataFrameClass.readSql = readSql;
+
+  return DataFrameClass;
 }

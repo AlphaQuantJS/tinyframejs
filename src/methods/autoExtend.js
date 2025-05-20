@@ -1,6 +1,13 @@
 // src/methods/autoExtend.js
 
 import { injectMethods } from './inject.js';
+import {
+  addCsvBatchMethods,
+  addTsvBatchMethods,
+  addExcelBatchMethods,
+  addJsonBatchMethods,
+  addSqlBatchMethods,
+} from '../io/readers/index.js';
 
 /**
  * Automatically extends the DataFrame prototype with all injected
@@ -17,6 +24,13 @@ import { injectMethods } from './inject.js';
  */
 export function extendDataFrame(DataFrameClass) {
   const injectedMethods = injectMethods();
+
+  // Добавляем методы для потоковой обработки различных форматов данных
+  addCsvBatchMethods(DataFrameClass);
+  addTsvBatchMethods(DataFrameClass);
+  addExcelBatchMethods(DataFrameClass);
+  addJsonBatchMethods(DataFrameClass);
+  addSqlBatchMethods(DataFrameClass);
 
   for (const [name, methodFn] of Object.entries(injectedMethods)) {
     // Explicitly add space after function keyword to match Prettier in CI

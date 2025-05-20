@@ -5,18 +5,18 @@
  *
  * Key functions:
  * convertType - Converts values to appropriate JavaScript types (null, boolean, number, Date, or string).
- * isNodeJs - Determines if code is running in Node.js by checking for Node-specific globals.
- * isDirectContent - Checks if the source is direct Excel content rather than a file path or URL.
- * isNodeFilePath - Determines if the source is a file path in a Node.js environment.
- * fetchFromUrl - Fetches content from a URL using the fetch API with error handling.
- * isBrowserFile - Checks if the source is a File or Blob object in a browser.
- * readBrowserFile - Reads a File or Blob object in a browser using FileReader.
+ * detectEnvironment - Determines the JavaScript runtime environment (Node.js, Deno, Bun, browser).
  * getContentFromSource - Gets content from various source types by detecting type and using appropriate reader.
- * processWorksheetData - Processes Excel worksheet data into a structure suitable for DataFrame.
+ * processWorksheet - Processes Excel worksheet data into a structure suitable for DataFrame.
  * readExcel - Main function for reading Excel data from various sources and returning a DataFrame.
  */
 
 import { DataFrame } from '../../core/DataFrame.js';
+import {
+  detectEnvironment,
+  safeRequire,
+  isNodeJs,
+} from '../utils/environment.js';
 
 /**
  * Check if exceljs is installed and provide helpful error message if not
@@ -25,16 +25,18 @@ import { DataFrame } from '../../core/DataFrame.js';
  */
 function requireExcelJS() {
   try {
-    return require('exceljs');
-  } catch (error) {
+    // Only attempt to require in Node.js environment
+    if (isNodeJs()) {
+      return safeRequire('exceljs', 'npm install exceljs');
+    }
     throw new Error(
-      'The exceljs package is required for Excel file operations. ' +
-        'Please install it using: npm install exceljs',
+      'Excel operations are currently only supported in Node.js environment. ' +
+        'For browser support, consider using CSV or JSON formats.',
     );
+  } catch (error) {
+    throw error;
   }
 }
-
-const ExcelJS = requireExcelJS();
 
 /**
  * Converts a value to its appropriate JavaScript type.
@@ -93,9 +95,9 @@ function convertType(value, emptyValue = undefined) {
         test: () => !isNaN(trimmed) && trimmed !== '',
         convert: () => {
           const intValue = parseInt(trimmed, 10);
-          return intValue.toString() === trimmed
-            ? intValue
-            : parseFloat(trimmed);
+          return intValue.toString() === trimmed ?
+            intValue :
+            parseFloat(trimmed);
         },
       },
       // Date values - includes detection for various date formats
@@ -130,22 +132,8 @@ function convertType(value, emptyValue = undefined) {
 }
 
 /**
- * Detects if the code is running in a Node.js environment by checking for Node-specific globals.
- * Used to determine whether Node.js specific APIs can be used.
- *
- * @returns {boolean} True if running in Node.js, false otherwise (e.g., browser)
- */
-function isNodeJs() {
-  return (
-    typeof process !== 'undefined' &&
-    process.versions !== null &&
-    process.versions.node !== null
-  );
-}
-
-/**
  * Determines if the source is a file path in a Node.js environment.
- * Checks if the string contains path separators (/ or \) and is running in Node.js.
+ * Checks if the string contains path separators (/ or \\) and is running in Node.js.
  *
  * @param {any} source - The source to check
  * @returns {boolean} True if source is a file path in Node.js
@@ -174,7 +162,7 @@ async function fetchFromUrl(url) {
     }
     return await response.arrayBuffer();
   } catch (error) {
-    throw new Error(`Error fetching Excel file: ${error.message}`);
+    throw new Error(`Error fetching URL: ${error.message}`);
   }
 }
 
@@ -187,8 +175,9 @@ async function fetchFromUrl(url) {
  */
 function isBrowserFile(source) {
   return (
-    (typeof File !== 'undefined' && source instanceof File) ||
-    (typeof Blob !== 'undefined' && source instanceof Blob)
+    typeof File !== 'undefined' &&
+    typeof Blob !== 'undefined' &&
+    (source instanceof File || source instanceof Blob)
   );
 }
 
@@ -217,25 +206,25 @@ function readBrowserFile(file) {
 const SOURCE_HANDLERS = [
   // Node.js file path handler
   {
-    canHandle: (src) => isNodeFilePath(src),
-    getContent: (src) => Promise.resolve(src),
+    canHandle: isNodeFilePath,
+    getContent: async (src) => src, // Just return the path for Node.js file
   },
   // URL handler
   {
     canHandle: (src) =>
       typeof src === 'string' &&
       (src.startsWith('http://') || src.startsWith('https://')),
-    getContent: (src) => fetchFromUrl(src),
+    getContent: fetchFromUrl,
   },
   // Browser File/Blob handler
   {
-    canHandle: (src) => isBrowserFile(src),
-    getContent: (src) => readBrowserFile(src),
+    canHandle: isBrowserFile,
+    getContent: readBrowserFile,
   },
   // ArrayBuffer/Uint8Array handler
   {
     canHandle: (src) => src instanceof ArrayBuffer || src instanceof Uint8Array,
-    getContent: (src) => Promise.resolve(src),
+    getContent: (src) => src,
   },
 ];
 
@@ -248,122 +237,204 @@ const SOURCE_HANDLERS = [
  * @throws {Error} If the source type is unsupported or reading fails
  */
 async function getContentFromSource(source) {
-  // Find the first handler that can handle this source type
-  const handler = SOURCE_HANDLERS.find((handler) => handler.canHandle(source));
-
-  if (handler) {
-    return handler.getContent(source);
+  const handler = SOURCE_HANDLERS.find((h) => h.canHandle(source));
+  if (!handler) {
+    throw new Error(
+      'Unsupported source type. Expected file path, URL, File, Blob, ArrayBuffer, or Uint8Array.',
+    );
   }
 
-  throw new Error('Unsupported source type for Excel reading');
+  try {
+    return await handler.getContent(source);
+  } catch (error) {
+    throw new Error(`Error getting content from source: ${error.message}`);
+  }
 }
 
 /**
- * Processes an Excel worksheet into a data structure suitable for DataFrame.
- * Handles header extraction, row processing, and type conversion.
- * Ensures all cells in the range are processed, including empty ones.
+ * Processes a worksheet into a format suitable for DataFrame creation.
+ * Handles header rows, type conversion, and empty values.
  *
- * @param {ExcelJS.Worksheet} worksheet - The worksheet to process
+ * @param {Object} worksheet - ExcelJS worksheet object
  * @param {Object} options - Processing options
- * @param {boolean} [options.header=true] - Whether the sheet has a header row
- * @param {boolean} [options.dynamicTyping=true] - Whether to convert values to appropriate types
- * @param {any} [options.emptyValue=undefined] - Value to use for empty cells (undefined, 0, null, or NaN)
- * @returns {Object} Object with column data suitable for DataFrame.create
+ * @param {boolean} options.header - Whether the worksheet has a header row
+ * @param {boolean} options.dynamicTyping - Whether to automatically detect and convert types
+ * @param {any} options.emptyValue - Value to use for empty cells
+ * @returns {Object} Processed data in a format suitable for DataFrame
  */
-function processWorksheet(worksheet, options = {}) {
+function processWorksheet(worksheet, options) {
   const {
     header = true,
     dynamicTyping = true,
     emptyValue = undefined,
   } = options;
+
+  // Get all values as a 2D array
   const rows = [];
-
-  // Get column names from header row or use column indices
-  const columnNames = [];
-  let maxColumn = 0;
-
-  if (header && worksheet.rowCount > 0) {
-    const headerRow = worksheet.getRow(1);
-    // Find the maximum column number in the header row
-    headerRow.eachCell((cell, colNumber) => {
-      maxColumn = Math.max(maxColumn, colNumber);
-      let columnName = cell.value;
-      // Ensure column name is a string
-      columnName =
-        columnName !== null && columnName !== undefined
-          ? String(columnName)
-          : `Column${colNumber}`;
-      columnNames[colNumber] = columnName;
+  worksheet.eachRow({ includeEmpty: true }, (row, rowNumber) => {
+    const values = [];
+    row.eachCell({ includeEmpty: true }, (cell) => {
+      values.push(cell.value);
     });
+    rows.push(values);
+  });
+
+  // Handle empty worksheet
+  if (rows.length === 0) {
+    return {};
   }
 
-  // Process data rows
-  const startRow = header ? 2 : 1;
-  for (let rowNumber = startRow; rowNumber <= worksheet.rowCount; rowNumber++) {
-    const row = worksheet.getRow(rowNumber);
-    const rowData = {};
+  // Determine headers
+  const headerRow = header ? rows[0] : null;
+  const dataRows = header ? rows.slice(1) : rows;
 
-    // Determine the maximum column for this row
-    let rowMaxColumn = 0;
-    row.eachCell((cell, colNumber) => {
-      rowMaxColumn = Math.max(rowMaxColumn, colNumber);
-    });
-
-    // Use the larger of the header max column or this row's max column
-    const effectiveMaxColumn = Math.max(maxColumn, rowMaxColumn);
-
-    // Process each cell in the row, including empty ones
-    for (let colNumber = 1; colNumber <= effectiveMaxColumn; colNumber++) {
-      // Get column name from header or use column index
-      let columnName;
-      if (header) {
-        columnName = columnNames[colNumber];
-        if (!columnName) {
-          columnName = `Column${colNumber}`;
-        }
-      } else {
-        columnName = `${colNumber - 1}`;
-      }
-
-      // Get cell value, handling empty cells
-      const cell = row.getCell(colNumber);
-      let value = cell.value;
-
-      // Convert value if dynamic typing is enabled
-      if (dynamicTyping) {
-        value = convertType(value, emptyValue);
-      }
-
-      rowData[columnName] = value;
-    }
-
-    rows.push(rowData);
-  }
-
-  // Convert array of objects to format for DataFrame.create
+  // Create column-oriented data structure
   const columnsData = {};
 
-  if (rows.length > 0) {
-    // Initialize arrays for each column
-    Object.keys(rows[0]).forEach((key) => {
-      columnsData[key] = [];
+  if (headerRow) {
+    // Initialize columns with empty arrays
+    headerRow.forEach((header, index) => {
+      const columnName =
+        header !== null && header !== undefined ?
+          String(header) :
+          `column${index}`;
+      columnsData[columnName] = [];
     });
 
-    // Fill arrays with data
-    rows.forEach((row) => {
-      Object.keys(columnsData).forEach((key) => {
-        // Ensure all columns have values for all rows, even if the row doesn't have this key
-        columnsData[key].push(key in row ? row[key] : emptyValue);
+    // Fill columns with data
+    dataRows.forEach((row) => {
+      headerRow.forEach((header, index) => {
+        const columnName =
+          header !== null && header !== undefined ?
+            String(header) :
+            `column${index}`;
+        const value = index < row.length ? row[index] : null;
+        columnsData[columnName].push(
+          dynamicTyping ? convertType(value, emptyValue) : value,
+        );
       });
     });
+  } else {
+    // No header row, use column0, column1, etc.
+    const maxLength = Math.max(...rows.map((row) => row.length));
+
+    for (let i = 0; i < maxLength; i++) {
+      const columnName = `column${i}`;
+      columnsData[columnName] = rows.map((row) => {
+        const value = i < row.length ? row[i] : null;
+        return dynamicTyping ? convertType(value, emptyValue) : value;
+      });
+    }
   }
 
   return columnsData;
 }
 
 /**
+ * Process Excel data in batches for large datasets
+ *
+ * @param {Object} worksheet - ExcelJS worksheet
+ * @param {Object} options - Processing options
+ * @param {boolean} options.header - Whether the worksheet has a header row
+ * @param {boolean} options.dynamicTyping - Whether to auto-detect types
+ * @param {any} options.emptyValue - Value to use for empty cells
+ * @param {Object} options.frameOptions - Options for DataFrame creation
+ * @param {number} options.batchSize - Size of each batch
+ * @yields {DataFrame} DataFrame for each batch of data
+ */
+async function* processExcelInBatches(worksheet, options) {
+  const {
+    header = true,
+    dynamicTyping = true,
+    emptyValue = undefined,
+    frameOptions = {},
+    batchSize = 1000,
+  } = options;
+
+  // Get all rows
+  const rows = [];
+  worksheet.eachRow({ includeEmpty: true }, (row, rowNumber) => {
+    const values = [];
+    row.eachCell({ includeEmpty: true }, (cell) => {
+      values.push(cell.value);
+    });
+    rows.push(values);
+  });
+
+  // Handle empty worksheet
+  if (rows.length === 0) {
+    yield DataFrame.create({}, frameOptions);
+    return;
+  }
+
+  // Determine headers
+  const headerRow = header ? rows[0] : null;
+  const dataRows = header ? rows.slice(1) : rows;
+
+  // Process in batches
+  if (headerRow) {
+    // Create headers array
+    const headers = headerRow.map((header, index) =>
+      (header !== null && header !== undefined ?
+        String(header) :
+        `column${index}`),
+    );
+
+    // Process data rows in batches
+    let batch = [];
+
+    for (let i = 0; i < dataRows.length; i++) {
+      const row = dataRows[i];
+      const obj = {};
+
+      for (let j = 0; j < headers.length; j++) {
+        const value = j < row.length ? row[j] : null;
+        obj[headers[j]] = dynamicTyping ?
+          convertType(value, emptyValue) :
+          value;
+      }
+
+      batch.push(obj);
+
+      // When batch is full or we're at the end, yield a DataFrame
+      if (batch.length >= batchSize || i === dataRows.length - 1) {
+        yield DataFrame.create(batch, frameOptions);
+        batch = [];
+      }
+    }
+  } else {
+    // No header row, use column0, column1, etc.
+    const maxLength = Math.max(...rows.map((row) => row.length));
+    const headers = Array.from({ length: maxLength }, (_, i) => `column${i}`);
+
+    let batch = [];
+
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      const obj = {};
+
+      for (let j = 0; j < headers.length; j++) {
+        const value = j < row.length ? row[j] : null;
+        obj[headers[j]] = dynamicTyping ?
+          convertType(value, emptyValue) :
+          value;
+      }
+
+      batch.push(obj);
+
+      // When batch is full or we're at the end, yield a DataFrame
+      if (batch.length >= batchSize || i === rows.length - 1) {
+        yield DataFrame.create(batch, frameOptions);
+        batch = [];
+      }
+    }
+  }
+}
+
+/**
  * Main function to read Excel data from various sources and return a DataFrame.
  * Automatically detects the source type and environment, choosing the optimal parsing strategy.
+ * Supports batch processing for large datasets.
  *
  * Supported source types:
  * - Local file path (in Node.js environment)
@@ -382,33 +453,8 @@ function processWorksheet(worksheet, options = {}) {
  * @param {boolean} [options.dynamicTyping=true] - Whether to automatically detect and convert types
  * @param {any} [options.emptyValue=undefined] - Value to use for empty cells (undefined, 0, null, or NaN)
  * @param {Object} [options.frameOptions={}] - Additional options to pass to DataFrame.create
- * @returns {Promise<DataFrame>} Promise resolving to DataFrame created from the Excel data
- *
- * @example
- * // Read from a local file (Node.js)
- * const df = await readExcel('/path/to/data.xlsx');
- *
- * @example
- * // Read from a URL
- * const df = await readExcel('https://example.com/data.xlsx');
- *
- * @example
- * // Read from a File object (browser)
- * const fileInput = document.querySelector('input[type="file"]');
- * const df = await readExcel(fileInput.files[0]);
- *
- * @example
- * // With custom options
- * const df = await readExcel(source, {
- *   sheet: 'Sales Data',
- *   header: true,
- *   dynamicTyping: true,
- *   emptyValue: undefined // Use undefined for empty cells (good for statistical analysis)
- * });
- *
- * @example
- * // With 0 as empty value (better for performance with large datasets)
- * const df = await readExcel(source, { emptyValue: 0 });
+ * @param {number} [options.batchSize] - If specified, enables batch processing with the given batch size
+ * @returns {Promise<DataFrame|Object>} Promise resolving to DataFrame or batch processor object
  */
 export async function readExcel(source, options = {}) {
   // Set defaults for options if not provided
@@ -418,7 +464,11 @@ export async function readExcel(source, options = {}) {
     dynamicTyping = true,
     emptyValue = undefined,
     frameOptions = {},
+    batchSize,
   } = options;
+
+  // Load ExcelJS module
+  const ExcelJS = requireExcelJS();
 
   // Create a new workbook
   const workbook = new ExcelJS.Workbook();
@@ -461,6 +511,51 @@ export async function readExcel(source, options = {}) {
       }
     }
 
+    // If batchSize is specified, use streaming processing
+    if (batchSize) {
+      return {
+        /**
+         * Process each batch with a callback function
+         * @param {Function} callback - Function to process each batch DataFrame
+         * @returns {Promise<void>} Promise that resolves when processing is complete
+         */
+        process: async (callback) => {
+          const batchGenerator = processExcelInBatches(worksheet, {
+            header,
+            dynamicTyping,
+            emptyValue,
+            frameOptions,
+            batchSize,
+          });
+
+          for await (const batchDf of batchGenerator) {
+            await callback(batchDf);
+          }
+        },
+
+        /**
+         * Collect all batches into a single DataFrame
+         * @returns {Promise<DataFrame>} Promise resolving to combined DataFrame
+         */
+        collect: async () => {
+          const allData = [];
+          const batchGenerator = processExcelInBatches(worksheet, {
+            header,
+            dynamicTyping,
+            emptyValue,
+            frameOptions,
+            batchSize,
+          });
+
+          for await (const batchDf of batchGenerator) {
+            allData.push(...batchDf.toArray());
+          }
+
+          return DataFrame.create(allData, frameOptions);
+        },
+      };
+    }
+
     // Process the worksheet
     const columnsData = processWorksheet(worksheet, {
       header,
@@ -473,4 +568,18 @@ export async function readExcel(source, options = {}) {
   } catch (error) {
     throw new Error(`Error processing Excel file: ${error.message}`);
   }
+}
+
+/**
+ * Adds batch processing methods to DataFrame class for Excel data.
+ * This follows a functional approach to extend DataFrame with Excel streaming capabilities.
+ *
+ * @param {Function} DataFrameClass - The DataFrame class to extend
+ * @returns {Function} The extended DataFrame class
+ */
+export function addExcelBatchMethods(DataFrameClass) {
+  // Add readExcel as a static method to DataFrame
+  DataFrameClass.readExcel = readExcel;
+
+  return DataFrameClass;
 }

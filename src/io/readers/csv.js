@@ -47,6 +47,7 @@ function convertType(value, emptyValue = undefined) {
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   }
+
   // Handle null/undefined values and empty strings
   if (value === null || value === undefined || value === '') {
     return emptyValue;
@@ -62,34 +63,37 @@ function convertType(value, emptyValue = undefined) {
     return formatDateToYYYYMMDD(value);
   }
 
-  // Only process string values for type conversion
-  if (typeof value === 'string') {
-    // Handle boolean values
-    const lowerValue = value.toLowerCase();
-    if (lowerValue === 'true') return true;
-    if (lowerValue === 'false') return false;
+  // If not a string, return as is
+  if (typeof value !== 'string') {
+    return value;
+  }
 
-    // Handle numeric values
-    if (!isNaN(value) && value.trim() !== '') {
-      const intValue = parseInt(value, 10);
-      // Check if it's an integer or float
-      return intValue.toString() === value ? intValue : parseFloat(value);
-    }
+  // Handle boolean values
+  const lowerValue = value.toLowerCase();
+  if (lowerValue === 'true') return true;
+  if (lowerValue === 'false') return false;
 
-    // Handle date values - includes detection for various date formats
-    const isIsoDate =
-      /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}(\.\d{3})?Z?)?$/.test(value);
-    const hasTimeZone = /\d{4}.*GMT|\+\d{4}/.test(value);
+  // Handle numeric values (only if string is not empty)
+  if (value.trim() !== '' && !isNaN(value)) {
+    const intValue = parseInt(value, 10);
+    // Check if it's an integer or float
+    return intValue.toString() === value ? intValue : parseFloat(value);
+  }
 
-    if (isIsoDate || hasTimeZone) {
-      const date = new Date(value);
-      if (!isNaN(date.getTime())) {
-        return formatDateToYYYYMMDD(date);
-      }
+  // Handle date values in various formats
+  const isIsoDate = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}(\.\d{3})?Z?)?$/.test(
+    value,
+  );
+  const hasTimeZone = /\d{4}.*GMT|\+\d{4}/.test(value);
+
+  if (isIsoDate || hasTimeZone) {
+    const date = new Date(value);
+    if (!isNaN(date.getTime())) {
+      return formatDateToYYYYMMDD(date);
     }
   }
 
-  // Default - return value as is
+  // If nothing matched, return the original value
   return value;
 }
 
@@ -122,15 +126,15 @@ function parseRow(row, delimiter) {
     }
 
     switch (true) {
-      case isQuote:
-        inQuotes = !inQuotes;
-        break;
-      case isDelimiter:
-        values.push(currentValue);
-        currentValue = '';
-        break;
-      default:
-        currentValue += char;
+    case isQuote:
+      inQuotes = !inQuotes;
+      break;
+    case isDelimiter:
+      values.push(currentValue);
+      currentValue = '';
+      break;
+    default:
+      currentValue += char;
     }
 
     i++;
@@ -160,11 +164,12 @@ function createDataObject(
   convertTypes,
   emptyValue = undefined,
 ) {
-  const data = {};
+  // Create empty object without prototype for better performance
+  const data = Object.create(null);
 
   // Define value processing function
   const processValue = (value) =>
-    convertTypes ? convertType(value, emptyValue) : value;
+    (convertTypes ? convertType(value, emptyValue) : value);
 
   // If we have headers, use them as keys
   if (hasHeader && headers.length > 0) {
@@ -188,17 +193,82 @@ function createDataObject(
 }
 
 /**
- * Detects if the code is running in a Node.js environment by checking for Node-specific globals.
- * Used to determine whether Node.js specific APIs can be used.
+ * Detects the JavaScript runtime environment.
+ * Used to determine which parsing strategy and APIs to use.
  *
- * @returns {boolean} True if running in Node.js, false otherwise (e.g., browser)
+ * @returns {string} The detected environment: 'node', 'deno', 'bun', or 'browser'
  */
-function isNodeJs() {
-  return (
+export function detectEnvironment() {
+  // Check for Node.js
+  if (
     typeof process !== 'undefined' &&
     process.versions !== null &&
     process.versions.node !== null
-  );
+  ) {
+    return 'node';
+  }
+
+  // Check for Deno
+  if (typeof Deno !== 'undefined') {
+    return 'deno';
+  }
+
+  // Check for Bun
+  if (
+    typeof process !== 'undefined' &&
+    process.versions !== null &&
+    process.versions.bun !== null
+  ) {
+    return 'bun';
+  }
+
+  // Default to browser
+  return 'browser';
+}
+
+/**
+ * Checks if a CSV parser is available in the current environment.
+ * Supports different parsers based on the runtime (Node.js, Deno, Bun, browser).
+ *
+ * @returns {Object} Object containing information about available parsers
+ * @property {boolean} csvParse - Whether the csv-parse module is available (Node.js)
+ * @property {boolean} denoStd - Whether Deno's std/csv module is available
+ * @property {boolean} bunCsv - Whether Bun's CSV utilities are available
+ */
+export async function checkCsvParserAvailability() {
+  const env = detectEnvironment();
+  const result = {
+    csvParse: false,
+    denoStd: false,
+    bunCsv: false,
+  };
+
+  try {
+    if (env === 'node') {
+      // Check for csv-parse in Node.js
+      const require = createRequire(import.meta.url);
+      require.resolve('csv-parse/sync');
+      result.csvParse = true;
+    } else if (env === 'deno') {
+      // Check for std/csv in Deno
+      try {
+        // In Deno, we can try to dynamically import the CSV module
+        await import('https://deno.land/std/csv/mod.ts');
+        result.denoStd = true;
+      } catch (e) {
+        // Module not available, keep default false
+      }
+    } else if (env === 'bun') {
+      // Bun has built-in CSV parsing capabilities
+      result.bunCsv =
+        typeof Bun !== 'undefined' &&
+        typeof Bun.readableStreamToArray === 'function';
+    }
+  } catch (e) {
+    // If any error occurs, we'll just return the default values (all false)
+  }
+
+  return result;
 }
 
 /**
@@ -227,7 +297,7 @@ function isNodeFilePath(source) {
   return (
     typeof source === 'string' &&
     (source.includes('/') || source.includes('\\')) &&
-    isNodeJs()
+    detectEnvironment() === 'node'
   );
 }
 
@@ -408,11 +478,139 @@ function tryParseWithCsvParse(content, options) {
 }
 
 /**
+ * Attempts to parse CSV content using Deno's standard library CSV parser.
+ *
+ * @param {string} content - The CSV content to parse
+ * @param {Object} options - The parsing options
+ * @param {string} [options.delimiter=','] - Character that separates values in the CSV
+ * @param {boolean} [options.header=true] - If true, treats the first row as column names
+ * @param {boolean} [options.skipEmptyLines=true] - Whether to skip empty lines
+ * @param {boolean} [options.dynamicTyping=true] - Whether to convert types
+ * @param {Object} [options.frameOptions={}] - Additional options for DataFrame creation
+ * @param {any} [options.emptyValue=undefined] - Value to use for empty cells
+ * @returns {Object} Object with result and error properties
+ */
+async function tryParseWithDenoStd(content, options) {
+  const {
+    delimiter,
+    header,
+    skipEmptyLines,
+    dynamicTyping,
+    frameOptions,
+    emptyValue,
+  } = options;
+
+  try {
+    // Dynamically import Deno's CSV module
+    const { parse } = await import('https://deno.land/std/csv/mod.ts');
+
+    // Configure options for Deno's CSV parser
+    const parseOptions = {
+      separator: delimiter,
+      header,
+      skipEmptyLines,
+    };
+
+    // Parse the CSV content
+    const records = parse(content, parseOptions);
+
+    // Process types if dynamicTyping is enabled
+    if (dynamicTyping && records.length > 0) {
+      for (let i = 0; i < records.length; i++) {
+        const record = records[i];
+        for (const key in record) {
+          record[key] = convertType(record[key], emptyValue);
+        }
+      }
+    }
+
+    return { result: DataFrame.create(records, frameOptions), error: null };
+  } catch (error) {
+    return { result: null, error };
+  }
+}
+
+/**
+ * Attempts to parse CSV content using Bun's built-in CSV utilities.
+ *
+ * @param {string} content - The CSV content to parse
+ * @param {Object} options - The parsing options
+ * @param {string} [options.delimiter=','] - Character that separates values in the CSV
+ * @param {boolean} [options.header=true] - If true, treats the first row as column names
+ * @param {boolean} [options.skipEmptyLines=true] - Whether to skip empty lines
+ * @param {boolean} [options.dynamicTyping=true] - Whether to convert types
+ * @param {Object} [options.frameOptions={}] - Additional options for DataFrame creation
+ * @param {any} [options.emptyValue=undefined] - Value to use for empty cells
+ * @returns {Object} Object with result and error properties
+ */
+async function tryParseWithBun(content, options) {
+  const {
+    delimiter,
+    header,
+    skipEmptyLines,
+    dynamicTyping,
+    frameOptions,
+    emptyValue,
+  } = options;
+
+  try {
+    // Create a readable stream from the content
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      start(controller) {
+        controller.enqueue(encoder.encode(content));
+        controller.close();
+      },
+    });
+
+    // Use Bun's stream utilities to process the CSV
+    const lines = await Bun.readableStreamToArray(stream);
+    const decoder = new TextDecoder();
+    const textLines = lines.map((line) => decoder.decode(line));
+
+    // Filter empty lines if needed
+    const filteredLines = skipEmptyLines ?
+      textLines.filter((line) => line.trim() !== '') :
+      textLines;
+
+    // Parse CSV manually
+    let headerRow = [];
+    const records = [];
+
+    for (let i = 0; i < filteredLines.length; i++) {
+      const line = filteredLines[i];
+      const values = parseRow(line, delimiter);
+
+      if (i === 0 && header) {
+        headerRow = values;
+        continue;
+      }
+
+      const record = header ?
+        createDataObject(values, headerRow, true, dynamicTyping, emptyValue) :
+        createDataObject(values, [], false, dynamicTyping, emptyValue);
+
+      records.push(record);
+    }
+
+    return { result: DataFrame.create(records, frameOptions), error: null };
+  } catch (error) {
+    return { result: null, error };
+  }
+}
+
+/**
  * Built-in CSV parser implementation for environments where csv-parse is not available.
  * Handles header rows, empty lines, and type conversion according to options.
  *
  * @param {string} content - The CSV content to parse
  * @param {Object} options - The parsing options
+ * @param {string} [options.delimiter=','] - Delimiter character for separating values
+ * @param {boolean} [options.header=true] - Whether the CSV has a header row with column names
+ * @param {boolean} [options.dynamicTyping=true] - Whether to automatically detect and convert types
+ * @param {boolean} [options.skipEmptyLines=true] - Whether to skip empty lines in the CSV
+ * @param {any} [options.emptyValue=undefined] - Value to use for empty cells
+ * @param {Object} [options.frameOptions={}] - Additional options to pass to DataFrame.create
  * @param {string} options.delimiter - The delimiter character
  * @param {boolean} options.header - Whether the CSV has a header row
  * @param {boolean} options.dynamicTyping - Whether to convert types
@@ -421,7 +619,7 @@ function tryParseWithCsvParse(content, options) {
  * @param {Object} options.frameOptions - Options to pass to DataFrame.create
  * @returns {DataFrame} DataFrame created from the parsed CSV data
  */
-function parseWithBuiltIn(content, options) {
+export function parseWithBuiltIn(content, options) {
   const {
     delimiter,
     header,
@@ -435,9 +633,9 @@ function parseWithBuiltIn(content, options) {
   const lines = content.split(/\r?\n/);
 
   // Filter empty lines if requested
-  const filteredLines = skipEmptyLines
-    ? lines.filter((line) => line.trim().length > 0)
-    : lines;
+  const filteredLines = skipEmptyLines ?
+    lines.filter((line) => line.trim().length > 0) :
+    lines;
 
   if (filteredLines.length === 0) {
     return DataFrame.create([], frameOptions);
@@ -524,11 +722,11 @@ function parseWithBuiltIn(content, options) {
  */
 function logCsvParseError(error) {
   const isModuleNotFound = error && error.code === 'MODULE_NOT_FOUND';
-  const message = isModuleNotFound
-    ? 'For better CSV parsing performance in Node.js, consider installing the csv-parse package:\n' +
+  const message = isModuleNotFound ?
+    'For better CSV parsing performance in Node.js, consider installing the csv-parse package:\n' +
       'npm install csv-parse\n' +
-      'Using built-in parser as fallback.'
-    : `csv-parse module failed, falling back to built-in parser: ${error.message}`;
+      'Using built-in parser as fallback.' :
+    `csv-parse module failed, falling back to built-in parser: ${error.message}`;
 
   console[isModuleNotFound ? 'info' : 'warn'](message);
 }
@@ -570,6 +768,169 @@ function logCsvParseError(error) {
  * // With 0 as empty value (better for performance with large datasets)
  * const df = await readCsv(source, { emptyValue: 0 });
  */
+/**
+ * Reads CSV data in batches for processing large files with memory efficiency.
+ * Uses Node.js streams for file sources and line-by-line processing for other sources.
+ *
+ * @param {string|File|Blob|URL} source - Source of CSV data
+ * @param {Object} options - Options for parsing
+ * @param {string} [options.delimiter=','] - Delimiter character for separating values
+ * @param {boolean} [options.header=true] - Whether the CSV has a header row with column names
+ * @param {boolean} [options.dynamicTyping=true] - Whether to automatically detect and convert types
+ * @param {boolean} [options.skipEmptyLines=true] - Whether to skip empty lines in the CSV
+ * @param {any} [options.emptyValue=undefined] - Value to use for empty cells
+ * @param {number} [options.batchSize=1000] - Number of rows to process in each batch
+ * @returns {AsyncGenerator<DataFrame>} Async generator yielding DataFrames for each batch
+ *
+ * @example
+ * // Process CSV in batches
+ * const batchGenerator = readCsvInBatches('/path/to/large.csv', { batchSize: 5000 });
+ * for await (const batchDf of batchGenerator) {
+ *   // Process each batch
+ *   console.log(`Processing batch with ${batchDf.rowCount} rows`);
+ * }
+ */
+async function* readCsvInBatches(source, options = {}) {
+  // Set defaults for options if not provided
+  options.delimiter = options.delimiter || ',';
+  options.header = options.header !== undefined ? options.header : true;
+  options.dynamicTyping =
+    options.dynamicTyping !== undefined ? options.dynamicTyping : true;
+  options.skipEmptyLines =
+    options.skipEmptyLines !== undefined ? options.skipEmptyLines : true;
+  options.emptyValue =
+    options.emptyValue !== undefined ? options.emptyValue : undefined;
+  options.batchSize = options.batchSize || 1000;
+  options.frameOptions = options.frameOptions || {};
+
+  // For Node.js file paths, use streaming approach
+  if (detectEnvironment() === 'node' && isNodeFilePath(source)) {
+    const fs = await import('fs');
+    const readline = await import('readline');
+
+    const fileStream = fs.createReadStream(source);
+    const rl = readline.createInterface({
+      input: fileStream,
+      crlfDelay: Infinity,
+    });
+
+    let headers = [];
+    let batch = [];
+    let lineCount = 0;
+
+    for await (const line of rl) {
+      // Skip empty lines if configured
+      if (options.skipEmptyLines && line.trim() === '') continue;
+
+      // Parse the current line
+      const values = parseRow(line, options.delimiter);
+
+      // Handle header row
+      if (lineCount === 0 && options.header) {
+        headers = values;
+        lineCount++;
+        continue;
+      }
+
+      // If no headers (header option is false), use numeric indices
+      if (headers.length === 0) {
+        headers = values.map((_, i) => String(i));
+      }
+
+      // Create data object and add to batch
+      const dataObj = createDataObject(
+        values,
+        headers,
+        options.header,
+        options.dynamicTyping,
+        options.emptyValue,
+      );
+
+      batch.push(dataObj);
+      lineCount++;
+
+      // When batch is full, yield a DataFrame
+      if (batch.length >= options.batchSize) {
+        yield new DataFrame(batch, options.frameOptions);
+        batch = [];
+      }
+    }
+
+    // Yield remaining rows if any
+    if (batch.length > 0) {
+      yield DataFrame.create(batch);
+    }
+  } else {
+    // For other sources, get all content and process in batches
+    const content = await getContentFromSource(source);
+    const lines = content.split(/\r?\n/);
+
+    let headers = [];
+    let batch = [];
+    let lineCount = 0;
+
+    for (const line of lines) {
+      // Skip empty lines if configured
+      if (options.skipEmptyLines && line.trim() === '') continue;
+
+      // Parse the current line
+      const values = parseRow(line, options.delimiter);
+
+      // Handle header row
+      if (lineCount === 0 && options.header) {
+        headers = values;
+        lineCount++;
+        continue;
+      }
+
+      // If no headers (header option is false), use numeric indices
+      if (headers.length === 0) {
+        headers = values.map((_, i) => String(i));
+      }
+
+      // Create data object and add to batch
+      const dataObj = createDataObject(
+        values,
+        headers,
+        options.header,
+        options.dynamicTyping,
+        options.emptyValue,
+      );
+
+      batch.push(dataObj);
+      lineCount++;
+
+      // When batch is full, yield a DataFrame
+      if (batch.length >= options.batchSize) {
+        yield DataFrame.create(batch);
+        batch = [];
+      }
+    }
+
+    // Yield remaining rows if any
+    if (batch.length > 0) {
+      yield DataFrame.create(batch, options.frameOptions);
+    }
+  }
+}
+
+/**
+ * Adds batch processing methods to DataFrame class for CSV data.
+ * This follows a functional approach to extend DataFrame with CSV streaming capabilities.
+ *
+ * @param {Function} DataFrameClass - The DataFrame class to extend
+ * @returns {Function} The extended DataFrame class
+ */
+export function addCsvBatchMethods(DataFrameClass) {
+  // Добавляем статический метод readCsv к DataFrame
+  DataFrameClass.readCsv = readCsv;
+
+  // Добавляем readCsvInBatches как статический метод для расширенного использования
+  DataFrameClass.readCsvInBatches = readCsvInBatches;
+
+  return DataFrameClass;
+}
+
 export async function readCsv(source, options = {}) {
   // Set defaults for options if not provided
   options.delimiter = options.delimiter || ',';
@@ -582,16 +943,70 @@ export async function readCsv(source, options = {}) {
     options.emptyValue !== undefined ? options.emptyValue : undefined;
   options.frameOptions = options.frameOptions || {};
 
+  // If batchSize is specified, use streaming processing
+  if (options.batchSize) {
+    return {
+      /**
+       * Process each batch with a callback function
+       * @param {Function} callback - Function to process each batch DataFrame
+       * @returns {Promise<void>} Promise that resolves when processing is complete
+       */
+      process: async (callback) => {
+        const batchGenerator = readCsvInBatches(source, options);
+        for await (const batchDf of batchGenerator) {
+          await callback(batchDf);
+        }
+      },
+
+      /**
+       * Collect all batches into a single DataFrame
+       * @returns {Promise<DataFrame>} Promise resolving to combined DataFrame
+       */
+      collect: async () => {
+        const allData = [];
+        const batchGenerator = readCsvInBatches(source, options);
+        for await (const batchDf of batchGenerator) {
+          allData.push(...batchDf.toArray());
+        }
+        return DataFrame.create(allData);
+      },
+    };
+  }
+
+  // Standard processing for loading the entire file at once
   // Get content from the source (file, URL, string, etc.)
   const content = await getContentFromSource(source);
 
-  // Try csv-parse in Node.js environment first
-  if (isNodeJs()) {
-    const { result, error } = tryParseWithCsvParse(content, options);
-    if (result) return result;
+  // Detect environment and available parsers
+  const env = detectEnvironment();
+  const parsers = await checkCsvParserAvailability();
+
+  // Try the best available parser for the current environment
+  const result = null;
+  let error = null;
+
+  // Node.js: Try csv-parse module
+  if (env === 'node' && parsers.csvParse) {
+    const parseResult = tryParseWithCsvParse(content, options);
+    if (parseResult.result) return parseResult.result;
+    error = parseResult.error;
     if (error) logCsvParseError(error);
   }
 
-  // Use built-in parser as fallback
+  // Deno: Try Deno standard library
+  if (env === 'deno' && parsers.denoStd) {
+    const parseResult = await tryParseWithDenoStd(content, options);
+    if (parseResult.result) return parseResult.result;
+    error = parseResult.error;
+  }
+
+  // Bun: Try Bun's built-in utilities
+  if (env === 'bun' && parsers.bunCsv) {
+    const parseResult = await tryParseWithBun(content, options);
+    if (parseResult.result) return parseResult.result;
+    error = parseResult.error;
+  }
+
+  // Use built-in parser as fallback for all environments
   return parseWithBuiltIn(content, options);
 }

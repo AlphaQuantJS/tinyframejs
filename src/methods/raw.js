@@ -29,3 +29,11 @@ export { sample } from './filtering/sample.js';
 export { stratifiedSample } from './filtering/stratifiedSample.js';
 export { head } from './filtering/head.js';
 export { tail } from './filtering/tail.js';
+
+// Transform methods
+export { assign } from './transform/assign.js';
+export { mutate } from './transform/mutate.js';
+export { apply, applyAll } from './transform/apply.js';
+export { categorize } from './transform/categorize.js';
+export { cut } from './transform/cut.js';
+export { oneHot } from './transform/oneHot.js';

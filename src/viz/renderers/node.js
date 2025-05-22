@@ -120,6 +120,37 @@ export async function renderChart(chartConfig, options = {}) {
       throw new Error(`Failed to create PDF: ${error.message}. 
         Please install pdf-lib with: npm install pdf-lib`);
     }
+  } else if (format === 'svg') {
+    try {
+      // Use canvg to convert canvas to SVG
+      const { createSVGWindow } = await dynamicRequire('@svgdotjs/svg.js');
+      const window = createSVGWindow();
+      const { SVG, registerWindow } = await dynamicRequire('@svgdotjs/svg.js');
+
+      // Register window
+      registerWindow(window, window.document);
+
+      // Create SVG document
+      const svgDocument = window.document.implementation.createDocument(
+        'http://www.w3.org/2000/svg',
+        'svg',
+        null,
+      );
+
+      // Create SVG element
+      const svg = SVG(svgDocument.documentElement);
+      svg.size(width, height);
+
+      // Convert canvas to PNG and embed in SVG
+      const pngDataUrl = canvas.toDataURL('image/png');
+      svg.image(pngDataUrl, width, height);
+
+      // Convert to string
+      buffer = Buffer.from(svg.svg());
+    } catch (error) {
+      throw new Error(`Failed to create SVG: ${error.message}. 
+        Please install @svgdotjs/svg.js with: npm install @svgdotjs/svg.js`);
+    }
   } else {
     throw new Error(`Unsupported format: ${format}`);
   }
@@ -132,9 +163,10 @@ export async function renderChart(chartConfig, options = {}) {
  * @param {Object} chartConfig - Chart.js configuration
  * @param {string} filePath - Path to save the file
  * @param {Object} options - Save options
- * @param {string} [options.format='png'] - File format ('png', 'jpeg', 'pdf')
+ * @param {string} [options.format] - File format ('png', 'jpeg', 'jpg', 'pdf', 'svg'). If not specified, it will be inferred from the file extension.
  * @param {number} [options.width=800] - Width of the chart in pixels
  * @param {number} [options.height=600] - Height of the chart in pixels
+ * @param {Object} [options.chartOptions] - Additional options to pass to Chart.js
  * @returns {Promise<string>} Path to the saved file
  */
 export async function saveChartToFile(chartConfig, filePath, options = {}) {

@@ -40,3 +40,5 @@ export { oneHot } from './transform/oneHot.js';
 export { pivot, pivotTable } from './transform/pivot.js';
 export { melt } from './transform/melt.js';
 export { join } from './transform/join.js';
+export { stack } from './transform/stack.js';
+export { unstack } from './transform/unstack.js';

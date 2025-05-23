@@ -45,3 +45,4 @@ export { unstack } from './transform/unstack.js';
 
 // Time series methods
 export { resample } from './timeseries/resample.js';
+export { rolling, rollingApply, ewma } from './timeseries/rolling.js';

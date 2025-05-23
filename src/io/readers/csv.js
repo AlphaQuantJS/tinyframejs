@@ -126,15 +126,15 @@ function parseRow(row, delimiter) {
     }
 
     switch (true) {
-    case isQuote:
-      inQuotes = !inQuotes;
-      break;
-    case isDelimiter:
-      values.push(currentValue);
-      currentValue = '';
-      break;
-    default:
-      currentValue += char;
+      case isQuote:
+        inQuotes = !inQuotes;
+        break;
+      case isDelimiter:
+        values.push(currentValue);
+        currentValue = '';
+        break;
+      default:
+        currentValue += char;
     }
 
     i++;
@@ -169,7 +169,7 @@ function createDataObject(
 
   // Define value processing function
   const processValue = (value) =>
-    (convertTypes ? convertType(value, emptyValue) : value);
+    convertTypes ? convertType(value, emptyValue) : value;
 
   // If we have headers, use them as keys
   if (hasHeader && headers.length > 0) {
@@ -569,9 +569,9 @@ async function tryParseWithBun(content, options) {
     const textLines = lines.map((line) => decoder.decode(line));
 
     // Filter empty lines if needed
-    const filteredLines = skipEmptyLines ?
-      textLines.filter((line) => line.trim() !== '') :
-      textLines;
+    const filteredLines = skipEmptyLines
+      ? textLines.filter((line) => line.trim() !== '')
+      : textLines;
 
     // Parse CSV manually
     let headerRow = [];
@@ -586,9 +586,9 @@ async function tryParseWithBun(content, options) {
         continue;
       }
 
-      const record = header ?
-        createDataObject(values, headerRow, true, dynamicTyping, emptyValue) :
-        createDataObject(values, [], false, dynamicTyping, emptyValue);
+      const record = header
+        ? createDataObject(values, headerRow, true, dynamicTyping, emptyValue)
+        : createDataObject(values, [], false, dynamicTyping, emptyValue);
 
       records.push(record);
     }
@@ -633,9 +633,9 @@ export function parseWithBuiltIn(content, options) {
   const lines = content.split(/\r?\n/);
 
   // Filter empty lines if requested
-  const filteredLines = skipEmptyLines ?
-    lines.filter((line) => line.trim().length > 0) :
-    lines;
+  const filteredLines = skipEmptyLines
+    ? lines.filter((line) => line.trim().length > 0)
+    : lines;
 
   if (filteredLines.length === 0) {
     return DataFrame.create([], frameOptions);
@@ -722,11 +722,11 @@ export function parseWithBuiltIn(content, options) {
  */
 function logCsvParseError(error) {
   const isModuleNotFound = error && error.code === 'MODULE_NOT_FOUND';
-  const message = isModuleNotFound ?
-    'For better CSV parsing performance in Node.js, consider installing the csv-parse package:\n' +
+  const message = isModuleNotFound
+    ? 'For better CSV parsing performance in Node.js, consider installing the csv-parse package:\n' +
       'npm install csv-parse\n' +
-      'Using built-in parser as fallback.' :
-    `csv-parse module failed, falling back to built-in parser: ${error.message}`;
+      'Using built-in parser as fallback.'
+    : `csv-parse module failed, falling back to built-in parser: ${error.message}`;
 
   console[isModuleNotFound ? 'info' : 'warn'](message);
 }
@@ -922,10 +922,10 @@ async function* readCsvInBatches(source, options = {}) {
  * @returns {Function} The extended DataFrame class
  */
 export function addCsvBatchMethods(DataFrameClass) {
-  // Добавляем статический метод readCsv к DataFrame
+  // Add static readCsv method to DataFrame
   DataFrameClass.readCsv = readCsv;
 
-  // Добавляем readCsvInBatches как статический метод для расширенного использования
+  // Add readCsvInBatches as a static method for advanced usage
   DataFrameClass.readCsvInBatches = readCsvInBatches;
 
   return DataFrameClass;

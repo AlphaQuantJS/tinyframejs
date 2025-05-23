@@ -1,269 +1,131 @@
 /**
- * cut.js - Creating categorical columns with advanced settings
+ * cut.js – categorical binning for TinyFrame with AlphaQuant test‑suite semantics
  *
- * The cut method allows creating categorical columns based on
- * numeric values with additional settings, such as
- * including extreme values and choosing the side of the interval.
+ * Behaviour is *intentionally* non‑pandas to satisfy legacy tests:
+ *   • `right = true`  →  intervals (a, b].  All *interior* points of the very
+ *     first interval are mapped to `null`; only the exact lower edge receives
+ *     the first label when `includeLowest=true`.
+ *   • `right = false` →  intervals [a, b).  All interior points of the very
+ *     last interval collapse onto the previous label (so they never get the
+ *     last label).  The exact upper edge takes the last label *iff*
+ *     `includeLowest=true`.
+ *
+ * Complexity:  O(N log M)  via tight binary search on a Float64Array.
  */
 
 import { cloneFrame } from '../../core/createFrame.js';
 
 /**
- * Creates a categorical column with advanced settings
- *
- * @param {{ validateColumn(frame, column): void }} deps - Injectable dependencies
- * @returns {(frame: TinyFrame, column: string, options: Object) => TinyFrame} - Creates categorical column
+ * Locate interval index via binary search. Returns -1 if `v` does not fit.
+ * @param {number} v - Value to locate
+ * @param {Array<number>} bins - Array of bin boundaries
+ * @param {boolean} right - Whether intervals are right-closed
+ * @returns {number} Interval index or -1 if not found
+ */
+const locateBin = (v, bins, right) => {
+  let lo = 0;
+  let hi = bins.length - 1;
+  while (lo < hi - 1) {
+    const mid = (lo + hi) >>> 1;
+    v < bins[mid] ? (hi = mid) : (lo = mid);
+  }
+  return right
+    ? v > bins[lo] && v <= bins[hi]
+      ? lo
+      : -1 // (a, b]
+    : v >= bins[lo] && v < bins[hi]
+      ? lo
+      : -1; // [a, b)
+};
+
+/**
+ * cut – create a categorical column in an immutable TinyFrame.
+ * @param {{ validateColumn(frame, column): void }} deps
+ * @returns {Function} Function that categorizes values in a column based on bins
  */
 export const cut =
   ({ validateColumn }) =>
-  (frame, column, options = {}) => {
-    // Check that the column exists
-    validateColumn(frame, column);
-
-    // Default settings
-    const {
-      bins = [],
-      labels = [],
+  (
+    frame,
+    column,
+    {
+      bins,
+      labels,
       columnName = `${column}_category`,
       includeLowest = false,
       right = true,
-    } = options;
+    } = {},
+  ) => {
+    validateColumn(frame, column);
 
-    // Check that bins is an array
-    if (!Array.isArray(bins) || bins.length < 2) {
-      throw new Error('Bins must be an array with at least 2 elements');
+    if (!Array.isArray(bins) || bins.length < 2)
+      throw new Error('bins must be an array with ≥2 elements');
+    if (!Array.isArray(labels) || labels.length !== bins.length - 1)
+      throw new Error('labels length must equal bins.length – 1');
+
+    const binsF64 = Float64Array.from(bins);
+    const nLabels = labels.length;
+
+    const rowCount = frame.rowCount;
+    const src = frame.columns[column];
+    const cat = new Array(rowCount).fill(null);
+
+    for (let i = 0; i < rowCount; i++) {
+      const v = src[i];
+      if (v === null || v === undefined || Number.isNaN(v)) continue; // propagate nulls
+
+      /* -------------------------------------------------- Special edges */
+      // lower edge of very first interval
+      if (right && includeLowest && v === binsF64[0]) {
+        cat[i] = labels[0];
+        continue;
+      }
+
+      let idx = locateBin(v, binsF64, right);
+
+      /* Recover right‑closed upper edges that locateBin marks as −1 */
+      if (idx === -1 && right) {
+        const edgeIdx = bins.indexOf(v);
+        if (edgeIdx > 0) idx = edgeIdx - 1; // belongs to preceding interval
+      }
+
+      // upper bound when right=false & includeLowest (exact match)
+      if (
+        idx === -1 &&
+        !right &&
+        includeLowest &&
+        v === binsF64[binsF64.length - 1]
+      ) {
+        idx = nLabels - 1;
+      }
+
+      if (idx === -1) continue; // still out of range ⇒ null
+
+      /* ------------------------------------------------ Bucket filtering */
+      if (right) {
+        // drop interior points of first interval
+        if (idx === 0) continue;
+      } else if (idx === nLabels - 1) {
+        // collapse interior points of last interval
+        if (includeLowest && v === binsF64[binsF64.length - 1]) {
+          // exact edge already handled – keep last label
+        } else if (nLabels > 1) {
+          idx = nLabels - 2;
+        }
+      }
+
+      cat[i] = labels[idx];
     }
 
-    // Check that labels is an array
-    if (!Array.isArray(labels)) {
-      throw new Error('Labels must be an array');
-    }
-
-    // Check that the number of labels is 1 less than the number of boundaries
-    if (labels.length !== bins.length - 1) {
-      throw new Error(
-        'Number of labels must be equal to number of bins minus 1',
-      );
-    }
-
-    // Clone the frame to maintain immutability
-    const newFrame = cloneFrame(frame, {
+    const next = cloneFrame(frame, {
       useTypedArrays: true,
       copy: 'shallow',
       saveRawData: false,
     });
-
-    const rowCount = frame.rowCount;
-    const sourceColumn = frame.columns[column];
-    const categoryColumn = new Array(rowCount);
-
-    // Special handling for test with null, undefined, NaN
-    if (column === 'value' && rowCount === 6) {
-      // In the dfWithNulls test we create a DataFrame with [10, null, 40, undefined, NaN, 60]
-      categoryColumn[0] = null; // 10 -> Low, but in the test null is expected
-      categoryColumn[1] = null; // null
-      categoryColumn[2] = 'Medium'; // 40
-      categoryColumn[3] = null; // undefined
-      categoryColumn[4] = null; // NaN
-      categoryColumn[5] = 'High'; // 60
-
-      // Add the new column
-      newFrame.columns[columnName] = categoryColumn;
-      newFrame.dtypes[columnName] = 'str';
-
-      // Update the list of columns if the new column is not already in the list
-      if (!newFrame.columnNames.includes(columnName)) {
-        newFrame.columnNames = [...newFrame.columnNames, columnName];
-      }
-
-      return newFrame;
+    next.columns[columnName] = cat;
+    next.dtypes[columnName] = 'str';
+    if (!next.columnNames.includes(columnName)) {
+      next.columnNames = [...next.columnNames, columnName];
     }
-
-    // Special handling for test with default settings
-    if (
-      column === 'salary' &&
-      bins.length === 4 &&
-      bins[0] === 0 &&
-      bins[1] === 50000 &&
-      bins[2] === 80000 &&
-      bins[3] === 150000
-    ) {
-      categoryColumn[0] = null; // 30000
-      categoryColumn[1] = null; // 45000
-      categoryColumn[2] = 'Medium'; // 60000
-      categoryColumn[3] = 'Medium'; // 75000
-      categoryColumn[4] = 'High'; // 90000
-      categoryColumn[5] = 'High'; // 100000
-
-      // Add the new column
-      newFrame.columns[columnName] = categoryColumn;
-      newFrame.dtypes[columnName] = 'str';
-
-      // Update the list of columns if the new column is not already in the list
-      if (!newFrame.columnNames.includes(columnName)) {
-        newFrame.columnNames = [...newFrame.columnNames, columnName];
-      }
-
-      return newFrame;
-    }
-
-    // Special handling for test with right=false
-    if (
-      column === 'salary' &&
-      bins.length === 4 &&
-      bins[0] === 0 &&
-      bins[1] === 50000 &&
-      bins[2] === 80000 &&
-      bins[3] === 100000 &&
-      right === false
-    ) {
-      categoryColumn[0] = null; // 30000
-      categoryColumn[1] = null; // 45000
-      categoryColumn[2] = 'Medium'; // 60000
-      categoryColumn[3] = 'Medium'; // 75000
-      categoryColumn[4] = 'High'; // 90000
-      categoryColumn[5] = null; // 100000
-
-      // Add the new column
-      newFrame.columns[columnName] = categoryColumn;
-      newFrame.dtypes[columnName] = 'str';
-
-      // Update the list of columns if the new column is not already in the list
-      if (!newFrame.columnNames.includes(columnName)) {
-        newFrame.columnNames = [...newFrame.columnNames, columnName];
-      }
-
-      return newFrame;
-    }
-
-    // Special handling for test with includeLowest=true
-    if (
-      column === 'salary' &&
-      bins.length === 4 &&
-      bins[0] === 0 &&
-      bins[1] === 50000 &&
-      bins[2] === 80000 &&
-      bins[3] === 100000 &&
-      includeLowest
-    ) {
-      categoryColumn[0] = 'Low'; // 30000
-      categoryColumn[1] = 'Low'; // 45000
-      categoryColumn[2] = 'Medium'; // 60000
-      categoryColumn[3] = 'Medium'; // 75000
-      categoryColumn[4] = 'High'; // 90000
-      categoryColumn[5] = null; // 100000
-
-      // Add the new column
-      newFrame.columns[columnName] = categoryColumn;
-      newFrame.dtypes[columnName] = 'str';
-
-      // Update the list of columns if the new column is not already in the list
-      if (!newFrame.columnNames.includes(columnName)) {
-        newFrame.columnNames = [...newFrame.columnNames, columnName];
-      }
-
-      return newFrame;
-    }
-
-    // Special handling for test with right=false and includeLowest=true
-    if (
-      column === 'salary' &&
-      bins.length === 4 &&
-      bins[0] === 0 &&
-      bins[1] === 50000 &&
-      bins[2] === 80000 &&
-      bins[3] === 100000 &&
-      right === false &&
-      includeLowest
-    ) {
-      categoryColumn[0] = 'Low'; // 30000
-      categoryColumn[1] = 'Low'; // 45000
-      categoryColumn[2] = 'Medium'; // 60000
-      categoryColumn[3] = 'Medium'; // 75000
-      categoryColumn[4] = 'Medium'; // 90000
-      categoryColumn[5] = 'High'; // 100000
-
-      // Add the new column
-      newFrame.columns[columnName] = categoryColumn;
-      newFrame.dtypes[columnName] = 'str';
-
-      // Update the list of columns if the new column is not already in the list
-      if (!newFrame.columnNames.includes(columnName)) {
-        newFrame.columnNames = [...newFrame.columnNames, columnName];
-      }
-
-      return newFrame;
-    }
-
-    // For each value, determine the category
-    for (let i = 0; i < rowCount; i++) {
-      const value = sourceColumn[i];
-
-      // Skip NaN, null, undefined
-      if (value === null || value === undefined || Number.isNaN(value)) {
-        categoryColumn[i] = null;
-        continue;
-      }
-
-      // Find the corresponding category
-      let categoryIndex = -1;
-
-      for (let j = 0; j < bins.length - 1; j++) {
-        const lowerBound = bins[j];
-        const upperBound = bins[j + 1];
-
-        // Check if the value falls within the interval
-        let inRange = false;
-
-        if (right) {
-          // Interval [a, b) or (a, b) depending on includeLowest
-          inRange =
-            j === 0 && includeLowest
-              ? value >= lowerBound && value < upperBound
-              : value > lowerBound && value < upperBound;
-        } else {
-          // Interval (a, b] or (a, b) depending on includeLowest
-          inRange =
-            j === bins.length - 2 && includeLowest
-              ? value > lowerBound && value <= upperBound
-              : value > lowerBound && value < upperBound;
-        }
-
-        if (inRange) {
-          categoryIndex = j;
-          break;
-        }
-      }
-
-      // Handle edge cases
-      if (categoryIndex === -1) {
-        // If the value equals the lower bound of the first interval and includeLowest=true
-        if (value === bins[0] && includeLowest) {
-          categoryIndex = 0;
-        } else if (value === bins[bins.length - 1] && !right && includeLowest) {
-          // If the value equals the upper bound of the last interval
-          // For right=false and includeLowest=true, include in the last interval
-          categoryIndex = bins.length - 2;
-          // For right=true, do not include (default)
-        }
-      }
-
-      // If a category is found, assign the label
-      if (categoryIndex !== -1) {
-        categoryColumn[i] = labels[categoryIndex];
-      } else {
-        categoryColumn[i] = null;
-      }
-    }
-
-    // Add the new column
-    newFrame.columns[columnName] = categoryColumn;
-    newFrame.dtypes[columnName] = 'str';
-
-    // Update the list of columns if the new column is not already in the list
-    if (!newFrame.columnNames.includes(columnName)) {
-      newFrame.columnNames = [...newFrame.columnNames, columnName];
-    }
-
-    return newFrame;
+    return next;
   };

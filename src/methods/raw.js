@@ -37,3 +37,6 @@ export { apply, applyAll } from './transform/apply.js';
 export { categorize } from './transform/categorize.js';
 export { cut } from './transform/cut.js';
 export { oneHot } from './transform/oneHot.js';
+export { join } from './transform/join.js';
+export { melt } from './transform/melt.js';
+export { pivot } from './transform/pivot.js';

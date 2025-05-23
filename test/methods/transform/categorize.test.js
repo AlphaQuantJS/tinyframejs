@@ -4,29 +4,29 @@ import { categorize } from '../../../src/methods/transform/categorize.js';
 import { validateColumn } from '../../../src/core/validators.js';
 
 describe('DataFrame.categorize', () => {
-  // Создаем тестовый DataFrame
+  // Create a test DataFrame
   const df = DataFrame.create({
     age: [18, 25, 35, 45, 55, 65],
     salary: [30000, 45000, 60000, 75000, 90000, 100000],
   });
 
-  // Создаем функцию categorize с инъекцией зависимостей
+  // Create categorize function with dependency injection
   const categorizeWithDeps = categorize({ validateColumn });
 
-  test('создает категориальную колонку на основе числовой', () => {
-    // Вызываем функцию напрямую с TinyFrame
+  test('creates a categorical column based on a numeric column', () => {
+    // Call the function directly with TinyFrame
     const resultFrame = categorizeWithDeps(df.frame, 'age', {
       bins: [0, 30, 50, 100],
       labels: ['Young', 'Middle', 'Senior'],
     });
 
-    // Оборачиваем результат в DataFrame для тестирования
+    // Wrap the result in DataFrame for testing
     const result = new DataFrame(resultFrame);
 
-    // Проверяем, что результат - экземпляр DataFrame
+    // Check that the result is a DataFrame instance
     expect(result).toBeInstanceOf(DataFrame);
 
-    // Проверяем, что исходный DataFrame не изменился
+    // Check that the original DataFrame hasn't changed
     expect(df.frame.columns).not.toHaveProperty('age_category');
 
     // Проверяем, что новая колонка добавлена

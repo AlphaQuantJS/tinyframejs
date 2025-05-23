@@ -25,7 +25,7 @@ import {
 export function extendDataFrame(DataFrameClass) {
   const injectedMethods = injectMethods();
 
-  // Добавляем методы для потоковой обработки различных форматов данных
+  // Add methods for batch processing of various data formats
   addCsvBatchMethods(DataFrameClass);
   addTsvBatchMethods(DataFrameClass);
   addExcelBatchMethods(DataFrameClass);
@@ -34,7 +34,7 @@ export function extendDataFrame(DataFrameClass) {
 
   for (const [name, methodFn] of Object.entries(injectedMethods)) {
     // Explicitly add space after function keyword to match Prettier in CI
-    DataFrameClass.prototype[name] = function(...args) {
+    DataFrameClass.prototype[name] = function (...args) {
       const result = methodFn(this._frame, ...args);
 
       // If result has .columns, treat as TinyFrame and wrap in DataFrame

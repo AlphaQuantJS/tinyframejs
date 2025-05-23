@@ -2,6 +2,7 @@
 
 import { createFrame } from './createFrame.js';
 import { extendDataFrame } from '../methods/autoExtend.js';
+import { extendStreamApply } from '../io/streams/streamApply.js';
 
 /**
  * @typedef {Object} TinyFrame
@@ -106,3 +107,6 @@ export class DataFrame {
 
 // Extend DataFrame with all methods from aggregation, filtering, etc.
 extendDataFrame(DataFrame);
+
+// Extend DataFrame with stream apply method
+extendStreamApply(DataFrame);

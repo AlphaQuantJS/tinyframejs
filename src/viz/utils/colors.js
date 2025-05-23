@@ -94,7 +94,7 @@ function rgbToHex(r, g, b) {
  * Predefined color schemes
  * @type {Object.<string, string[]>}
  */
-const colorSchemes = {
+export const colorSchemes = {
   // Blue to red diverging palette
   diverging: [
     '#3b4cc0',
@@ -181,6 +181,15 @@ export function categoricalColors(count, scheme = 'default') {
   return count <= baseColors.length
     ? baseColors.slice(0, count)
     : extendColorPalette(baseColors, count);
+}
+
+/**
+ * Gets a color scheme by name
+ * @param {string} [scheme='default'] - Color scheme name
+ * @returns {string[]} Array of colors in hex format
+ */
+export function getColorScheme(scheme = 'default') {
+  return colorSchemes[scheme] || defaultColors;
 }
 
 /**

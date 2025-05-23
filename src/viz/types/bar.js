@@ -1,6 +1,6 @@
 // src/viz/types/bar.js
 
-import { createChartJSConfig } from '../adapters/chartjs.js';
+// import { createChartJSConfig } from '../adapters/chartjs.js';
 import { getColor, categoricalColors } from '../utils/colors.js';
 import { formatValue } from '../utils/formatting.js';
 
@@ -8,12 +8,14 @@ import { formatValue } from '../utils/formatting.js';
  * Creates a bar chart configuration
  * @param {Object} dataFrame - TinyFrameJS DataFrame
  * @param {Object} options - Chart options
- * @param {string} options.x - Column name for X axis
- * @param {string|string[]} options.y - Column name(s) for Y axis
+ * @param {string} [options.x] - Column name for X axis
+ * @param {string|string[]} [options.y] - Column name(s) for Y axis
+ * @param {string} [options.category] - Column name for X axis (alternative to x)
+ * @param {string|string[]} [options.value] - Column name(s) for Y axis (alternative to y)
  * @param {Object} [options.chartOptions] - Additional Chart.js options
  * @returns {Object} Chart configuration object
  */
-export function barChart(dataFrame, options) {
+export function barChart(dataFrame, options = {}) {
   // Validate input
   if (
     !dataFrame ||
@@ -26,19 +28,70 @@ export function barChart(dataFrame, options) {
   // Convert DataFrame to array of objects for easier processing
   const data = dataFrame.toArray();
 
-  if (!options.x) {
-    throw new Error('X-axis column must be specified');
+  // Support for alternative parameter names
+  const xCol = options.x || options.category;
+  const yCol = options.y || options.value;
+
+  if (!xCol) {
+    throw new Error('X-axis column must be specified (x or category)');
   }
 
-  if (!options.y) {
-    throw new Error('Y-axis column(s) must be specified');
+  if (!yCol) {
+    throw new Error('Y-axis column(s) must be specified (y or value)');
   }
 
   // Create Chart.js configuration
-  return createChartJSConfig(dataFrame, {
-    ...options,
+  return {
     type: 'bar',
-  });
+    data: {
+      labels: data.map((row) => row[xCol]),
+      datasets: Array.isArray(yCol)
+        ? yCol.map((col, index) => ({
+            label: col,
+            data: data.map((row) => row[col]),
+            backgroundColor: getColor(index),
+            borderColor: getColor(index),
+            borderWidth: 1,
+          }))
+        : [
+            {
+              label: yCol,
+              data: data.map((row) => row[yCol]),
+              backgroundColor: getColor(0),
+              borderColor: getColor(0),
+              borderWidth: 1,
+            },
+          ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: !!options.chartOptions?.title,
+          text: options.chartOptions?.title || 'Bar Chart',
+        },
+      },
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: options.chartOptions?.xLabel || xCol,
+          },
+        },
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text:
+              options.chartOptions?.yLabel ||
+              (Array.isArray(yCol) ? 'Values' : yCol),
+          },
+        },
+      },
+      ...options.chartOptions,
+    },
+  };
 }
 
 /**

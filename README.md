@@ -209,12 +209,41 @@ CI/CD is automated via GitHub Actions + Changesets. See [`ci.yml`](.github/workf
 
 ---
 
+## 📊 Визуализация данных
+
+TinyFrameJS предоставляет мощный модуль визуализации для создания интерактивных графиков и диаграмм:
+
+### Поддерживаемые типы графиков
+
+- **Базовые**: линейный, столбчатый, точечный, круговой
+- **Расширенные**: с областями, радарный, полярный, свечной (для финансовых данных)
+- **Специализированные**: гистограмма, регрессия, пузырьковый, временные ряды
+
+### Автоматическое определение типа графика
+
+```js
+// Автоматически определяет наиболее подходящий тип графика
+const chart = await df.plot();
+```
+
+### Экспорт графиков
+
+```js
+// Экспорт в различные форматы: PNG, JPEG, PDF, SVG
+await df.exportChart('chart.png', { chartType: 'line' });
+await df.exportChart('report.pdf', { chartType: 'pie' });
+```
+
+Подробнее о возможностях визуализации в [документации](/docs/visualization-export.md).
+
 ## 🛣 Roadmap
 
 - [x] Fully declarative DataFrame interface
 - [x] TypedArray-powered core computation
 - [x] Auto-attached methods via runtime extension
 - [x] Competitive performance with compiled backends
+- [x] Advanced visualization with automatic chart type detection
+- [x] Chart export functionality (PNG, JPEG, PDF, SVG)
 - [ ] Expand statistical/transform methods and rolling ops
 - [ ] StreamingFrame: chunk-wise ingestion for massive datasets
 - [ ] Lazy evaluation framework: `.pipe()` + deferred execution

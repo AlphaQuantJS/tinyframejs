@@ -10,6 +10,10 @@ import * as lineCharts from './types/line.js';
 import * as barCharts from './types/bar.js';
 import * as scatterCharts from './types/scatter.js';
 import * as pieCharts from './types/pie.js';
+import { areaChart } from './types/area.js';
+import { radarChart } from './types/radar.js';
+import { polarChart } from './types/polar.js';
+import { candlestickChart } from './types/candlestick.js';
 
 // Import renderers
 import * as browserRenderer from './renderers/browser.js';
@@ -19,15 +23,17 @@ import * as nodeRenderer from './renderers/node.js';
 import * as colorUtils from './utils/colors.js';
 import * as scaleUtils from './utils/scales.js';
 import * as formatUtils from './utils/formatting.js';
+import { createChartJSConfig, loadChartJS } from './adapters/chartjs.js';
 
 // Import extension functionality
 import { extendDataFrame, init } from './extend.js';
+import { detectChartType } from './utils/autoDetect.js';
 
 // Re-export all chart types
 export const line = {
   lineChart: lineCharts.lineChart,
   multiAxisLineChart: lineCharts.multiAxisLineChart,
-  areaChart: lineCharts.areaChart,
+  areaChart, // Use the dedicated area chart implementation
   timeSeriesChart: lineCharts.timeSeriesChart,
 };
 
@@ -46,11 +52,16 @@ export const scatter = {
   regressionPlot: scatterCharts.regressionPlot,
 };
 
+// Financial charts
+export const financial = {
+  candlestickChart,
+};
+
 export const pie = {
   pieChart: pieCharts.pieChart,
   doughnutChart: pieCharts.doughnutChart,
-  polarAreaChart: pieCharts.polarAreaChart,
-  radarChart: pieCharts.radarChart,
+  polarAreaChart: polarChart, // Use the dedicated polar chart implementation
+  radarChart, // Use the dedicated radar chart implementation
   proportionPieChart: pieCharts.proportionPieChart,
 };
 
@@ -70,6 +81,9 @@ export const node = {
 
 // Re-export utilities
 export const utils = {
+  createChartJSConfig,
+  loadChartJS,
+  detectChartType,
   colors: colorUtils,
   scales: scaleUtils,
   formatting: formatUtils,
@@ -125,6 +139,8 @@ export function createChart(dataFrame, type, options) {
       return bar.paretoChart(dataFrame, options);
     case 'regression':
       return scatter.regressionPlot(dataFrame, options);
+    case 'candlestick':
+      return financial.candlestickChart(dataFrame, options);
     default:
       throw new Error(`Unsupported chart type: ${type}`);
   }
@@ -147,6 +163,7 @@ export default {
   bar,
   scatter,
   pie,
+  financial,
   browser,
   node,
   utils,

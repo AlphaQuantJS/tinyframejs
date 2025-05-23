@@ -42,3 +42,6 @@ export { melt } from './transform/melt.js';
 export { join } from './transform/join.js';
 export { stack } from './transform/stack.js';
 export { unstack } from './transform/unstack.js';
+
+// Time series methods
+export { resample } from './timeseries/resample.js';

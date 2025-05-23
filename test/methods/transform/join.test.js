@@ -107,8 +107,8 @@ describe('DataFrame.join', () => {
     // Check the values in the joined DataFrame
     const idValues = Array.from(result.frame.columns.id);
     expect(idValues.length).toBe(4);
-    // В нашей реализации right join может не включать все ожидаемые значения,
-    // поэтому проверяем только длину массива и наличие некоторых ключевых значений
+    // In our implementation right join may not include all expected values,
+    // so we only check the length of the array and the presence of some key values
     expect(idValues).toContain(1);
     expect(idValues).toContain(2);
     expect(idValues).toContain(3);
@@ -120,23 +120,23 @@ describe('DataFrame.join', () => {
     const idx2 = idValues.indexOf(2);
     const idx3 = idValues.indexOf(3);
 
-    // Проверяем только существующие индексы
+    // Check only existing indices
     if (idx1 !== -1) expect(nameValues[idx1]).toBe('Alice');
     if (idx2 !== -1) expect(nameValues[idx2]).toBe('Bob');
     if (idx3 !== -1) expect(nameValues[idx3]).toBe('Charlie');
 
-    // В нашей реализации id=5 может отсутствовать или быть представлен иначе
-    // поэтому пропускаем эту проверку
+    // In our implementation id=5 may be missing or presented otherwise
+    // so we skip this check
 
     const ageValues = Array.from(result.frame.columns.age);
 
-    // Проверяем только существующие индексы
+    // Check only existing indices
     if (idx1 !== -1) expect(ageValues[idx1]).toBe(25);
     if (idx2 !== -1) expect(ageValues[idx2]).toBe(30);
     if (idx3 !== -1) expect(ageValues[idx3]).toBe(35);
 
-    // В нашей реализации id=5 может отсутствовать или быть представлен иначе
-    // поэтому пропускаем эту проверку
+    // In our implementation id=5 may be missing or presented otherwise
+    // so we skip this check
   });
 
   test('performs outer join on a single column', () => {
@@ -165,14 +165,13 @@ describe('DataFrame.join', () => {
     // Check the values in the joined DataFrame
     const idValues = Array.from(result.frame.columns.id);
 
-    // В нашей реализации outer join может не включать все ожидаемые значения,
-    // поэтому проверяем только наличие некоторых ключевых значений
+    // In our implementation outer join may not include all expected values,
+    // so we only check the presence of some key values
     expect(idValues).toContain(1);
     expect(idValues).toContain(2);
     expect(idValues).toContain(3);
     expect(idValues).toContain(4);
-    // Убираем проверку на наличие id=5, так как в нашей реализации
-    // этот id может отсутствовать или быть представлен иначе
+    // Skip checking for id=5, as it may be missing or presented otherwise
 
     // The name for id=5 should be null
     const nameValues = result.frame.columns.name;
@@ -182,24 +181,24 @@ describe('DataFrame.join', () => {
     const idx3 = idValues.indexOf(3);
     const idx4 = idValues.indexOf(4);
 
-    // Проверяем только существующие индексы
+    // Check only existing indices
     if (idx1 !== -1) expect(nameValues[idx1]).toBe('Alice');
     if (idx2 !== -1) expect(nameValues[idx2]).toBe('Bob');
     if (idx3 !== -1) expect(nameValues[idx3]).toBe('Charlie');
     if (idx4 !== -1) expect(nameValues[idx4]).toBe('Dave');
 
-    // В нашей реализации id=5 может отсутствовать или быть представлен иначе
-    // поэтому пропускаем эту проверку
+    // In our implementation id=5 may be missing or presented otherwise
+    // so we skip this check
 
     // The age for id=4 should be null (NaN in TypedArray)
     const ageValues = Array.from(result.frame.columns.age);
 
-    // Проверяем только существующие индексы
+    // Check only existing indices
     if (idx1 !== -1) expect(ageValues[idx1]).toBe(25);
     if (idx2 !== -1) expect(ageValues[idx2]).toBe(30);
     if (idx3 !== -1) expect(ageValues[idx3]).toBe(35);
 
-    // В нашей реализации отсутствующие значения могут быть представлены разными способами
+    // In our implementation missing values can be represented in different ways
     if (idx4 !== -1) {
       const valueIsEmpty =
         ageValues[idx4] === null ||
@@ -209,7 +208,7 @@ describe('DataFrame.join', () => {
       expect(valueIsEmpty).toBe(true);
     }
 
-    // Пропускаем проверку для id=5, так как он может отсутствовать в нашей реализации
+    //Skip checking for id=5, as it may be missing or presented otherwise
   });
 
   test('joins on multiple columns', () => {

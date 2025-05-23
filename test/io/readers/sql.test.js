@@ -311,11 +311,11 @@ describe('SQL Reader', () => {
     // Force using dynamic typing
     const df = await readSql(connection, query, { dynamicTyping: true });
 
-    // Проверяем, что DataFrame.create был вызван с правильными параметрами
+    // Check that DataFrame.create was called with the correct parameters
     expect(DataFrame.create).toHaveBeenCalled();
 
-    // Поскольку мы используем мок, мы не можем проверить реальное преобразование типов,
-    // но мы можем проверить, что функция была вызвана с правильными параметрами
+    // Since we're using a mock, we can't check the actual type conversion,
+    // but we can verify that the function was called with the correct parameters
     expect(df).toEqual(expect.any(Object));
   });
 
@@ -335,11 +335,11 @@ describe('SQL Reader', () => {
     // Disable dynamic typing
     const df = await readSql(connection, query, { dynamicTyping: false });
 
-    // Проверяем, что DataFrame.create был вызван с правильными параметрами
+    // Check that DataFrame.create was called with the correct parameters
     expect(DataFrame.create).toHaveBeenCalled();
 
-    // Поскольку мы используем мок, мы не можем проверить реальное отсутствие преобразования типов,
-    // но мы можем проверить, что функция была вызвана с правильными параметрами
+    // Since we're using a mock, we can't check the actual type conversion,
+    // but we can verify that the function was called with the correct parameters
     expect(df).toEqual(expect.any(Object));
     expect(df.rowCount).toBe(4);
   });

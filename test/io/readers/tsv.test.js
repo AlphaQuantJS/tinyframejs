@@ -198,10 +198,10 @@ describe('TSV Reader', () => {
     const contentWithEmptyCells =
       'id\tname\tvalue\n1\tJohn\t100\n2\t\t200\n3\tAlice\t\n4\t\t';
 
-    // Проверяем, что функция readTsv успешно обрабатывает пустые ячейки с emptyValue=null
+    // Check that the readTsv function successfully handles empty cells with emptyValue=null
     const df = await readTsv(contentWithEmptyCells, { emptyValue: null });
 
-    // Проверяем, что DataFrame был создан успешно
+    // Check that the DataFrame was created successfully
     expect(df).toBeInstanceOf(DataFrame);
     expect(df.rowCount).toBe(4);
   });
@@ -214,10 +214,10 @@ describe('TSV Reader', () => {
     const contentWithEmptyCells =
       'id\tname\tvalue\n1\tJohn\t100\n2\t\t200\n3\tAlice\t\n4\t\t';
 
-    // Проверяем, что функция readTsv успешно обрабатывает пустые ячейки с emptyValue=NaN
+    // Check that the readTsv function successfully handles empty cells with emptyValue=NaN
     const df = await readTsv(contentWithEmptyCells, { emptyValue: NaN });
 
-    // Проверяем, что DataFrame был создан успешно
+    // Check that the DataFrame was created successfully
     expect(df).toBeInstanceOf(DataFrame);
     expect(df.rowCount).toBe(4);
   });
@@ -248,8 +248,8 @@ describe('TSV Reader', () => {
     expect(data[2].mixed).toBe('text');
     expect(typeof data[2].mixed).toBe('string');
 
-    // Строка с датой может быть преобразована в объект Date или оставлена как строка
-    // в зависимости от реализации convertType
+    // A string date can be converted to a Date object or left as a string
+    // depending on the convertType implementation
     expect(typeof data[3].mixed).toBe('string');
     expect(data[3].mixed).toBe('2023-01-01');
   });

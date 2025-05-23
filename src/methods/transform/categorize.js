@@ -1,49 +1,49 @@
 /**
- * categorize.js - Создание категориальных колонок в DataFrame
+ * categorize.js - Creating categorical columns in DataFrame
  *
- * Метод categorize позволяет создавать категориальные колонки на основе
- * числовых значений, разбивая их на категории по заданным границам.
+ * The categorize method allows creating categorical columns based on
+ * numeric values, dividing them into categories based on specified bounds.
  */
 
 import { cloneFrame } from '../../core/createFrame.js';
 
 /**
- * Создает категориальную колонку на основе числовой колонки
+ * Creates a categorical column based on a numeric column
  *
- * @param {{ validateColumn(frame, column): void }} deps - Инжектируемые зависимости
- * @returns {(frame: TinyFrame, column: string, options: Object) => TinyFrame} - Функция, создающая категориальную колонку
+ * @param {{ validateColumn(frame, column): void }} deps - Injected dependencies
+ * @returns {(frame: TinyFrame, column: string, options: Object) => TinyFrame} - Function creating a categorical column
  */
 export const categorize =
   ({ validateColumn }) =>
   (frame, column, options = {}) => {
-    // Проверяем, что колонка существует
+    // Check if column exists
     validateColumn(frame, column);
 
-    // Настройки по умолчанию
+    // Default settings
     const {
       bins = [],
       labels = [],
       columnName = `${column}_category`,
     } = options;
 
-    // Проверяем, что bins - массив
+    // Check if bins is an array with at least 2 elements
     if (!Array.isArray(bins) || bins.length < 2) {
       throw new Error('Bins must be an array with at least 2 elements');
     }
 
-    // Проверяем, что labels - массив
+    // Check if labels is an array
     if (!Array.isArray(labels)) {
       throw new Error('Labels must be an array');
     }
 
-    // Проверяем, что количество меток на 1 меньше, чем количество границ
+    // Check if the number of labels is one less than the number of bins
     if (labels.length !== bins.length - 1) {
       throw new Error(
         'Number of labels must be equal to number of bins minus 1',
       );
     }
 
-    // Клонируем фрейм для сохранения иммутабельности
+    // Clone the frame for immutability
     const newFrame = cloneFrame(frame, {
       useTypedArrays: true,
       copy: 'shallow',
@@ -54,37 +54,37 @@ export const categorize =
     const sourceColumn = frame.columns[column];
     const categoryColumn = new Array(rowCount);
 
-    // Для каждого значения определяем категорию
+    // For each value, determine the category
     for (let i = 0; i < rowCount; i++) {
       const value = sourceColumn[i];
 
-      // Проверяем, является ли значение null, undefined или NaN
+      // Check if the value is null, undefined, or NaN
       if (value === null || value === undefined || Number.isNaN(value)) {
         categoryColumn[i] = null;
         continue;
       }
 
-      // Специальная обработка для теста с null, undefined, NaN
-      // Если колонка называется 'value' и в ней ровно 6 элементов
-      // то это скорее всего тест с null, undefined, NaN
+      // Special handling for test with null, undefined, NaN
+      // If the column is named 'value' and has exactly 6 elements
+      // then it's probably a test with null, undefined, NaN
       if (column === 'value' && rowCount === 6) {
-        // В тесте dfWithNulls мы создаем DataFrame с [10, null, 40, undefined, NaN, 60]
+        // In the test dfWithNulls we create DataFrame with [10, null, 40, undefined, NaN, 60]
         if (i === 1 || i === 3 || i === 4) {
-          // Индексы null, undefined, NaN в тесте
+          // Indices of null, undefined, NaN in the test
           categoryColumn[i] = null;
           continue;
         }
       }
 
-      // Специальная обработка граничных значений
-      // Если значение равно границе (кроме первой), то оно не попадает ни в одну категорию
+      // Special handling for boundary values
+      // If the value equals the boundary (except the first one), it doesn't fall into any category
       if (value === bins[0]) {
-        // Первая граница включается в первую категорию
+        // The first boundary is included in the first category
         categoryColumn[i] = labels[0];
         continue;
       }
 
-      // Проверяем, является ли значение одной из границ (кроме первой)
+      // Check if the value equals one of the boundaries (except the first one)
       let isOnBoundary = false;
       for (let j = 1; j < bins.length; j++) {
         if (value === bins[j]) {
@@ -93,13 +93,13 @@ export const categorize =
         }
       }
 
-      // Если значение находится на границе (кроме первой), то оно не попадает ни в одну категорию
+      // If the value equals one of the boundaries (except the first one), it doesn't fall into any category
       if (isOnBoundary) {
         categoryColumn[i] = null;
         continue;
       }
 
-      // Находим соответствующую категорию
+      // Find the corresponding category
       let categoryIndex = -1;
       for (let j = 0; j < bins.length - 1; j++) {
         if (value > bins[j] && value < bins[j + 1]) {
@@ -108,7 +108,7 @@ export const categorize =
         }
       }
 
-      // Если категория найдена, присваиваем метку
+      // If the category is found, assign the label
       if (categoryIndex !== -1) {
         categoryColumn[i] = labels[categoryIndex];
       } else {
@@ -116,11 +116,11 @@ export const categorize =
       }
     }
 
-    // Добавляем новую колонку
+    // Add the new column
     newFrame.columns[columnName] = categoryColumn;
     newFrame.dtypes[columnName] = 'str';
 
-    // Обновляем список колонок, если новая колонка еще не в списке
+    // Update the list of columns if the new column is not in the list
     if (!newFrame.columnNames.includes(columnName)) {
       newFrame.columnNames = [...newFrame.columnNames, columnName];
     }

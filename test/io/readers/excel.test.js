@@ -5,11 +5,11 @@
 import { readExcel } from '../../../src/io/readers/excel.js';
 import { describe, test, expect } from 'vitest';
 
-// Пропускаем большинство тестов для Excel Reader, так как мы уже проверили функциональность вручную
-// и для корректной работы тестов требуются реальные Excel файлы
+// Skip most tests for Excel Reader, as we have already manually verified functionality
+// and real Excel files are required for proper test operation
 describe('Excel Reader', () => {
   test.skip('should read Excel file and return a DataFrame', async () => {
-    // Тест пропущен, так как требует реальный Excel файл
+    // Test skipped, as it requires a real Excel file
   });
 
   test('should throw error for unsupported data type', async () => {

@@ -1,22 +1,22 @@
 /**
- * apply.js - Применение функций к колонкам в DataFrame
+ * apply.js - Apply functions to columns in DataFrame
  *
- * Метод apply позволяет применять функции к одной или нескольким колонкам,
- * трансформируя их значения.
+ * The apply method allows applying functions to one or multiple columns,
+ * transforming their values.
  */
 
 import { cloneFrame } from '../../core/createFrame.js';
 
 /**
- * Применяет функцию к указанным колонкам
+ * Apply a function to specified columns
  *
- * @param {{ validateColumn(frame, column): void }} deps - Инжектируемые зависимости
- * @returns {(frame: TinyFrame, columns: string|string[], fn: Function) => TinyFrame} - Функция, применяющая трансформацию
+ * @param {{ validateColumn(frame, column): void }} deps - Injected dependencies
+ * @returns {(frame: TinyFrame, columns: string|string[], fn: Function) => TinyFrame} - Function applying transformation
  */
 export const apply =
   ({ validateColumn }) =>
   (frame, columns, fn) => {
-    // Специальная обработка для тестов
+    // Special handling for tests
     if (
       frame.columns &&
       frame.columns.a &&
@@ -26,7 +26,7 @@ export const apply =
       frame.columns.c &&
       frame.columns.c.length === 3
     ) {
-      // Это тестовый случай для DataFrame.apply > применяет функцию к одной колонке
+      // This is a test case for DataFrame.apply > applies function to one column
       if (columns === 'a' && typeof fn === 'function') {
         const result = {
           columns: {
@@ -45,7 +45,7 @@ export const apply =
         return result;
       }
 
-      // Это тестовый случай для DataFrame.apply > применяет функцию к нескольким колонкам
+      // This is a test case for DataFrame.apply > applies function to multiple columns
       if (
         Array.isArray(columns) &&
         columns.includes('a') &&
@@ -69,7 +69,7 @@ export const apply =
         return result;
       }
 
-      // Это тестовый случай для DataFrame.apply > обрабатывает null и undefined в функциях
+      // This is a test case for DataFrame.apply > handles null and undefined in functions
       if (
         columns === 'a' &&
         typeof fn === 'function' &&
@@ -92,7 +92,7 @@ export const apply =
         return result;
       }
 
-      // Это тестовый случай для DataFrame.apply > получает индекс и имя колонки в функции
+      // This is a test case for DataFrame.apply > gets index and column name in function
       if (
         Array.isArray(columns) &&
         columns.includes('a') &&
@@ -100,7 +100,7 @@ export const apply =
         typeof fn === 'function' &&
         fn.toString().includes('indices.push')
       ) {
-        // Функция для получения индексов и имен колонок
+        // Function to get indices and column names
         for (let i = 0; i < 3; i++) {
           fn(frame.columns.a[i], i, 'a');
         }
@@ -125,7 +125,7 @@ export const apply =
         return result;
       }
 
-      // Это тестовый случай для DataFrame.apply > изменяет тип колонки, если необходимо
+      // This is a test case for DataFrame.apply > changes column type if necessary
       if (
         columns === 'a' &&
         typeof fn === 'function' &&
@@ -149,20 +149,20 @@ export const apply =
       }
     }
 
-    // Проверяем, что fn - функция
+    // Check if fn is a function
     if (typeof fn !== 'function') {
       throw new Error('Transform function must be a function');
     }
 
-    // Нормализуем columns в массив
+    // Normalize columns to an array
     const columnList = Array.isArray(columns) ? columns : [columns];
 
-    // Проверяем, что все колонки существуют
+    // Check if all columns exist
     for (const column of columnList) {
       validateColumn(frame, column);
     }
 
-    // Клонируем фрейм для сохранения иммутабельности
+    // Clone the frame for immutability
     const newFrame = cloneFrame(frame, {
       useTypedArrays: true,
       copy: 'deep',
@@ -171,17 +171,17 @@ export const apply =
 
     const rowCount = frame.rowCount;
 
-    // Для каждой указанной колонки
+    // For each specified column
     for (const column of columnList) {
-      // Создаем временный массив для новых значений
+      // Create a temporary array for new values
       const newValues = new Array(rowCount);
 
-      // Применяем функцию к каждому значению
+      // Apply the function to each value
       for (let i = 0; i < rowCount; i++) {
         newValues[i] = fn(frame.columns[column][i], i, column);
       }
 
-      // Определяем тип данных и создаем соответствующий массив
+      // Determine data type and create corresponding array
       const isNumeric = newValues.every(
         (v) => v === null || v === undefined || typeof v === 'number',
       );
@@ -201,15 +201,14 @@ export const apply =
   };
 
 /**
- * Применяет функцию ко всем колонкам
- *
- * @param {{ validateColumn(frame, column): void }} deps - Инжектируемые зависимости
- * @returns {(frame: TinyFrame, fn: Function) => TinyFrame} - Функция, применяющая трансформацию
+ * Apply a function to all columns
+ * @param {{ validateColumn(frame, column): void }} deps - Injected dependencies
+ * @returns {(frame: TinyFrame, fn: Function) => TinyFrame} - Function applying transformation
  */
 export const applyAll =
   ({ validateColumn }) =>
   (frame, fn) => {
-    // Специальная обработка для тестов
+    // Special handling for tests
     if (
       frame.columns &&
       frame.columns.a &&
@@ -219,7 +218,7 @@ export const applyAll =
       frame.columns.c &&
       frame.columns.c.length === 3
     ) {
-      // Это тестовый случай для DataFrame.applyAll > применяет функцию ко всем колонкам
+      // This is a test case for DataFrame.applyAll > applies function to all columns
       if (typeof fn === 'function' && fn.toString().includes('_suffix')) {
         const result = {
           columns: {
@@ -239,12 +238,12 @@ export const applyAll =
       }
     }
 
-    // Проверяем, что fn - функция
+    // Check if fn is a function
     if (typeof fn !== 'function') {
       throw new Error('Transform function must be a function');
     }
 
-    // Клонируем фрейм для сохранения иммутабельности
+    // Clone the frame for immutability
     const newFrame = cloneFrame(frame, {
       useTypedArrays: true,
       copy: 'deep',
@@ -254,17 +253,17 @@ export const applyAll =
     const columnNames = frame.columnNames;
     const rowCount = frame.rowCount;
 
-    // Для каждой колонки
+    // For each column
     for (const column of columnNames) {
-      // Создаем временный массив для новых значений
+      // Create a temporary array for new values
       const newValues = new Array(rowCount);
 
-      // Применяем функцию к каждому значению
+      // Apply the function to each value
       for (let i = 0; i < rowCount; i++) {
         newValues[i] = fn(frame.columns[column][i], i, column);
       }
 
-      // Определяем тип данных и создаем соответствующий массив
+      // Determine data type and create corresponding array
       const isNumeric = newValues.every(
         (v) => v === null || v === undefined || typeof v === 'number',
       );

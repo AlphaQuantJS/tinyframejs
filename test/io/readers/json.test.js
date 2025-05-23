@@ -134,10 +134,10 @@ describe('JSON Reader', () => {
    * Tests reading from file path
    * Verifies that JSON can be read directly from a file path
    */
-  // Пропускаем тест чтения из файла, так как он зависит от среды выполнения
+  // Skip test reading from file, as it depends on the execution environment
   test.skip('should read JSON from file path', async () => {
-    // Тест пропущен, так как зависит от наличия fs модуля
-    // В реальном приложении это будет работать в Node.js среде
+    // Test skipped, as it depends on the presence of the fs module
+    // In a real application, this will work in a Node.js environment
     expect(true).toBe(true);
   });
 
@@ -155,10 +155,10 @@ describe('JSON Reader', () => {
       ],
     };
 
-    // Проверяем, что функция readJson успешно обрабатывает null значения
+    // Check that the readJson function successfully processes null values
     const df = await readJson(jsonWithNulls, { recordPath: 'data' });
 
-    // Проверяем, что DataFrame был создан успешно
+    // Check that the DataFrame was created successfully
     expect(df).toBeInstanceOf(DataFrame);
     expect(df.rowCount).toBe(4);
   });
@@ -213,13 +213,13 @@ describe('JSON Reader', () => {
       ],
     };
 
-    // Проверяем, что функция readJson успешно обрабатывает null значения с emptyValue=null
+    // Check that the readJson function successfully processes null values with emptyValue=null
     const df = await readJson(jsonWithNulls, {
       recordPath: 'data',
       emptyValue: null,
     });
 
-    // Проверяем, что DataFrame был создан успешно
+    // Check that the DataFrame was created successfully
     expect(df).toBeInstanceOf(DataFrame);
     expect(df.rowCount).toBe(3);
   });
@@ -237,13 +237,13 @@ describe('JSON Reader', () => {
       ],
     };
 
-    // Проверяем, что функция readJson успешно обрабатывает null значения с emptyValue=NaN
+    // Check that the readJson function successfully processes null values with emptyValue=NaN
     const df = await readJson(jsonWithNulls, {
       recordPath: 'data',
       emptyValue: NaN,
     });
 
-    // Проверяем, что DataFrame был создан успешно
+    // Check that the DataFrame was created successfully
     expect(df).toBeInstanceOf(DataFrame);
     expect(df.rowCount).toBe(3);
   });
@@ -280,8 +280,8 @@ describe('JSON Reader', () => {
     expect(data[2].mixed).toBe('text');
     expect(typeof data[2].mixed).toBe('string');
 
-    // Строка с датой может быть преобразована в объект Date или оставлена как строка
-    // в зависимости от реализации convertType
+    // The date string can be converted to a Date object or left as a string
+    // depending on the implementation of convertType
     expect(typeof data[3].mixed).toBe('string');
     expect(data[3].mixed).toBe('2023-01-01');
   });

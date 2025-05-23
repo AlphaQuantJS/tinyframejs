@@ -158,7 +158,7 @@ describe('DataFrame.melt', () => {
     ]);
 
     // Check that the value column has the correct type
-    // В нашей реализации строковые значения имеют тип 'string', а не 'str'
+    // In our implementation string values have type 'string', not 'str'
     expect(result.frame.dtypes.value).toBe('string');
   });
 
@@ -173,8 +173,8 @@ describe('DataFrame.melt', () => {
     // Check that the method throws an error if idVars is not an array
     expect(() => df.melt('product')).toThrow();
     expect(() => df.melt(null)).toThrow();
-    // Пустой массив idVars теперь допустим, так как valueVars будут автоматически определены
-    // как все столбцы, которые не указаны в idVars
+    // Empty array idVars is now allowed, as valueVars will be automatically defined
+    // as all columns that are not specified in idVars
 
     // Check that the method throws an error if idVars contains non-existent columns
     expect(() => df.melt(['nonexistent'])).toThrow();

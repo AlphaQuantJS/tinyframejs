@@ -5,9 +5,9 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import { DataFrame } from '../../../src/core/DataFrame.js';
 
-// Мокируем модуль csv.js
+// Mock the csv.js module
 vi.mock('../../../src/io/readers/csv.js', () => {
-  // Создаем мок для функции readCsvInBatches
+  // Create a mock for the readCsvInBatches function
   const mockGenerator = async function* (source, options = {}) {
     const lines = source.split('\n');
     const header = lines[0].split(',');
@@ -19,14 +19,14 @@ vi.mock('../../../src/io/readers/csv.js', () => {
       const values = dataLines[i].split(',');
       const row = {};
       header.forEach((col, idx) => {
-        row[col] = options.dynamicTyping ?
-          parseFloat(values[idx]) || values[idx] :
-          values[idx];
+        row[col] = options.dynamicTyping
+          ? parseFloat(values[idx]) || values[idx]
+          : values[idx];
       });
       batch.push(row);
 
       if (batch.length >= batchSize || i === dataLines.length - 1) {
-        // Создаем функцию для обработки колонок вне цикла
+        // Create a function to process columns outside the loop
         function createColumnsFromBatch(batchData, headerCols) {
           return headerCols.reduce((acc, col) => {
             acc[col] = batchData.map((row) => row[col]);
@@ -34,7 +34,7 @@ vi.mock('../../../src/io/readers/csv.js', () => {
           }, {});
         }
 
-        // Создаем правильную структуру TinyFrame
+        // Create the correct TinyFrame structure
         const frame = {
           columns: createColumnsFromBatch(batch, header),
           rowCount: batch.length,
@@ -46,9 +46,9 @@ vi.mock('../../../src/io/readers/csv.js', () => {
     }
   };
 
-  // Создаем мок для функции readCsv с поддержкой батчей
+  // Create a mock for the readCsv function with batch support
   const mockReadCsv = async (source, options = {}) => {
-    // Если указан batchSize, используем потоковую обработку
+    // If batchSize is specified, use streaming processing
     if (options.batchSize) {
       return {
         process: async (callback) => {
@@ -64,7 +64,7 @@ vi.mock('../../../src/io/readers/csv.js', () => {
             allData.push(...batchDf.toArray());
           }
 
-          // Создаем правильную структуру TinyFrame
+          // Create the correct TinyFrame structure
           const frame = {
             columns: Object.keys(allData[0] || {}).reduce((acc, key) => {
               acc[key] = allData.map((item) => item[key]);
@@ -78,7 +78,7 @@ vi.mock('../../../src/io/readers/csv.js', () => {
       };
     }
 
-    // Для обычного чтения возвращаем DataFrame напрямую
+    // For regular reading, return DataFrame directly
     const lines = source.split('\n');
     const header = lines[0].split(',');
     const dataLines = lines.slice(1);
@@ -87,9 +87,9 @@ vi.mock('../../../src/io/readers/csv.js', () => {
       const values = line.split(',');
       const row = {};
       header.forEach((col, idx) => {
-        row[col] = options.dynamicTyping ?
-          parseFloat(values[idx]) || values[idx] :
-          values[idx];
+        row[col] = options.dynamicTyping
+          ? parseFloat(values[idx]) || values[idx]
+          : values[idx];
       });
       return row;
     });
@@ -105,12 +105,12 @@ vi.mock('../../../src/io/readers/csv.js', () => {
     return new DataFrame(frame);
   };
 
-  // Создаем мок для функции addCsvBatchMethods
+  // Create a mock for the addCsvBatchMethods function
   const mockAddCsvBatchMethods = (DataFrameClass) => {
-    // Добавляем статический метод readCsv к DataFrame
+    // Add the static readCsv method to DataFrame
     DataFrameClass.readCsv = mockReadCsv;
 
-    // Добавляем readCsvInBatches как статический метод
+    // Add readCsvInBatches as a static method
     DataFrameClass.readCsvInBatches = mockGenerator;
 
     return DataFrameClass;
@@ -128,17 +128,17 @@ vi.mock('../../../src/io/readers/csv.js', () => {
   };
 });
 
-// Импортируем функции после мокирования
+// Import functions after mocking
 import {
   readCsvInBatches,
   addCsvBatchMethods,
 } from '../../../src/io/readers/csv.js';
 
-// Инициализируем DataFrame с методами для работы с CSV
+// Initialize DataFrame with CSV methods
 addCsvBatchMethods(DataFrame);
 
-// Добавляем метод toArray к DataFrame для тестов
-DataFrame.prototype.toArray = vi.fn().mockImplementation(function() {
+// Add toArray method to DataFrame for tests
+DataFrame.prototype.toArray = vi.fn().mockImplementation(function () {
   const frame = this._frame;
   const result = [];
 
@@ -222,7 +222,7 @@ describe('CSV Batch Processing', () => {
     const df = await batchProcessor.collect();
 
     expect(df.rowCount).toBe(5);
-    // Проверяем, что метод toArray был вызван
+    // Check that the toArray method was called
     expect(DataFrame.prototype.toArray).toHaveBeenCalled();
   });
 });

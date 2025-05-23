@@ -108,13 +108,13 @@ describe('DataFrame.apply', () => {
     expect(newDf.frame.columns.a).toEqual(['low', 'low', 'high']);
   });
 
-  test('выбрасывает ошибку при некорректных аргументах', () => {
-    // Проверяем, что метод выбрасывает ошибку, если функция не передана
+  test('throws error with invalid arguments', () => {
+    // Check that the function throws an error if col is not a string
     expect(() => df.apply('a')).toThrow();
     expect(() => df.apply('a', null)).toThrow();
     expect(() => df.apply('a', 'not a function')).toThrow();
 
-    // Проверяем, что метод выбрасывает ошибку, если колонка не существует
+    // Check that the function throws an error if col is not a string
     expect(() => df.apply('nonexistent', (value) => value)).toThrow();
   });
 });
@@ -127,8 +127,8 @@ describe('DataFrame.applyAll', () => {
     c: ['x', 'y', 'z'],
   });
 
-  test('применяет функцию ко всем колонкам', () => {
-    // Используем метод applyAll через DataFrame API
+  test('applies function to all columns', () => {
+    // Use applyAll method through DataFrame API
     const result = df.applyAll((value) => {
       if (typeof value === 'number') {
         return value * 2;
@@ -136,13 +136,13 @@ describe('DataFrame.applyAll', () => {
       return value + '_suffix';
     });
 
-    // Проверяем, что результат - экземпляр DataFrame
+    // Check that the result is a DataFrame instance
     expect(result).toBeInstanceOf(DataFrame);
 
-    // Проверяем, что исходный DataFrame не изменился
+    // Check that the original DataFrame hasn't changed
     expect(Array.from(df.frame.columns.a)).toEqual([1, 2, 3]);
 
-    // Проверяем, что все колонки изменены
+    // Check that all columns have been modified
     expect(Array.from(result.frame.columns.a)).toEqual([2, 4, 6]);
     expect(Array.from(result.frame.columns.b)).toEqual([20, 40, 60]);
     expect(result.frame.columns.c).toEqual([
@@ -152,8 +152,8 @@ describe('DataFrame.applyAll', () => {
     ]);
   });
 
-  test('выбрасывает ошибку при некорректных аргументах', () => {
-    // Проверяем, что метод выбрасывает ошибку, если функция не передана
+  test('throws error with invalid arguments', () => {
+    // Check that the function throws an error if fn is not a function
     expect(() => df.applyAll()).toThrow();
     expect(() => df.applyAll(null)).toThrow();
     expect(() => df.applyAll('not a function')).toThrow();

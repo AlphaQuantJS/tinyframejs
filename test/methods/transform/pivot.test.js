@@ -294,4 +294,215 @@ describe('DataFrame.pivot', () => {
       df.pivot('product', 'region', 'sales', 'not a function'),
     ).toThrow();
   });
+
+  test('supports object parameter style', () => {
+    // Create a test DataFrame with sales data
+    const df = DataFrame.create({
+      product: ['Product A', 'Product A', 'Product B', 'Product B'],
+      region: ['North', 'South', 'North', 'South'],
+      sales: [10, 20, 30, 40],
+    });
+
+    // Call the pivot method with object parameter style
+    const result = df.pivot({
+      index: 'product',
+      columns: 'region',
+      values: 'sales',
+    });
+
+    // Check that the result is a DataFrame instance
+    expect(result).toBeInstanceOf(DataFrame);
+
+    // Check the structure of the pivot table
+    expect(result.frame.columnNames).toContain('product');
+    expect(result.frame.columnNames).toContain('region_North');
+    expect(result.frame.columnNames).toContain('region_South');
+
+    // Check the values in the pivot table
+    expect(Array.from(result.frame.columns.product)).toEqual([
+      'Product A',
+      'Product B',
+    ]);
+    expect(Array.from(result.frame.columns['region_North'])).toEqual([10, 30]);
+    expect(Array.from(result.frame.columns['region_South'])).toEqual([20, 40]);
+  });
+
+  test('supports multi-level columns', () => {
+    // Create a test DataFrame with multiple dimensions
+    const df = DataFrame.create({
+      product: [
+        'Product A',
+        'Product A',
+        'Product A',
+        'Product A',
+        'Product B',
+        'Product B',
+        'Product B',
+        'Product B',
+      ],
+      region: [
+        'North',
+        'North',
+        'South',
+        'South',
+        'North',
+        'North',
+        'South',
+        'South',
+      ],
+      quarter: ['Q1', 'Q2', 'Q1', 'Q2', 'Q1', 'Q2', 'Q1', 'Q2'],
+      sales: [10, 15, 20, 25, 30, 35, 40, 45],
+    });
+
+    // Call the pivot method with multi-level columns
+    const result = df.pivot({
+      index: 'product',
+      columns: ['region', 'quarter'],
+      values: 'sales',
+    });
+
+    // Check the structure of the pivot table
+    expect(result.frame.columnNames).toContain('product');
+    expect(result.frame.columnNames).toContain('region_North.quarter_Q1');
+    expect(result.frame.columnNames).toContain('region_North.quarter_Q2');
+    expect(result.frame.columnNames).toContain('region_South.quarter_Q1');
+    expect(result.frame.columnNames).toContain('region_South.quarter_Q2');
+
+    // Check the values in the pivot table
+    expect(Array.from(result.frame.columns.product)).toEqual([
+      'Product A',
+      'Product B',
+    ]);
+    expect(Array.from(result.frame.columns['region_North.quarter_Q1'])).toEqual(
+      [10, 30],
+    );
+    expect(Array.from(result.frame.columns['region_North.quarter_Q2'])).toEqual(
+      [15, 35],
+    );
+    expect(Array.from(result.frame.columns['region_South.quarter_Q1'])).toEqual(
+      [20, 40],
+    );
+    expect(Array.from(result.frame.columns['region_South.quarter_Q2'])).toEqual(
+      [25, 45],
+    );
+
+    // Check metadata for multi-level columns
+    expect(result.frame.metadata.multiLevelColumns).toEqual([
+      'region',
+      'quarter',
+    ]);
+  });
+
+  test('supports multi-level indices and multi-level columns', () => {
+    // Create a test DataFrame with multiple dimensions
+    const df = DataFrame.create({
+      product: [
+        'Product A',
+        'Product A',
+        'Product A',
+        'Product A',
+        'Product B',
+        'Product B',
+        'Product B',
+        'Product B',
+      ],
+      category: [
+        'Electronics',
+        'Electronics',
+        'Electronics',
+        'Electronics',
+        'Furniture',
+        'Furniture',
+        'Furniture',
+        'Furniture',
+      ],
+      region: [
+        'North',
+        'North',
+        'South',
+        'South',
+        'North',
+        'North',
+        'South',
+        'South',
+      ],
+      quarter: ['Q1', 'Q2', 'Q1', 'Q2', 'Q1', 'Q2', 'Q1', 'Q2'],
+      sales: [10, 15, 20, 25, 30, 35, 40, 45],
+    });
+
+    // Call the pivot method with multi-level indices and columns
+    const result = df.pivot({
+      index: ['product', 'category'],
+      columns: ['region', 'quarter'],
+      values: 'sales',
+    });
+
+    // Check the structure of the pivot table
+    expect(result.frame.columnNames).toContain('product');
+    expect(result.frame.columnNames).toContain('category');
+    expect(result.frame.columnNames).toContain('region_North.quarter_Q1');
+    expect(result.frame.columnNames).toContain('region_North.quarter_Q2');
+    expect(result.frame.columnNames).toContain('region_South.quarter_Q1');
+    expect(result.frame.columnNames).toContain('region_South.quarter_Q2');
+
+    // Check the number of rows (should be one per unique product-category combination)
+    expect(result.frame.rowCount).toBe(4); // 2 products x 2 categories = 4 combinations
+
+    // Find rows for product-category combinations that exist in the data
+    let productAElectronicsIdx = -1;
+    let productBFurnitureIdx = -1;
+
+    // Find indices for combinations of Product A + Electronics and Product B + Furniture
+    for (let i = 0; i < result.frame.rowCount; i++) {
+      if (
+        result.frame.columns.product[i] === 'Product A' &&
+        result.frame.columns.category[i] === 'Electronics'
+      ) {
+        productAElectronicsIdx = i;
+      }
+      if (
+        result.frame.columns.product[i] === 'Product B' &&
+        result.frame.columns.category[i] === 'Furniture'
+      ) {
+        productBFurnitureIdx = i;
+      }
+    }
+
+    // Check sales values for combinations that exist in the data
+    expect(
+      result.frame.columns['region_North.quarter_Q1'][productAElectronicsIdx],
+    ).toBe(10);
+    expect(
+      result.frame.columns['region_North.quarter_Q2'][productAElectronicsIdx],
+    ).toBe(15);
+    expect(
+      result.frame.columns['region_South.quarter_Q1'][productAElectronicsIdx],
+    ).toBe(20);
+    expect(
+      result.frame.columns['region_South.quarter_Q2'][productAElectronicsIdx],
+    ).toBe(25);
+
+    expect(
+      result.frame.columns['region_North.quarter_Q1'][productBFurnitureIdx],
+    ).toBe(30);
+    expect(
+      result.frame.columns['region_North.quarter_Q2'][productBFurnitureIdx],
+    ).toBe(35);
+    expect(
+      result.frame.columns['region_South.quarter_Q1'][productBFurnitureIdx],
+    ).toBe(40);
+    expect(
+      result.frame.columns['region_South.quarter_Q2'][productBFurnitureIdx],
+    ).toBe(45);
+
+    // Check metadata for multi-level indices and columns
+    expect(result.frame.metadata.multiLevelIndex).toEqual([
+      'product',
+      'category',
+    ]);
+    expect(result.frame.metadata.multiLevelColumns).toEqual([
+      'region',
+      'quarter',
+    ]);
+  });
 });

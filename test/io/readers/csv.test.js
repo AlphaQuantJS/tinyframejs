@@ -17,7 +17,7 @@ const csvContent =
   '2023-01-05,112.25,115.5,111.0,115.0,1600000';
 
 describe('CSV Reader', () => {
-  // Мокируем fs.promises.readFile
+  // Mock fs.promises.readFile
   vi.mock('fs', () => ({
     promises: {
       readFile: vi.fn().mockResolvedValue(csvContent),
@@ -206,8 +206,8 @@ describe('CSV Reader', () => {
     expect(typeof data[2].mixed).toBe('string');
     expect(data[2].mixed).toBe('text');
 
-    // Строка с датой может быть преобразована в объект Date или оставлена как строка
-    // в зависимости от реализации convertType
+    // The date string can be converted to a Date object or left as a string
+    // depending on the implementation of convertType
     expect(typeof data[3].mixed).toBe('string');
     expect(data[3].mixed).toBe('2023-01-01');
   });
@@ -220,10 +220,10 @@ describe('CSV Reader', () => {
     const contentWithEmptyCells =
       'id,name,value\n1,John,100\n2,,200\n3,Alice,\n4,,';
 
-    // Проверяем, что функция readCsv успешно обрабатывает пустые ячейки
+    // Check that the readCsv function successfully processes empty cells
     const df = await readCsv(contentWithEmptyCells);
 
-    // Проверяем, что DataFrame был создан успешно
+    // Check that the DataFrame was created successfully
     expect(df).toBeInstanceOf(DataFrame);
     expect(df.rowCount).toBe(4);
   });
@@ -263,10 +263,10 @@ describe('CSV Reader', () => {
     const contentWithEmptyCells =
       'id,name,value\n1,John,100\n2,,200\n3,Alice,\n4,,';
 
-    // Проверяем, что функция readCsv успешно обрабатывает пустые ячейки с emptyValue=null
+    // Check that the readCsv function successfully processes empty cells with emptyValue=null
     const df = await readCsv(contentWithEmptyCells, { emptyValue: null });
 
-    // Проверяем, что DataFrame был создан успешно
+    // Check that the DataFrame was created successfully
     expect(df).toBeInstanceOf(DataFrame);
     expect(df.rowCount).toBe(4);
   });
@@ -279,10 +279,10 @@ describe('CSV Reader', () => {
     const contentWithEmptyCells =
       'id,name,value\n1,John,100\n2,,200\n3,Alice,\n4,,';
 
-    // Проверяем, что функция readCsv успешно обрабатывает пустые ячейки с emptyValue=NaN
+    // Check that the readCsv function successfully processes empty cells with emptyValue=NaN
     const df = await readCsv(contentWithEmptyCells, { emptyValue: NaN });
 
-    // Проверяем, что DataFrame был создан успешно
+    // Check that the DataFrame was created successfully
     expect(df).toBeInstanceOf(DataFrame);
     expect(df.rowCount).toBe(4);
   });

@@ -3,7 +3,7 @@ import { DataFrame } from '../../../src/core/DataFrame.js';
 
 describe('DataFrame.assign', () => {
   test('adds a new column with a constant value', () => {
-    // Создаем тестовый DataFrame
+    // Create a test DataFrame
     const df = DataFrame.create({
       a: [1, 2, 3],
       b: [10, 20, 30],
@@ -15,31 +15,31 @@ describe('DataFrame.assign', () => {
     // Check that the result is a DataFrame instance
     expect(result).toBeInstanceOf(DataFrame);
 
-    // Проверяем, что новая колонка добавлена
+    // Check that the new column has been added
     expect(result.frame.columns).toHaveProperty('a');
     expect(result.frame.columns).toHaveProperty('b');
     expect(result.frame.columns).toHaveProperty('c');
 
-    // Проверяем значения новой колонки
+    // Check the values of the new column
     expect(Array.from(result.frame.columns.c)).toEqual([100, 100, 100]);
   });
 
   test('adds a new column based on a function', () => {
-    // Создаем тестовый DataFrame
+    // Create a test DataFrame
     const df = DataFrame.create({
       a: [1, 2, 3],
       b: [10, 20, 30],
     });
 
-    // Вызываем метод assign с функцией
+    // Call the assign method with a function
     const result = df.assign({
       sum: (row) => row.a + row.b,
     });
 
-    // Проверяем, что новая колонка добавлена
+    // Check that the new column has been added
     expect(result.frame.columns).toHaveProperty('sum');
 
-    // Проверяем значения новой колонки
+    // Check the values of the new column
     expect(Array.from(result.frame.columns.sum)).toEqual([11, 22, 33]);
   });
 
@@ -115,7 +115,7 @@ describe('DataFrame.assign', () => {
   });
 
   test('throws an error with incorrect arguments', () => {
-    // Создаем тестовый DataFrame
+    // Create a test DataFrame
     const df = DataFrame.create({
       a: [1, 2, 3],
       b: [10, 20, 30],

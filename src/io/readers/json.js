@@ -57,9 +57,9 @@ function convertType(value, emptyValue = undefined) {
         test: () => !isNaN(trimmed) && trimmed !== '',
         convert: () => {
           const intValue = parseInt(trimmed, 10);
-          return intValue.toString() === trimmed ?
-            intValue :
-            parseFloat(trimmed);
+          return intValue.toString() === trimmed
+            ? intValue
+            : parseFloat(trimmed);
         },
       },
       // Date values - includes detection for various date formats
@@ -122,7 +122,7 @@ const sourceHandlers = [
         }
         throw new Error('fs module not available');
       } catch (error) {
-        // В тестовой среде мы можем имитировать fs с помощью vi.mock
+        // In a test environment, we can mock fs using vi.mock
         if (typeof vi !== 'undefined' && vi.mocked && vi.mocked.fs) {
           return await vi.mocked.fs.promises.readFile(src, 'utf8');
         }
@@ -221,9 +221,9 @@ async function* processJsonInBatches(data, options) {
 
         for (const key in item) {
           const value = item[key];
-          processedItem[key] = dynamicTyping ?
-            convertType(value, emptyValue) :
-            value;
+          processedItem[key] = dynamicTyping
+            ? convertType(value, emptyValue)
+            : value;
         }
 
         batch.push(processedItem);
@@ -236,9 +236,9 @@ async function* processJsonInBatches(data, options) {
       }
     } else if (Array.isArray(targetData[0])) {
       // Array of arrays case
-      const headers = Array.isArray(targetData[0]) ?
-        targetData[0] :
-        Array.from({ length: targetData[0].length }, (_, i) => `column${i}`);
+      const headers = Array.isArray(targetData[0])
+        ? targetData[0]
+        : Array.from({ length: targetData[0].length }, (_, i) => `column${i}`);
 
       let batch = [];
 
@@ -248,9 +248,9 @@ async function* processJsonInBatches(data, options) {
 
         for (let j = 0; j < headers.length; j++) {
           const value = row[j];
-          obj[headers[j]] = dynamicTyping ?
-            convertType(value, emptyValue) :
-            value;
+          obj[headers[j]] = dynamicTyping
+            ? convertType(value, emptyValue)
+            : value;
         }
 
         batch.push(obj);
@@ -289,9 +289,9 @@ async function* processJsonInBatches(data, options) {
       const processedItem = {};
       for (const key in targetData) {
         const value = targetData[key];
-        processedItem[key] = dynamicTyping ?
-          convertType(value, emptyValue) :
-          value;
+        processedItem[key] = dynamicTyping
+          ? convertType(value, emptyValue)
+          : value;
       }
       yield DataFrame.create([processedItem], frameOptions);
     }
@@ -404,9 +404,9 @@ export async function readJson(source, options = {}) {
           const processedItem = {};
           for (const key in item) {
             const value = item[key];
-            processedItem[key] = dynamicTyping ?
-              convertType(value, emptyValue) :
-              value;
+            processedItem[key] = dynamicTyping
+              ? convertType(value, emptyValue)
+              : value;
           }
           return processedItem;
         });
@@ -415,17 +415,17 @@ export async function readJson(source, options = {}) {
 
       // Array of arrays case
       if (Array.isArray(data[0])) {
-        const headers = Array.isArray(data[0]) ?
-          data[0] :
-          Array.from({ length: data[0].length }, (_, i) => `column${i}`);
+        const headers = Array.isArray(data[0])
+          ? data[0]
+          : Array.from({ length: data[0].length }, (_, i) => `column${i}`);
 
         processedData = data.slice(1).map((row) => {
           const obj = {};
           for (let i = 0; i < headers.length; i++) {
             const value = row[i];
-            obj[headers[i]] = dynamicTyping ?
-              convertType(value, emptyValue) :
-              value;
+            obj[headers[i]] = dynamicTyping
+              ? convertType(value, emptyValue)
+              : value;
           }
           return obj;
         });
@@ -457,9 +457,9 @@ export async function readJson(source, options = {}) {
         const processedItem = {};
         for (const key in data) {
           const value = data[key];
-          processedItem[key] = dynamicTyping ?
-            convertType(value, emptyValue) :
-            value;
+          processedItem[key] = dynamicTyping
+            ? convertType(value, emptyValue)
+            : value;
         }
         return DataFrame.create([processedItem], frameOptions);
       }

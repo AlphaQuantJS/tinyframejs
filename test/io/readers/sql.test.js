@@ -6,7 +6,7 @@ import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { readSql } from '../../../src/io/readers/sql.js';
 import { DataFrame } from '../../../src/core/DataFrame.js';
 
-// Мокируем DataFrame.create - это должно быть до импорта тестируемого модуля
+// Mock DataFrame.create - this should be done before importing the tested module
 vi.mock('../../../src/core/DataFrame.js', () => {
   const mockDataFrame = {
     columns: {
@@ -61,12 +61,12 @@ vi.mock('../../../src/core/DataFrame.js', () => {
   };
 });
 
-// Создаем моки для тестирования
+// Create mocks for testing
 describe('SQL Reader', () => {
   /**
-   * Создаем мок для соединения с базой данных
-   * @param {Array} results - Результаты запроса
-   * @returns {Object} - Мок соединения с базой данных
+   * Create a mock for database connection
+   * @param {Array} results - Query results
+   * @returns {Object} - Database connection mock
    */
   function createConnectionMock(results = []) {
     return {
@@ -134,9 +134,9 @@ describe('SQL Reader', () => {
     const df = await readSql(connection, query);
 
     expect(df).toEqual(expect.any(Object));
-    // В реальном тесте мы бы проверили df.rowCount.toBe(0),
-    // но поскольку мы используем мок, который всегда возвращает 4 строки,
-    // мы проверяем, что DataFrame.create был вызван с пустым массивом
+    // In a real test we would check df.rowCount.toBe(0),
+    // but since we are using a mock that always returns 4 rows,
+    // we check that DataFrame.create was called with an empty array
     expect(DataFrame.create).toHaveBeenCalledWith([], {});
   });
 
@@ -180,14 +180,14 @@ describe('SQL Reader', () => {
       { id: 2, name: 'Jane', value: 200 },
     ];
 
-    // Создаем соединение, которое использует callback API
+    // Create a connection that uses callback API
     const connection = {
       query: vi.fn().mockImplementation((query, params, callback) => {
-        // Проверяем, что callback является функцией, прежде чем вызывать его
+        // Check that callback is a function before calling it
         if (typeof callback === 'function') {
           callback(null, mockResults);
         } else {
-          // Если callback не передан, возвращаем Promise
+          // If callback is not provided, return a Promise
           return Promise.resolve(mockResults);
         }
       }),
@@ -218,7 +218,7 @@ describe('SQL Reader', () => {
     // Проверяем, что функция readSql успешно обрабатывает null значения
     const df = await readSql(connection, query);
 
-    // Проверяем, что DataFrame был создан успешно
+    // Check that the DataFrame was created successfully
     expect(df).toEqual(expect.any(Object));
     expect(df.rowCount).toBe(4);
   });
@@ -240,12 +240,12 @@ describe('SQL Reader', () => {
 
     const df = await readSql(connection, query, { emptyValue: 0 });
 
-    // Проверяем, что DataFrame.create был вызван с правильными параметрами
-    // Мы не можем проверить точные значения, так как мы мокируем DataFrame.create,
-    // но мы можем проверить, что функция была вызвана
+    // Check that DataFrame.create was called with the correct parameters
+    // We can't check the exact values since we're mocking DataFrame.create,
+    // but we can verify that the function was called
     expect(DataFrame.create).toHaveBeenCalled();
 
-    // Проверяем, что возвращается наш мок
+    // Check that our mock is returned
     expect(df).toEqual(expect.any(Object));
   });
 
@@ -263,10 +263,10 @@ describe('SQL Reader', () => {
     const connection = createConnectionMock(mockResults);
     const query = 'SELECT id, name, value FROM users';
 
-    // Проверяем, что функция readSql успешно обрабатывает null значения с emptyValue=null
+    // Check that the readSql function successfully handles null values with emptyValue=null
     const df = await readSql(connection, query, { emptyValue: null });
 
-    // Проверяем, что DataFrame был создан успешно
+    // Check that the DataFrame was created successfully
     expect(df).toEqual(expect.any(Object));
     expect(df.rowCount).toBe(4);
   });
@@ -285,10 +285,10 @@ describe('SQL Reader', () => {
     const connection = createConnectionMock(mockResults);
     const query = 'SELECT id, name, value FROM users';
 
-    // Проверяем, что функция readSql успешно обрабатывает null значения с emptyValue=NaN
+    // Check that the readSql function successfully handles null values with emptyValue=NaN
     const df = await readSql(connection, query, { emptyValue: NaN });
 
-    // Проверяем, что DataFrame был создан успешно
+    // Check that the DataFrame was created successfully
     expect(df).toEqual(expect.any(Object));
     expect(df.rowCount).toBe(4);
   });

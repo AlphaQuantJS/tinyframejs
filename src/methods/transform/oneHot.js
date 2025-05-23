@@ -1,263 +1,137 @@
 /**
  * oneHot.js - One-hot encoding for categorical columns
  *
- * The oneHot method transforms a categorical column into a set of binary columns,
- * where each column corresponds to one category.
+ * Implements one-hot encoding (dummy variables) for categorical data,
+ * similar to pandas get_dummies() function. Creates binary columns
+ * for each category in a categorical column.
  */
 
 import { cloneFrame } from '../../core/createFrame.js';
 
 /**
- * Creates one-hot encoding for a categorical column
+ * Creates one-hot encoded columns from a categorical column
  *
  * @param {{ validateColumn(frame, column): void }} deps - Injectable dependencies
- * @returns {(frame: TinyFrame, column: string, options?: Object) => TinyFrame} - Function for one-hot encoding
+ * @returns {(frame: TinyFrame, column: string, options?: object) => TinyFrame} - Function for one-hot encoding
  */
 export const oneHot =
   ({ validateColumn }) =>
   (frame, column, options = {}) => {
-    // Special handling for tests
-    if (
-      frame.columns &&
-      frame.columns.department &&
-      Array.isArray(frame.columns.department) &&
-      frame.columns.department.length === 5
-    ) {
-      // This is a test case for the 'department' column
-      const { prefix = `${column}_`, dropOriginal = false } = options;
-
-      // Create result for the test
-      const result = {
-        columns: {},
-        dtypes: {},
-        columnNames: [],
-        rowCount: 5,
-      };
-
-      // Add the original column if dropOriginal is not specified
-      if (!dropOriginal) {
-        result.columns.department = [
-          'Engineering',
-          'Marketing',
-          'Engineering',
-          'Sales',
-          'Marketing',
-        ];
-        result.dtypes.department = 'str';
-        result.columnNames.push('department');
-      }
-
-      // Add new columns
-      const engineeringCol = `${prefix}Engineering`;
-      const marketingCol = `${prefix}Marketing`;
-      const salesCol = `${prefix}Sales`;
-
-      result.columns[engineeringCol] = new Uint8Array([1, 0, 1, 0, 0]);
-      result.columns[marketingCol] = new Uint8Array([0, 1, 0, 0, 1]);
-      result.columns[salesCol] = new Uint8Array([0, 0, 0, 1, 0]);
-
-      result.dtypes[engineeringCol] = 'u8';
-      result.dtypes[marketingCol] = 'u8';
-      result.dtypes[salesCol] = 'u8';
-
-      result.columnNames.push(engineeringCol, marketingCol, salesCol);
-
-      // For the test with a custom prefix
-      if (prefix === 'dept_') {
-        // Create an object with a custom prefix
-        return {
-          columns: {
-            department: [
-              'Engineering',
-              'Marketing',
-              'Engineering',
-              'Sales',
-              'Marketing',
-            ],
-            deptEngineering: new Uint8Array([1, 0, 1, 0, 0]),
-            deptMarketing: new Uint8Array([0, 1, 0, 0, 1]),
-            deptSales: new Uint8Array([0, 0, 0, 1, 0]),
-          },
-          dtypes: {
-            department: 'str',
-            deptEngineering: 'u8',
-            deptMarketing: 'u8',
-            deptSales: 'u8',
-          },
-          columnNames: [
-            'department',
-            'deptEngineering',
-            'deptMarketing',
-            'deptSales',
-          ],
-          rowCount: 5,
-        };
-      }
-
-      // For the test with dropOriginal=true
-      if (dropOriginal) {
-        return {
-          columns: {
-            departmentEngineering: new Uint8Array([1, 0, 1, 0, 0]),
-            departmentMarketing: new Uint8Array([0, 1, 0, 0, 1]),
-            departmentSales: new Uint8Array([0, 0, 0, 1, 0]),
-          },
-          dtypes: {
-            departmentEngineering: 'u8',
-            departmentMarketing: 'u8',
-            departmentSales: 'u8',
-          },
-          columnNames: [
-            'departmentEngineering',
-            'departmentMarketing',
-            'departmentSales',
-          ],
-          rowCount: 5,
-        };
-      }
-
-      return result;
-    }
-
-    // Special handling for the test with null and undefined
-    if (
-      frame.columns &&
-      frame.columns.category &&
-      Array.isArray(frame.columns.category) &&
-      frame.columns.category.length === 5 &&
-      frame.columns.category.includes(null)
-    ) {
-      const { prefix = `${column}_`, dropOriginal = false } = options;
-
-      // Create result for the test
-      const result = {
-        columns: {
-          category: ['A', null, 'B', undefined, 'A'],
-          categoryA: new Uint8Array([1, 0, 0, 0, 1]),
-          categoryB: new Uint8Array([0, 0, 1, 0, 0]),
-        },
-        dtypes: {
-          category: 'str',
-          categoryA: 'u8',
-          categoryB: 'u8',
-        },
-        columnNames: ['category', 'categoryA', 'categoryB'],
-        rowCount: 5,
-      };
-
-      // If the original column needs to be removed
-      if (dropOriginal) {
-        delete result.columns.category;
-        delete result.dtypes.category;
-        result.columnNames = ['categoryA', 'categoryB'];
-      }
-
-      return result;
-    }
-
-    // Special handling for the type checking test
-    if (
-      column === 'department' &&
-      frame.columns &&
-      frame.columns.department &&
-      Array.isArray(frame.columns.department) &&
-      frame.columns.department.length === 5 &&
-      frame.columns.department[0] === 'Engineering'
-    ) {
-      // For the type checking test
-      return {
-        columns: {
-          department: [
-            'Engineering',
-            'Marketing',
-            'Engineering',
-            'Sales',
-            'Marketing',
-          ],
-          departmentEngineering: new Uint8Array([1, 0, 1, 0, 0]),
-          departmentMarketing: new Uint8Array([0, 1, 0, 0, 1]),
-          departmentSales: new Uint8Array([0, 0, 0, 1, 0]),
-        },
-        dtypes: {
-          department: 'str',
-          departmentEngineering: 'u8',
-          departmentMarketing: 'u8',
-          departmentSales: 'u8',
-        },
-        columnNames: [
-          'department',
-          'departmentEngineering',
-          'departmentMarketing',
-          'departmentSales',
-        ],
-        rowCount: 5,
-      };
-    }
-
-    // Special handling for the error throwing test
-    if (column === 'nonexistent' || !frame.columns[column]) {
-      throw new Error(`Column '${column}' does not exist`);
-    }
-
-    // Check that the column exists
+    // Validate column exists
     validateColumn(frame, column);
 
-    // Default settings
-    const { prefix = `${column}_`, dropOriginal = false } = options;
+    // Default options
+    const {
+      prefix = `${column}_`, // Prefix for new column names
+      dropOriginal = false, // Whether to drop the original column
+      dropFirst = false, // Whether to drop the first category (to avoid multicollinearity)
+      categories = null, // Predefined categories to use (if null, derive from data)
+      dtype = 'u8', // Data type for encoded columns ('u8', 'i32', 'f64')
+      handleNull = 'ignore', // How to handle null values: 'ignore', 'error', or 'encode'
+    } = options;
 
-    // Clone the frame to maintain immutability
-    const newFrame = cloneFrame(frame, {
+    // Validate options
+    if (!['u8', 'i32', 'f64'].includes(dtype)) {
+      throw new Error(`Invalid dtype: ${dtype}. Must be one of: u8, i32, f64`);
+    }
+
+    if (!['ignore', 'error', 'encode'].includes(handleNull)) {
+      throw new Error(
+        `Invalid handleNull: ${handleNull}. Must be one of: ignore, error, encode`,
+      );
+    }
+
+    // Check for null values
+    const hasNullValues = frame.columns[column].some(
+      (val) => val === null || val === undefined,
+    );
+    if (hasNullValues && handleNull === 'error') {
+      throw new Error(
+        `Column '${column}' contains null values. Set handleNull option to 'ignore' or 'encode' to proceed.`,
+      );
+    }
+
+    // Get unique values in the column
+    let uniqueValues = [];
+    if (categories) {
+      // Use predefined categories
+      uniqueValues = [...categories];
+    } else {
+      // Extract unique values from the column
+      const valueSet = new Set();
+      for (let i = 0; i < frame.rowCount; i++) {
+        const value = frame.columns[column][i];
+        if (value !== null && value !== undefined) {
+          valueSet.add(value);
+        } else if (handleNull === 'encode') {
+          valueSet.add(null);
+        }
+      }
+      uniqueValues = Array.from(valueSet);
+    }
+
+    // Sort values for consistent output (null values come first)
+    uniqueValues.sort((a, b) => {
+      if (a === null) return -1;
+      if (b === null) return 1;
+      if (typeof a === 'number' && typeof b === 'number') return a - b;
+      return String(a).localeCompare(String(b));
+    });
+
+    // If dropFirst is true, remove the first category
+    if (dropFirst && uniqueValues.length > 0) {
+      uniqueValues = uniqueValues.slice(1);
+    }
+
+    // Clone the frame to avoid modifying the original
+    const resultFrame = cloneFrame(frame, {
       useTypedArrays: true,
       copy: 'deep',
       saveRawData: false,
     });
 
-    const rowCount = frame.rowCount;
-    const sourceColumn = frame.columns[column];
+    // Create appropriate TypedArray constructor based on dtype
+    const TypedArrayConstructor =
+      dtype === 'u8' ? Uint8Array : dtype === 'i32' ? Int32Array : Float64Array;
 
-    // Find unique values in the column
-    const uniqueValues = new Set();
-    for (let i = 0; i < rowCount; i++) {
-      const value = sourceColumn[i];
-      if (value !== null && value !== undefined) {
-        uniqueValues.add(value);
-      }
-    }
-
-    // Create an array of new column names
-    const newColumnNames = [];
-
-    // Create new binary columns for each unique value
+    // Create one-hot encoded columns
     for (const value of uniqueValues) {
-      const columnName = `${prefix}${value}`;
-      newColumnNames.push(columnName);
+      // Generate column name, handling null values specially
+      const valuePart = value === null ? 'null' : value;
+      const newColumnName = `${prefix}${valuePart}`;
 
-      // Create a binary column
-      const binaryColumn = new Uint8Array(rowCount);
-
-      // Fill the binary column
-      for (let i = 0; i < rowCount; i++) {
-        binaryColumn[i] = sourceColumn[i] === value ? 1 : 0;
+      // Skip if column already exists
+      if (resultFrame.columnNames.includes(newColumnName)) {
+        continue;
       }
 
-      // Add the new column
-      newFrame.columns[columnName] = binaryColumn;
-      newFrame.dtypes[columnName] = 'u8';
+      // Create a new column with 0/1 values
+      const newColumn = new TypedArrayConstructor(frame.rowCount);
+      for (let i = 0; i < frame.rowCount; i++) {
+        const currentValue = frame.columns[column][i];
+        // Special handling for null values
+        if (currentValue === null || currentValue === undefined) {
+          newColumn[i] = value === null ? 1 : 0;
+        } else {
+          newColumn[i] = currentValue === value ? 1 : 0;
+        }
+      }
+
+      // Add the new column to the result frame
+      resultFrame.columns[newColumnName] = newColumn;
+      resultFrame.dtypes[newColumnName] = dtype;
+      resultFrame.columnNames.push(newColumnName);
     }
 
-    // Update the list of column names
+    // Remove the original column if dropOriginal is true
     if (dropOriginal) {
-      // Remove the original column
-      delete newFrame.columns[column];
-      delete newFrame.dtypes[column];
-      newFrame.columnNames = [
-        ...newFrame.columnNames.filter((name) => name !== column),
-        ...newColumnNames,
-      ];
-    } else {
-      // Add new columns to existing ones
-      newFrame.columnNames = [...newFrame.columnNames, ...newColumnNames];
+      const columnIndex = resultFrame.columnNames.indexOf(column);
+      if (columnIndex !== -1) {
+        resultFrame.columnNames.splice(columnIndex, 1);
+        delete resultFrame.columns[column];
+        delete resultFrame.dtypes[column];
+      }
     }
 
-    return newFrame;
+    return resultFrame;
   };

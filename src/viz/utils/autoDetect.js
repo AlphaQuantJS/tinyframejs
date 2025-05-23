@@ -293,6 +293,12 @@ function detectChartType(dataFrame, options = {}) {
 function analyzeColumnTypes(data, columns) {
   const columnTypes = {};
 
+  // Check if columns is defined and is an array
+  if (!columns || !Array.isArray(columns)) {
+    // Return empty object if columns is not defined
+    return columnTypes;
+  }
+
   columns.forEach((column) => {
     columnTypes[column] = {
       isDate: false,
@@ -301,29 +307,37 @@ function analyzeColumnTypes(data, columns) {
       uniqueValues: new Set(),
     };
 
-    // Check first 100 rows or all rows if fewer
-    const sampleSize = Math.min(100, data.length);
-    for (let i = 0; i < sampleSize; i++) {
-      const value = data[i][column];
+    // Check if data is defined and is an array
+    if (data && Array.isArray(data) && data.length > 0) {
+      // Check first 100 rows or all rows if fewer
+      const sampleSize = Math.min(100, data.length);
+      for (let i = 0; i < sampleSize; i++) {
+        // Проверяем, что data[i] существует и является объектом
+        if (!data[i] || typeof data[i] !== 'object') {
+          continue;
+        }
 
-      // Skip null/undefined values
-      if (value === null || value === undefined) continue;
+        const value = data[i][column];
 
-      // Check if it's a date
-      if (value instanceof Date || isDateColumn(data, column)) {
-        columnTypes[column].isDate = true;
-        columnTypes[column].isNumeric = false;
-        break;
+        // Skip null/undefined values
+        if (value === null || value === undefined) continue;
+
+        // Check if it's a date
+        if (value instanceof Date || isDateColumn(data, column)) {
+          columnTypes[column].isDate = true;
+          columnTypes[column].isNumeric = false;
+          break;
+        }
+
+        // Check if it's a string
+        if (typeof value === 'string') {
+          columnTypes[column].isString = true;
+          columnTypes[column].isNumeric = false;
+        }
+
+        // Add to unique values
+        columnTypes[column].uniqueValues.add(value);
       }
-
-      // Check if it's a string
-      if (typeof value === 'string') {
-        columnTypes[column].isString = true;
-        columnTypes[column].isNumeric = false;
-      }
-
-      // Add to unique values
-      columnTypes[column].uniqueValues.add(value);
     }
   });
 
@@ -498,11 +512,16 @@ function determineChartType(prioritizedColumns, dataLength, preferredType) {
   if (x && categories && categories.includes(x) && y && y.length > 0) {
     // Determine if bar, pie, radar or polar chart is more appropriate
     const uniqueCategories = new Set();
-    prioritizedColumns.data.forEach((row) => {
-      if (row[x] !== undefined && row[x] !== null) {
-        uniqueCategories.add(row[x]);
-      }
-    });
+
+    // Проверяем, что prioritizedColumns.data существует и является массивом
+    if (prioritizedColumns.data && Array.isArray(prioritizedColumns.data)) {
+      prioritizedColumns.data.forEach((row) => {
+        if (row && row[x] !== undefined && row[x] !== null) {
+          uniqueCategories.add(row[x]);
+        }
+      });
+    }
+
     const uniqueCategoriesCount = uniqueCategories.size;
 
     // User preferences take priority
@@ -595,11 +614,14 @@ function determineChartType(prioritizedColumns, dataLength, preferredType) {
   // Check for financial data (OHLC)
   const hasFinancialData =
     prioritizedColumns.data &&
+    Array.isArray(prioritizedColumns.data) &&
     prioritizedColumns.data.length > 0 &&
-    prioritizedColumns.data[0].open &&
-    prioritizedColumns.data[0].high &&
-    prioritizedColumns.data[0].low &&
-    prioritizedColumns.data[0].close;
+    prioritizedColumns.data[0] &&
+    typeof prioritizedColumns.data[0] === 'object' &&
+    prioritizedColumns.data[0].open !== undefined &&
+    prioritizedColumns.data[0].high !== undefined &&
+    prioritizedColumns.data[0].low !== undefined &&
+    prioritizedColumns.data[0].close !== undefined;
   if (hasFinancialData && (preferredType === 'candlestick' || !preferredType)) {
     return {
       type: 'candlestick',

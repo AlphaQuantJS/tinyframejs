@@ -55,12 +55,12 @@ export function safeRequire(moduleName, installCommand) {
 
   try {
     // For compatibility with ESM and CommonJS
-    // Используем глобальный require, если он доступен
+    // Use global require if available
     if (typeof require !== 'undefined') {
       return require(moduleName);
     }
 
-    // В Node.js мы можем использовать глобальный require
+    // In Node.js we can use the global require
     if (
       typeof process !== 'undefined' &&
       process.versions &&
@@ -69,7 +69,7 @@ export function safeRequire(moduleName, installCommand) {
       return require(moduleName);
     }
 
-    // Если мы здесь, то не можем загрузить модуль
+    // If we get here, we can't load the module
     return null;
   } catch (error) {
     const command = installCommand || `npm install ${moduleName}`;

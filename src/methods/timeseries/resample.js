@@ -2,6 +2,7 @@
  * Resamples time series data to a different frequency.
  * Similar to pandas resample method, this allows converting from higher frequency
  * to lower frequency (downsampling) or from lower frequency to higher frequency (upsampling).
+ * @module methods/timeseries/resample
  */
 
 import { createFrame } from '../../core/createFrame.js';
@@ -16,6 +17,7 @@ import {
  * Maps string aggregation function names to actual functions
  * @param {string|Function} aggFunc - Aggregation function name or function
  * @returns {Function} - Aggregation function
+ * @throws {Error} - If the aggregation function name is unknown
  */
 function getAggregationFunction(aggFunc) {
   if (typeof aggFunc === 'function') {
@@ -23,14 +25,61 @@ function getAggregationFunction(aggFunc) {
   }
 
   const aggFunctions = {
+    /**
+     * Sum of values
+     * @param {Array<number>} values - Array of values to sum
+     * @returns {number} - Sum of values
+     */
     sum: (values) => values.reduce((a, b) => a + b, 0),
+
+    /**
+     * Mean of values
+     * @param {Array<number>} values - Array of values to average
+     * @returns {number|null} - Mean of values or null if empty
+     */
     mean: (values) =>
       values.length ? values.reduce((a, b) => a + b, 0) / values.length : null,
+
+    /**
+     * Minimum value
+     * @param {Array<number>} values - Array of values
+     * @returns {number|null} - Minimum value or null if empty
+     */
     min: (values) => (values.length ? Math.min(...values) : null),
+
+    /**
+     * Maximum value
+     * @param {Array<number>} values - Array of values
+     * @returns {number|null} - Maximum value or null if empty
+     */
     max: (values) => (values.length ? Math.max(...values) : null),
+
+    /**
+     * Count of values
+     * @param {Array} values - Array of values
+     * @returns {number} - Count of values
+     */
     count: (values) => values.length,
+
+    /**
+     * First value in array
+     * @param {Array} values - Array of values
+     * @returns {*|null} - First value or null if empty
+     */
     first: (values) => (values.length ? values[0] : null),
+
+    /**
+     * Last value in array
+     * @param {Array} values - Array of values
+     * @returns {*|null} - Last value or null if empty
+     */
     last: (values) => (values.length ? values[values.length - 1] : null),
+
+    /**
+     * Median value
+     * @param {Array<number>} values - Array of values
+     * @returns {number|null} - Median value or null if empty
+     */
     median: (values) => {
       if (!values.length) return null;
       const sorted = [...values].sort((a, b) => a - b);
@@ -50,15 +99,20 @@ function getAggregationFunction(aggFunc) {
 
 /**
  * Resamples a DataFrame to a different time frequency
- * @param {Object} options - Options object
- * @param {string} options.dateColumn - Name of the column containing dates
- * @param {string} options.freq - Target frequency ('D' for day, 'W' for week, 'M' for month, 'Q' for quarter, 'Y' for year)
- * @param {Object} options.aggregations - Object mapping column names to aggregation functions
- * @param {boolean} options.includeEmpty - Whether to include empty periods (default: false)
- * @returns {DataFrame} - Resampled DataFrame
+ * @returns {Function} - Function that resamples a DataFrame
  */
 export const resample =
   () =>
+  /**
+   * @param {Object} frame - The DataFrame to resample
+   * @param {Object} options - Options object
+   * @param {string} options.dateColumn - Name of the column containing dates
+   * @param {string} options.freq - Target frequency ('D' for day, 'W' for week, 'M' for month, 'Q' for quarter, 'Y' for year)
+   * @param {Object} options.aggregations - Object mapping column names to aggregation functions
+   * @param {boolean} [options.includeEmpty=false] - Whether to include empty periods
+   * @returns {Object} - Resampled DataFrame
+   * @throws {Error} - If required parameters are missing or invalid
+   */
   (frame, options = {}) => {
     const {
       dateColumn,

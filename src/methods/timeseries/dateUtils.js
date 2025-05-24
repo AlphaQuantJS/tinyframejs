@@ -1,12 +1,14 @@
 /**
  * Utility functions for working with dates and time series data.
  * These functions help with date parsing, frequency conversion, and date operations.
+ * @module methods/timeseries/dateUtils
  */
 
 /**
  * Parses a date string or timestamp into a JavaScript Date object
  * @param {string|number|Date} dateValue - The date to parse
  * @returns {Date} - JavaScript Date object
+ * @throws {Error} - If the date format is invalid
  */
 function parseDate(dateValue) {
   if (dateValue instanceof Date) {
@@ -31,6 +33,7 @@ function parseDate(dateValue) {
  * @param {Date} date - The date to truncate
  * @param {string} freq - Frequency ('D' for day, 'W' for week, 'M' for month, 'Q' for quarter, 'Y' for year)
  * @returns {Date} - Date at the start of the period
+ * @throws {Error} - If the frequency is not supported
  */
 function truncateDate(date, freq) {
   const result = new Date(date);
@@ -70,6 +73,7 @@ function truncateDate(date, freq) {
  * @param {Date} date - The current date
  * @param {string} freq - Frequency ('D' for day, 'W' for week, 'M' for month, 'Q' for quarter, 'Y' for year)
  * @returns {Date} - The next date
+ * @throws {Error} - If the frequency is not supported
  */
 function getNextDate(date, freq) {
   const result = new Date(date);
@@ -147,6 +151,7 @@ function dateRange(startDate, endDate, freq) {
  * @param {number} amount - The amount to add
  * @param {string} unit - The unit to add ('days', 'weeks', 'months', 'quarters', 'years')
  * @returns {Date} - New date with the added time
+ * @throws {Error} - If the time unit is not supported
  */
 function addTime(date, amount, unit) {
   const result = new Date(date);
@@ -191,6 +196,7 @@ function subtractTime(date, amount, unit) {
  * @param {Date} date2 - Second date
  * @param {string} unit - The unit to calculate difference in ('days', 'weeks', 'months', 'quarters', 'years')
  * @returns {number} - Difference in the specified unit
+ * @throws {Error} - If the time unit is not supported
  */
 function dateDiff(date1, date2, unit) {
   const d1 = new Date(date1);

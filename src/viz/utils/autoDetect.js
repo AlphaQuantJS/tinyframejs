@@ -439,9 +439,9 @@ function prioritizeColumns(
 
   // Select a column for color (bubble charts)
   const colorColumn =
-    categoryColumns.length > 1
-      ? categoryColumns.find((col) => col !== xColumn)
-      : null;
+    categoryColumns.length > 1 ?
+      categoryColumns.find((col) => col !== xColumn) :
+      null;
 
   return {
     x: xColumn,

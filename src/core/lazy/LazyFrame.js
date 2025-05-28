@@ -67,24 +67,24 @@ export class LazyFrame {
 
     for (const step of this._plan.slice(1)) {
       switch (step.op) {
-        case 'filter':
-          df = DataFrame.fromRows(df.toArray().filter(step.fn));
-          break;
+      case 'filter':
+        df = DataFrame.fromRows(df.toArray().filter(step.fn));
+        break;
 
-        case 'select':
-          df = df.select(step.cols);
-          break;
+      case 'select':
+        df = df.select(step.cols);
+        break;
 
-        case 'head':
-          df = DataFrame.fromRows(df.toArray().slice(0, step.n));
-          break;
+      case 'head':
+        df = DataFrame.fromRows(df.toArray().slice(0, step.n));
+        break;
 
-        case 'apply':
-          df = step.fn(df);
-          break;
+      case 'apply':
+        df = step.fn(df);
+        break;
 
-        default:
-          throw new Error(`LazyFrame: unknown operation '${step.op}'`);
+      default:
+        throw new Error(`LazyFrame: unknown operation '${step.op}'`);
       }
     }
     return df;

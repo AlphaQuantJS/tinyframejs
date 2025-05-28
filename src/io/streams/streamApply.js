@@ -95,9 +95,9 @@ export const streamApply = (stream, fn, options = {}) => {
       // Apply the transformation function
       // If batchSize=1 and chunk is an array with a single element, pass this element directly
       const input =
-        batchSize === 1 && Array.isArray(chunk) && chunk.length === 1
-          ? chunk[0]
-          : chunk;
+        batchSize === 1 && Array.isArray(chunk) && chunk.length === 1 ?
+          chunk[0] :
+          chunk;
       const result = fn(input);
 
       // Handle promises
@@ -187,7 +187,7 @@ export function extendStreamApply(DataFrame) {
    * @param {Object} [options] - Stream options
    * @returns {Stream} Stream of transformed data
    */
-  DataFrame.prototype.streamApply = function (fn, options = {}) {
+  DataFrame.prototype.streamApply = function(fn, options = {}) {
     if (!this._stream) {
       throw new Error(
         'No active stream. Use a streaming method like readCsvStream first.',

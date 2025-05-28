@@ -96,6 +96,130 @@ Project structure is in [`README.md`](./README.md#-package-structure)
 
 ---
 
+## 🕊 Git Workflow and Branch Structure
+
+For project organization, we use the following branch structure:
+
+### 📌 Main Branches:
+
+* `main`
+  * Production version.
+  * Ready for release.
+  * Each commit is stable and tested code.
+
+* `dev`
+  * Main development branch.
+  * All completed feature branches are merged here.
+  * May contain minor bugs and improvements in progress.
+  * Regularly undergoes integration testing.
+
+### 📌 Feature Branches:
+
+For each task, issue, or feature, create a separate branch from `dev`:
+
+* Naming format:
+
+  ```bash
+  feature/<feature-name>
+  fix/<issue-name-or-number>
+  refactor/<description>
+  ```
+
+Examples:
+
+* `feature/lazy-computation`
+* `fix/null-pointer-issue-32`
+* `refactor/dataframe-optimizations`
+
+After completing work on the task:
+
+* ✅ Create a Pull Request (PR) from the feature branch to the `dev` branch.
+* ✅ Conduct code review and testing.
+* ✅ After successful review, merge into `dev`.
+* ✅ Delete the feature branch after merging.
+
+### 📌 Hotfix Branches (Emergency Fixes):
+
+If a serious error is discovered in a release (the `main` branch), we quickly fix it through a special `hotfix` branch from `main`:
+
+* Naming format:
+
+  ```bash
+  hotfix/<critical-issue>
+  ```
+
+Example:
+
+* `hotfix/dataframe-critical-bug`
+
+After fixing:
+
+* ✅ Merge the `hotfix` branch into `main`.
+* ✅ Then merge `main` back into `dev` to incorporate the fixes into the development branch.
+
+### 📌 Complete Workflow Process:
+
+```
+main (stable)
+  │
+  ├─ dev (development)
+  │   ├─ feature/lazy-computation
+  │   ├─ feature/arrow-integration
+  │   ├─ fix/null-pointer-issue-32
+  │   └─ refactor/dataframe-optimizations
+  │
+  └─ hotfix/dataframe-critical-bug (if urgent fix needed)
+```
+
+### 📊 Steps Before Release (when updating main):
+
+1. ✅ Verify that the `dev` branch is fully stable and tested.
+2. ✅ Create a release PR from the `dev` branch to `main`.
+3. ✅ Conduct final review, CI/CD tests, and regression tests.
+4. ✅ Merge the PR into `main`.
+5. ✅ Create a git release tag (e.g., `v1.0.0`) to mark the stable release point.
+
+Example:
+
+```bash
+git checkout main
+git merge dev
+git tag v1.0.0
+git push origin main --tags
+```
+
+### ⚙️ Supporting Tools and Practices (Best Practices):
+
+* ✅ **Pull Requests (PR)**:
+  Perform mandatory code reviews and tests before merging.
+
+* ✅ **Automation through CI/CD (GitHub Actions)**:
+  Run automated testing, linting, and benchmarking.
+
+* ✅ **Branch protection rules** on GitHub:
+  Protect `main` and `dev` branches from accidental direct commits.
+  Configure mandatory PR reviews before merging.
+
+* ✅ **Semantic Versioning (SemVer)**:
+  Strictly follow semantic versioning (`1.0.0`, `1.1.0`, `1.1.1`).
+
+### 📎 Example of Semantic Versioning Approach:
+
+* `1.0.0` — first stable release.
+* `1.0.1` — bug fixes and minor corrections.
+* `1.1.0` — new features that maintain backward compatibility.
+* `2.0.0` — release with changes that break backward compatibility.
+
+### ✅ **Daily Work Recommendations (Best Practices):**
+
+* Commit small changes frequently with informative messages.
+* Create issues and PRs for each task.
+* Regularly merge the `dev` branch into your feature branches to avoid conflicts.
+* Use Squash/Merge commits for a clean history.
+* Monitor stability and test coverage through CI/CD.
+
+---
+
 ## 🚀 Getting Started
 
 1. **Fork this repo** on GitHub

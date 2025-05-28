@@ -1,48 +1,64 @@
-// methods/raw.js
+/**
+ * Единый экспорт всех методов (агрегация + трансформации)
+ *
+ * Этот файл экспортирует все методы из соответствующих директорий
+ * для DataFrame, Series и методов изменения формы данных.
+ */
 
-export { count } from './aggregation/count.js';
-export { mean } from './aggregation/mean.js';
-export { sort } from './aggregation/sort.js';
-export { first } from './aggregation/first.js';
-export { print } from './display/print.js';
-export { sum } from './aggregation/sum.js';
-export { min } from './aggregation/min.js';
-export { max } from './aggregation/max.js';
-export { last } from './aggregation/last.js';
-export { median } from './aggregation/median.js';
-export { mode } from './aggregation/mode.js';
-export { std } from './aggregation/std.js';
-export { variance } from './aggregation/variance.js';
+// DataFrame aggregation methods
+export { count } from './dataframe/aggregation/count.js';
+export { mean } from './dataframe/aggregation/mean.js';
+export { sum } from './dataframe/aggregation/sum.js';
+export { min } from './dataframe/aggregation/min.js';
+export { max } from './dataframe/aggregation/max.js';
+export { median } from './dataframe/aggregation/median.js';
 
-// Filtering and selection methods
-export { select } from './filtering/select.js';
-export { drop } from './filtering/drop.js';
-export { selectByPattern } from './filtering/selectByPattern.js';
-export { filter } from './filtering/filter.js';
-export { query } from './filtering/query.js';
-export { expr$ } from './filtering/expr$.js';
-export { where } from './filtering/where.js';
-export { at } from './filtering/at.js';
-export { iloc } from './filtering/iloc.js';
-export { loc } from './filtering/loc.js';
-export { sample } from './filtering/sample.js';
-export { stratifiedSample } from './filtering/stratifiedSample.js';
-export { head } from './filtering/head.js';
-export { tail } from './filtering/tail.js';
+// DataFrame filtering methods
+export { select } from './dataframe/filtering/select.js';
+export { drop } from './dataframe/filtering/drop.js';
+export { filter } from './dataframe/filtering/filter.js';
+export { expr$ } from './dataframe/filtering/expr$.js';
+export { where } from './dataframe/filtering/where.js';
+export { at } from './dataframe/filtering/at.js';
+export { iloc } from './dataframe/filtering/iloc.js';
 
-// Transform methods
-export { assign } from './transform/assign.js';
-export { mutate } from './transform/mutate.js';
-export { apply, applyAll } from './transform/apply.js';
-export { categorize } from './transform/categorize.js';
-export { cut } from './transform/cut.js';
-export { oneHot } from './transform/oneHot.js';
-export { pivot, pivotTable } from './transform/pivot.js';
-export { melt } from './transform/melt.js';
-export { join } from './transform/join.js';
-export { stack } from './transform/stack.js';
-export { unstack } from './transform/unstack.js';
+// DataFrame transform methods
+export { assign } from './dataframe/transform/assign.js';
 
-// Time series methods
-export { resample } from './timeseries/resample.js';
-export { rolling, rollingApply, ewma } from './timeseries/rolling.js';
+// Series aggregation methods
+export { count as seriesCount } from './series/aggregation/count.js';
+export { mean as seriesMean } from './series/aggregation/mean.js';
+export { sum as seriesSum } from './series/aggregation/sum.js';
+export { min as seriesMin } from './series/aggregation/min.js';
+export { max as seriesMax } from './series/aggregation/max.js';
+export { median as seriesMedian } from './series/aggregation/median.js';
+// Series filtering methods
+export { filter as seriesFilter } from './series/filtering/filter.js';
+export { gt } from './series/filtering/register.js';
+export { gte } from './series/filtering/register.js';
+export { lt } from './series/filtering/register.js';
+export { lte } from './series/filtering/register.js';
+export { eq } from './series/filtering/register.js';
+export { ne } from './series/filtering/register.js';
+export { notNull } from './series/filtering/register.js';
+export { isin } from './series/filtering/register.js';
+
+// Series transform methods
+// TODO: Добавить экспорты методов трансформации для Series
+
+// Reshape methods
+export { pivot } from './reshape/pivot.js';
+export { melt } from './reshape/melt.js';
+
+// DataFrame timeseries methods
+export { resample } from './dataframe/timeseries/register.js';
+export { rolling } from './dataframe/timeseries/register.js';
+export { expanding } from './dataframe/timeseries/register.js';
+export { shift } from './dataframe/timeseries/register.js';
+export { pctChange } from './dataframe/timeseries/register.js';
+
+// Series timeseries methods
+export { rolling as seriesRolling } from './series/timeseries/register.js';
+export { expanding as seriesExpanding } from './series/timeseries/register.js';
+export { shift as seriesShift } from './series/timeseries/register.js';
+export { pctChange as seriesPctChange } from './series/timeseries/register.js';

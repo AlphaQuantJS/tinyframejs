@@ -1,13 +1,14 @@
 /**
  * Formats the DataFrame as a string table for console display.
- * @param frame
+ *
+ * @param frame - DataFrame in TinyFrame format
  * @param {Object} options - Display options
  * @param {number} [options.maxRows=10] - Maximum number of rows to display
  * @param {number} [options.maxCols=Infinity] - Maximum number of columns to display
  * @param {boolean} [options.showIndex=true] - Whether to show row indices
  * @returns {string} Formatted table string
  */
-function formatTable(frame, options = {}) {
+export function formatTable(frame, options = {}) {
   const { maxRows = 10, maxCols = Infinity, showIndex = true } = options;
 
   // Convert frame to array of objects for easier processing
@@ -87,10 +88,13 @@ function formatTable(frame, options = {}) {
 
 /**
  * Prints the DataFrame to the console in a table format with borders.
- * @param {{ validateColumn(frame, column): void }} deps
- * @returns {(frame: TinyFrame, rows?: number, cols?: number) => void}
+ *
+ * @param {TinyFrame} frame - DataFrame in TinyFrame format
+ * @param {number} [rows] - Maximum number of rows to display
+ * @param {number} [cols] - Maximum number of columns to display
+ * @returns {TinyFrame} - The original frame for method chaining
  */
-export const print = () => (frame, rows, cols) => {
+export function print(frame, rows, cols) {
   // Set defaults
   const maxRows = typeof rows === 'number' ? rows : 7;
   const maxCols = typeof cols === 'number' ? cols : Infinity;
@@ -118,7 +122,8 @@ export const print = () => (frame, rows, cols) => {
     );
     // Add separator if there are more rows
     if (rowCount > maxRows) {
-      rowsToDisplay.push(-2); // -2 is a placeholder for the "more rows" message without showing last rows
+      // -2 is a placeholder for the "more rows" message without showing last rows
+      rowsToDisplay.push(-2);
     }
   }
 
@@ -135,12 +140,10 @@ export const print = () => (frame, rows, cols) => {
   });
 
   // Find the maximum width for each column based on data
-  rowsToDisplay.forEach((rowIdx) => {
+  for (const rowIdx of rowsToDisplay) {
     if (rowIdx >= 0) {
-      // Skip separator placeholders
       visibleColumns.forEach((col) => {
         const cellValue = frame.columns[col][rowIdx];
-        // Consider the length of strings for null, undefined and NaN
         let value;
         if (cellValue === null) {
           value = 'null';
@@ -154,7 +157,7 @@ export const print = () => (frame, rows, cols) => {
         columnWidths[col] = Math.max(columnWidths[col], value.length);
       });
     }
-  });
+  }
 
   // Table border characters
   const border = {
@@ -285,4 +288,4 @@ export const print = () => (frame, rows, cols) => {
   console.log(table.join('\n'));
 
   return frame; // Return the frame for method chaining
-};
+}

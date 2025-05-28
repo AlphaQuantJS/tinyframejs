@@ -172,15 +172,15 @@ export const colorSchemes = {
  */
 export function categoricalColors(count, scheme = 'default') {
   if (scheme === 'default' || !colorSchemes[scheme]) {
-    return count <= defaultColors.length
-      ? defaultColors.slice(0, count)
-      : extendColorPalette(defaultColors, count);
+    return count <= defaultColors.length ?
+      defaultColors.slice(0, count) :
+      extendColorPalette(defaultColors, count);
   }
 
   const baseColors = colorSchemes[scheme];
-  return count <= baseColors.length
-    ? baseColors.slice(0, count)
-    : extendColorPalette(baseColors, count);
+  return count <= baseColors.length ?
+    baseColors.slice(0, count) :
+    extendColorPalette(baseColors, count);
 }
 
 /**

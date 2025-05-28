@@ -188,9 +188,9 @@ function formatNumber(value, options = {}) {
     return new Intl.NumberFormat(locale, formatOptions).format(value);
   } catch (error) {
     // Fallback if Intl is not supported
-    return precision !== undefined
-      ? value.toFixed(precision)
-      : value.toString();
+    return precision !== undefined ?
+      value.toFixed(precision) :
+      value.toString();
   }
 }
 
@@ -202,15 +202,15 @@ function formatNumber(value, options = {}) {
  */
 export function createLabelFormatter(type, options = {}) {
   switch (type) {
-    case 'date':
-      return (value) => formatDate(value, options.dateFormat);
+  case 'date':
+    return (value) => formatDate(value, options.dateFormat);
 
-    case 'number':
-      return (value) => formatNumber(value, options);
+  case 'number':
+    return (value) => formatNumber(value, options);
 
-    case 'category':
-    default:
-      return (value) => String(value);
+  case 'category':
+  default:
+    return (value) => String(value);
   }
 }
 

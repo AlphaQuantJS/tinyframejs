@@ -394,16 +394,16 @@ function calculateRegression(points, type, polynomialOrder = 2) {
 
   // Calculate regression based on type
   switch (type.toLowerCase()) {
-    case 'linear':
-      return linearRegression(points, regressionXValues);
-    case 'polynomial':
-      return polynomialRegression(points, regressionXValues, polynomialOrder);
-    case 'exponential':
-      return exponentialRegression(points, regressionXValues);
-    case 'logarithmic':
-      return logarithmicRegression(points, regressionXValues);
-    default:
-      throw new Error(`Unsupported regression type: ${type}`);
+  case 'linear':
+    return linearRegression(points, regressionXValues);
+  case 'polynomial':
+    return polynomialRegression(points, regressionXValues, polynomialOrder);
+  case 'exponential':
+    return exponentialRegression(points, regressionXValues);
+  case 'logarithmic':
+    return logarithmicRegression(points, regressionXValues);
+  default:
+    throw new Error(`Unsupported regression type: ${type}`);
   }
 }
 

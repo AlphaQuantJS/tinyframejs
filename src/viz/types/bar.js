@@ -45,23 +45,23 @@ export function barChart(dataFrame, options = {}) {
     type: 'bar',
     data: {
       labels: data.map((row) => row[xCol]),
-      datasets: Array.isArray(yCol)
-        ? yCol.map((col, index) => ({
-            label: col,
-            data: data.map((row) => row[col]),
-            backgroundColor: getColor(index),
-            borderColor: getColor(index),
+      datasets: Array.isArray(yCol) ?
+        yCol.map((col, index) => ({
+          label: col,
+          data: data.map((row) => row[col]),
+          backgroundColor: getColor(index),
+          borderColor: getColor(index),
+          borderWidth: 1,
+        })) :
+        [
+          {
+            label: yCol,
+            data: data.map((row) => row[yCol]),
+            backgroundColor: getColor(0),
+            borderColor: getColor(0),
             borderWidth: 1,
-          }))
-        : [
-            {
-              label: yCol,
-              data: data.map((row) => row[yCol]),
-              backgroundColor: getColor(0),
-              borderColor: getColor(0),
-              borderWidth: 1,
-            },
-          ],
+          },
+        ],
     },
     options: {
       responsive: true,

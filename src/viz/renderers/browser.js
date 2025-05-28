@@ -200,9 +200,9 @@ export async function createDashboard(charts, options = {}) {
 
   // Get container element
   const dashboardContainer =
-    typeof container === 'string'
-      ? document.querySelector(container)
-      : container;
+    typeof container === 'string' ?
+      document.querySelector(container) :
+      container;
 
   if (!dashboardContainer) {
     throw new Error(`Dashboard container not found: ${container}`);
@@ -273,9 +273,9 @@ export async function createDashboard(charts, options = {}) {
       for (let i = 0; i < chartInstances.length; i++) {
         const dataUrl = await exportChartAsImage(chartInstances[i], {
           ...options,
-          filename: options.filename
-            ? `${options.filename}-${i + 1}`
-            : undefined,
+          filename: options.filename ?
+            `${options.filename}-${i + 1}` :
+            undefined,
         });
 
         images.push(dataUrl);

@@ -54,7 +54,7 @@ export function extendDataFrame(DataFrame) {
    * @param {Object} [options.chartOptions] - Additional chart options
    * @returns {Promise<Object>} Chart instance or configuration
    */
-  DataFrame.prototype.plotLine = async function (options) {
+  DataFrame.prototype.plotLine = async function(options) {
     const config = lineChart(this, options);
 
     if (isBrowser && options.render !== false) {
@@ -72,7 +72,7 @@ export function extendDataFrame(DataFrame) {
    * @param {Object} [options.chartOptions] - Additional chart options
    * @returns {Promise<Object>} Chart instance or configuration
    */
-  DataFrame.prototype.plotBar = async function (options) {
+  DataFrame.prototype.plotBar = async function(options) {
     const config = barChart(this, options);
 
     if (isBrowser && options.render !== false) {
@@ -90,7 +90,7 @@ export function extendDataFrame(DataFrame) {
    * @param {Object} [options.chartOptions] - Additional chart options
    * @returns {Promise<Object>} Chart instance or configuration
    */
-  DataFrame.prototype.plotScatter = async function (options) {
+  DataFrame.prototype.plotScatter = async function(options) {
     const config = scatterPlot(this, options);
 
     if (isBrowser && options.render !== false) {
@@ -108,7 +108,7 @@ export function extendDataFrame(DataFrame) {
    * @param {Object} [options.chartOptions] - Additional chart options
    * @returns {Promise<Object>} Chart instance or configuration
    */
-  DataFrame.prototype.plotPie = async function (options) {
+  DataFrame.prototype.plotPie = async function(options) {
     const config = pieChart(this, options);
 
     if (isBrowser && options.render !== false) {
@@ -126,7 +126,7 @@ export function extendDataFrame(DataFrame) {
    * @param {Object} [options.chartOptions] - Additional chart options
    * @returns {Promise<Object>} Chart instance or configuration
    */
-  DataFrame.prototype.plotHistogram = async function (options) {
+  DataFrame.prototype.plotHistogram = async function(options) {
     const config = histogram(this, options);
 
     if (isBrowser && options.render !== false) {
@@ -146,7 +146,7 @@ export function extendDataFrame(DataFrame) {
    * @param {Object} [options.chartOptions] - Additional chart options
    * @returns {Promise<Object>} Chart instance or configuration
    */
-  DataFrame.prototype.plotTimeSeries = async function (options) {
+  DataFrame.prototype.plotTimeSeries = async function(options) {
     const config = timeSeriesChart(this, options);
 
     if (isBrowser && options.render !== false) {
@@ -166,7 +166,7 @@ export function extendDataFrame(DataFrame) {
    * @param {Object} [options.chartOptions] - Additional chart options
    * @returns {Promise<Object>} Chart instance or configuration
    */
-  DataFrame.prototype.plotBubble = async function (options) {
+  DataFrame.prototype.plotBubble = async function(options) {
     const config = bubbleChart(this, options);
 
     if (isBrowser && options.render !== false) {
@@ -185,7 +185,7 @@ export function extendDataFrame(DataFrame) {
    * @param {Object} [options.chartOptions] - Additional Chart.js options
    * @returns {Promise<Object>} Chart instance or configuration
    */
-  DataFrame.prototype.plotHeatmap = async function (options) {
+  DataFrame.prototype.plotHeatmap = async function(options) {
     // This is a placeholder - heatmaps require additional plugins for Chart.js
     throw new Error('Heatmap plotting is not implemented yet');
   };
@@ -200,7 +200,7 @@ export function extendDataFrame(DataFrame) {
    * @param {number} [options.height=600] - Height of the chart in pixels
    * @returns {Promise<string>} Path to the saved file
    */
-  DataFrame.prototype.saveChart = async function (
+  DataFrame.prototype.saveChart = async function(
     chartConfig,
     filePath,
     options = {},
@@ -227,7 +227,7 @@ export function extendDataFrame(DataFrame) {
    * @param {Object} [options.layout] - Layout options
    * @returns {Promise<string>} Path to the saved file
    */
-  DataFrame.prototype.createReport = async function (
+  DataFrame.prototype.createReport = async function(
     charts,
     filePath,
     options = {},
@@ -252,7 +252,7 @@ export function extendDataFrame(DataFrame) {
    * @param {Object} [options.chartOptions] - Additional chart options
    * @returns {Promise<Object>} Chart instance or configuration
    */
-  DataFrame.prototype.plot = async function (options = {}) {
+  DataFrame.prototype.plot = async function(options = {}) {
     // Extract chart options
     const { preferredColumns, preferredType, chartOptions = {} } = options;
 
@@ -266,49 +266,49 @@ export function extendDataFrame(DataFrame) {
     let config;
 
     switch (detection.type) {
-      case 'line':
-        config = lineChart(this, {
-          x: detection.columns.x,
-          y: detection.columns.y,
-          chartOptions,
-        });
-        break;
-      case 'bar':
-        config = barChart(this, {
-          x: detection.columns.x,
-          y: detection.columns.y,
-          chartOptions,
-        });
-        break;
-      case 'scatter':
-        config = scatterPlot(this, {
-          x: detection.columns.x,
-          y: detection.columns.y,
-          chartOptions,
-        });
-        break;
-      case 'pie':
-        config = pieChart(this, {
-          x: detection.columns.x,
-          y: detection.columns.y,
-          chartOptions,
-        });
-        break;
-      case 'bubble':
-        config = bubbleChart(this, {
-          x: detection.columns.x,
-          y: detection.columns.y,
-          size: detection.columns.size,
-          color: detection.columns.color,
-          chartOptions,
-        });
-        break;
-      default:
-        config = scatterPlot(this, {
-          x: detection.columns.x,
-          y: detection.columns.y,
-          chartOptions,
-        });
+    case 'line':
+      config = lineChart(this, {
+        x: detection.columns.x,
+        y: detection.columns.y,
+        chartOptions,
+      });
+      break;
+    case 'bar':
+      config = barChart(this, {
+        x: detection.columns.x,
+        y: detection.columns.y,
+        chartOptions,
+      });
+      break;
+    case 'scatter':
+      config = scatterPlot(this, {
+        x: detection.columns.x,
+        y: detection.columns.y,
+        chartOptions,
+      });
+      break;
+    case 'pie':
+      config = pieChart(this, {
+        x: detection.columns.x,
+        y: detection.columns.y,
+        chartOptions,
+      });
+      break;
+    case 'bubble':
+      config = bubbleChart(this, {
+        x: detection.columns.x,
+        y: detection.columns.y,
+        size: detection.columns.size,
+        color: detection.columns.color,
+        chartOptions,
+      });
+      break;
+    default:
+      config = scatterPlot(this, {
+        x: detection.columns.x,
+        y: detection.columns.y,
+        chartOptions,
+      });
     }
 
     // Add detection info to the configuration
@@ -336,7 +336,7 @@ export function extendDataFrame(DataFrame) {
    * @param {string[]} [options.preferredColumns] - Columns to prioritize for visualization
    * @returns {Promise<string>} Path to the saved file
    */
-  DataFrame.prototype.exportChart = async function (filePath, options = {}) {
+  DataFrame.prototype.exportChart = async function(filePath, options = {}) {
     // Check if we're in Node.js environment
     if (
       typeof process === 'undefined' ||
@@ -362,41 +362,41 @@ export function extendDataFrame(DataFrame) {
     if (chartType) {
       // Use specified chart type
       switch (chartType.toLowerCase()) {
-        case 'line':
-          config = await this.plotLine({
-            ...options,
-            render: false,
-          });
-          break;
-        case 'bar':
-          config = await this.plotBar({
-            ...options,
-            render: false,
-          });
-          break;
-        case 'scatter':
-          config = await this.plotScatter({
-            ...options,
-            render: false,
-          });
-          break;
-        case 'pie':
-          config = await this.plotPie({
-            ...options,
-            render: false,
-          });
-          break;
-        case 'bubble':
-          config = await this.plotBubble({
-            ...options,
-            render: false,
-          });
-          break;
-        default:
-          config = await this.plot({
-            ...options,
-            render: false,
-          });
+      case 'line':
+        config = await this.plotLine({
+          ...options,
+          render: false,
+        });
+        break;
+      case 'bar':
+        config = await this.plotBar({
+          ...options,
+          render: false,
+        });
+        break;
+      case 'scatter':
+        config = await this.plotScatter({
+          ...options,
+          render: false,
+        });
+        break;
+      case 'pie':
+        config = await this.plotPie({
+          ...options,
+          render: false,
+        });
+        break;
+      case 'bubble':
+        config = await this.plotBubble({
+          ...options,
+          render: false,
+        });
+        break;
+      default:
+        config = await this.plot({
+          ...options,
+          render: false,
+        });
       }
     } else {
       // Auto-detect chart type

@@ -48,16 +48,16 @@ export function createChartJSConfig(dataFrame, options) {
 
   // Process data based on chart type
   switch (type.toLowerCase()) {
-    case 'line':
-      return createLineChartConfig(dataFrame, options);
-    case 'bar':
-      return createBarChartConfig(dataFrame, options);
-    case 'scatter':
-      return createScatterChartConfig(dataFrame, options);
-    case 'pie':
-      return createPieChartConfig(dataFrame, options);
-    default:
-      throw new Error(`Unsupported chart type: ${type}`);
+  case 'line':
+    return createLineChartConfig(dataFrame, options);
+  case 'bar':
+    return createBarChartConfig(dataFrame, options);
+  case 'scatter':
+    return createScatterChartConfig(dataFrame, options);
+  case 'pie':
+    return createPieChartConfig(dataFrame, options);
+  default:
+    throw new Error(`Unsupported chart type: ${type}`);
   }
 }
 

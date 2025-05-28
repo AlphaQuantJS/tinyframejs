@@ -6,10 +6,10 @@
  */
 
 // Export core components
-export { DataFrame } from './core/DataFrame.js';
+export { DataFrame } from './core/dataframe/DataFrame.js';
 export { createFrame, cloneFrame } from './core/createFrame.js';
 export * from './core/types.js';
-export * from './core/validators.js';
+export * from './core/utils/validators.js';
 
 // Initialize automatic extension of DataFrame methods
 import './methods/autoExtend.js';

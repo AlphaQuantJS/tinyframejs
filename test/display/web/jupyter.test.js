@@ -34,7 +34,7 @@ describe('Jupyter Display', () => {
 
   // Mock the global object to simulate Jupyter environment
   beforeEach(() => {
-    global.$$ = function () {};
+    global.$$ = function() {};
   });
 
   afterEach(() => {

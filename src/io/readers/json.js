@@ -1,6 +1,6 @@
 // src/io/readers/json.js
 
-import { DataFrame } from '../../core/DataFrame.js';
+import { DataFrame } from '../../core/dataframe/DataFrame.js';
 import {
   detectEnvironment,
   safeRequire,

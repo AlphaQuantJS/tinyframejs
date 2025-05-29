@@ -82,9 +82,9 @@ export function toHTML(frame, options = {}) {
     if (rowIdx === -1) {
       // This is the ellipsis row
       const remainingRows = rowCount - maxRows * 2;
-      const colSpan = showIndex
-        ? visibleColumns.length + 1
-        : visibleColumns.length;
+      const colSpan = showIndex ?
+        visibleColumns.length + 1 :
+        visibleColumns.length;
       rowsHtml += `<tr class="ellipsis-row"><td colspan="${colSpan}">... ${remainingRows} more rows ...</td></tr>`;
       skipNextRow = true;
     } else if (!skipNextRow) {
@@ -324,9 +324,9 @@ function getThemeStyles(theme) {
 
   // Theme-specific styles
   switch (theme) {
-    case 'dark':
-      return (
-        baseStyles +
+  case 'dark':
+    return (
+      baseStyles +
         `
         .tinyframe-table.theme-dark {
           background-color: #222;
@@ -352,10 +352,10 @@ function getThemeStyles(theme) {
           color: #e88c6c;
         }
       `
-      );
-    case 'minimal':
-      return (
-        baseStyles +
+    );
+  case 'minimal':
+    return (
+      baseStyles +
         `
         .tinyframe-table.theme-minimal {
           border: none;
@@ -370,10 +370,10 @@ function getThemeStyles(theme) {
           background-color: #f9f9f9;
         }
       `
-      );
-    default: // 'default' theme
-      return (
-        baseStyles +
+    );
+  default: // 'default' theme
+    return (
+      baseStyles +
         `
         .tinyframe-table.theme-default {
           border: 1px solid #ddd;
@@ -395,6 +395,6 @@ function getThemeStyles(theme) {
           color: #cc6600;
         }
       `
-      );
+    );
   }
 }

@@ -8,19 +8,19 @@
 export const mean =
   ({ validateColumn }) =>
     (df, column) => {
-    // Для пустых фреймов сразу возвращаем NaN
+    // For empty frames, return NaN
       if (!df || !df.columns || df.columns.length === 0) {
         return NaN;
       }
 
-      // Validate that the column exists - это выбросит ошибку для несуществующей колонки
+      // Validate that the column exists - this will throw an error for non-existent columns
       validateColumn(df, column);
 
       try {
       // Get Series for the column and extract values
         const series = df.col(column);
 
-        // Если серия не существует, возвращаем NaN
+        // If the series does not exist, return NaN
         if (!series) return NaN;
 
         const values = series.toArray();
@@ -38,7 +38,7 @@ export const mean =
 
         return count > 0 ? sum / count : NaN;
       } catch (error) {
-      // В случае ошибки возвращаем NaN
+      // In case of an error, return NaN
         return NaN;
       }
     };
@@ -48,17 +48,17 @@ export const mean =
  * @param {Class} DataFrame - DataFrame class to extend
  */
 export const register = (DataFrame) => {
-  // Создаем валидатор для проверки существования колонки
+  // Create a validator for checking column existence
   const validateColumn = (df, column) => {
     if (!df.columns.includes(column)) {
       throw new Error(`Column '${column}' not found`);
     }
   };
 
-  // Создаем функцию mean с валидатором
+  // Create a function mean with validator
   const meanFn = mean({ validateColumn });
 
-  // Регистрируем метод mean в прототипе DataFrame
+  // Register the mean method in the DataFrame prototype
   DataFrame.prototype.mean = function(column) {
     return meanFn(this, column);
   };

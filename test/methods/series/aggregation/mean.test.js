@@ -1,5 +1,5 @@
 /**
- * Тесты для метода mean в Series
+ * Tests for the mean method in Series
  */
 
 import { describe, it, expect } from 'vitest';

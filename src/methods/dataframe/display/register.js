@@ -1,6 +1,14 @@
 /**
  * Registrar for DataFrame display methods
  */
+import {
+  print,
+  toHTML,
+  display,
+  renderTo,
+  toJupyter,
+  registerJupyterDisplay,
+} from '../../../display/index.js';
 
 /**
  * Registers all display methods for DataFrame
@@ -8,98 +16,41 @@
  */
 export function registerDataFrameDisplay(DataFrame) {
   /**
-   * Prints DataFrame to console in a tabular format
-   * @param {number} [maxRows=10] - Maximum number of rows to display
-   * @param {number} [maxCols=null] - Maximum number of columns to display
+   * Prints DataFrame to console in a tabular format with borders
+   * @param {number} [rows] - Maximum number of rows to display
+   * @param {number} [cols] - Maximum number of columns to display
    * @returns {DataFrame} - Returns the DataFrame for chaining
    */
-  DataFrame.prototype.print = function(maxRows = 10, maxCols = null) {
-    const rows = this.rows;
-    const columns = Object.keys(this.columns);
-    const totalRows = rows.length;
-    const totalCols = columns.length;
+  DataFrame.prototype.print = function(rows, cols) {
+    // Convert DataFrame to TinyFrame format expected by print function
+    const frame = {
+      columns: this._columns,
+      rowCount: this.rowCount,
+    };
 
-    // Determine how many rows and columns to display
-    const displayRows = Math.min(totalRows, maxRows);
-    const displayCols = maxCols ? Math.min(totalCols, maxCols) : totalCols;
-
-    // Create a table for display
-    const table = [];
-
-    // Add header row
-    const headerRow = columns.slice(0, displayCols);
-    table.push(headerRow);
-
-    // Add data rows
-    for (let i = 0; i < displayRows; i++) {
-      const row = [];
-      for (let j = 0; j < displayCols; j++) {
-        const col = columns[j];
-        row.push(this.columns[col][i]);
-      }
-      table.push(row);
-    }
-
-    // Print the table
-    console.table(table);
-
-    // Print summary if not all rows/columns were displayed
-    if (totalRows > displayRows || totalCols > displayCols) {
-      console.log(
-        `Displayed ${displayRows} of ${totalRows} rows and ${displayCols} of ${totalCols} columns.`,
-      );
-    }
-
-    // Return the DataFrame for chaining
-    return this;
+    // Use the imported print function
+    return print()(frame, rows, cols);
   };
 
   /**
    * Converts DataFrame to HTML table
    * @param {Object} [options] - Options for HTML generation
-   * @param {string} [options.className='dataframe'] - CSS class for the table
-   * @param {number} [options.maxRows=null] - Maximum number of rows to include
-   * @param {number} [options.maxCols=null] - Maximum number of columns to include
+   * @param {number} [options.maxRows=10] - Maximum number of rows to display
+   * @param {number} [options.maxCols=Infinity] - Maximum number of columns to display
+   * @param {boolean} [options.showIndex=true] - Whether to show row indices
+   * @param {string} [options.tableClass='tinyframe-table'] - CSS class for the table
+   * @param {string} [options.theme='default'] - Theme for the table ('default', 'dark', 'minimal')
    * @returns {string} - HTML string representation of the DataFrame
    */
   DataFrame.prototype.toHTML = function(options = {}) {
-    const { className = 'dataframe', maxRows = null, maxCols = null } = options;
+    // Convert DataFrame to TinyFrame format expected by toHTML function
+    const frame = {
+      columns: this._columns,
+      rowCount: this.rowCount,
+    };
 
-    const rows = this.rows;
-    const columns = Object.keys(this.columns);
-    const totalRows = rows.length;
-    const totalCols = columns.length;
-
-    // Determine how many rows and columns to display
-    const displayRows = maxRows ? Math.min(totalRows, maxRows) : totalRows;
-    const displayCols = maxCols ? Math.min(totalCols, maxCols) : totalCols;
-
-    // Start building HTML
-    let html = `<table class="${className}">`;
-
-    // Add header row
-    html += '<thead><tr>';
-    for (let j = 0; j < displayCols; j++) {
-      html += `<th>${columns[j]}</th>`;
-    }
-    html += '</tr></thead>';
-
-    // Add data rows
-    html += '<tbody>';
-    for (let i = 0; i < displayRows; i++) {
-      html += '<tr>';
-      for (let j = 0; j < displayCols; j++) {
-        const col = columns[j];
-        html += `<td>${this.columns[col][i]}</td>`;
-      }
-      html += '</tr>';
-    }
-    html += '</tbody>';
-
-    // Close table
-    html += '</table>';
-
-    return html;
+    // Use the imported toHTML function
+    return toHTML()(frame, options);
   };
 
   /**
@@ -107,12 +58,82 @@ export function registerDataFrameDisplay(DataFrame) {
    * @returns {string} - String representation
    */
   DataFrame.prototype.toString = function() {
-    const columns = Object.keys(this.columns);
-    const rowCount = this.rows.length;
-    return `DataFrame(${rowCount} rows × ${columns.length} columns)`;
+    return `DataFrame(${this.rowCount} rows × ${this.columns.length} columns)`;
   };
 
-  // Here you can add other display methods
+  /**
+   * Displays DataFrame in browser environment
+   * @param {Object} [options] - Display options
+   * @param {number} [options.maxRows=10] - Maximum number of rows to display
+   * @param {number} [options.maxCols=Infinity] - Maximum number of columns to display
+   * @param {boolean} [options.showIndex=true] - Whether to show row indices
+   * @param {string} [options.tableClass='tinyframe-table'] - CSS class for the table
+   * @param {string} [options.theme='default'] - Theme for the table ('default', 'dark', 'minimal')
+   * @param {string} [options.container] - CSS selector for container element (browser only)
+   * @returns {DataFrame} - Returns the DataFrame for chaining
+   */
+  DataFrame.prototype.display = function(options = {}) {
+    // Convert DataFrame to TinyFrame format expected by display function
+    const frame = {
+      columns: this._columns,
+      rowCount: this.rowCount,
+    };
+
+    // Use the imported display function
+    display(frame, options);
+
+    // Return the DataFrame for chaining
+    return this;
+  };
+
+  /**
+   * Renders DataFrame to a specified DOM element
+   * @param {string|HTMLElement} element - CSS selector or DOM element
+   * @param {Object} [options] - Display options
+   * @param {number} [options.maxRows=10] - Maximum number of rows to display
+   * @param {number} [options.maxCols=Infinity] - Maximum number of columns to display
+   * @param {boolean} [options.showIndex=true] - Whether to show row indices
+   * @param {string} [options.tableClass='tinyframe-table'] - CSS class for the table
+   * @param {string} [options.theme='default'] - Theme for the table ('default', 'dark', 'minimal')
+   * @returns {DataFrame} - Returns the DataFrame for chaining
+   */
+  DataFrame.prototype.renderTo = function(element, options = {}) {
+    // Convert DataFrame to TinyFrame format expected by renderTo function
+    const frame = {
+      columns: this._columns,
+      rowCount: this.rowCount,
+    };
+
+    // Use the imported renderTo function
+    renderTo(frame, element, options);
+
+    // Return the DataFrame for chaining
+    return this;
+  };
+
+  /**
+   * Returns a Jupyter notebook compatible representation
+   * @param {Object} [options] - Display options
+   * @returns {Object} - Jupyter display object
+   */
+  DataFrame.prototype.toJupyter = function(options = {}) {
+    // Convert DataFrame to TinyFrame format
+    const frame = {
+      columns: this._columns,
+      rowCount: this.rowCount,
+    };
+
+    // Use the imported toJupyter function
+    return toJupyter(frame, options);
+  };
+
+  // Register Jupyter display methods if in a Jupyter environment
+  try {
+    registerJupyterDisplay(DataFrame);
+  } catch (e) {
+    // Not in a Jupyter environment or error during registration
+    // This is fine, the methods will be registered only when needed
+  }
 }
 
 export default registerDataFrameDisplay;

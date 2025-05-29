@@ -62,7 +62,9 @@ export function extendClasses({ DataFrame, Series }) {
     }
   }
 
-  console.debug('DataFrame and Series classes successfully extended with all methods');
+  console.debug(
+    'DataFrame and Series classes successfully extended with all methods',
+  );
 }
 
 // Automatically extend classes when importing this file

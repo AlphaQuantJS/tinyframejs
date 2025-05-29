@@ -8,7 +8,7 @@ import { apply } from './apply.js';
 import { categorize } from './categorize.js';
 import { cut } from './cut.js';
 import { join } from './join.js';
-import { sort } from '../aggregation/sort.js';
+import { sort } from './sort.js';
 
 /**
  * Registers all transformation methods for DataFrame

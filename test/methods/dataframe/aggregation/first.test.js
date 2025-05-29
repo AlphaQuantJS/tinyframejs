@@ -19,10 +19,10 @@ import {
   createDataFrameWithStorage,
 } from '../../../utils/storageTestUtils.js';
 
-// Регистрируем метод first в DataFrame для тестов
+// Register the first method in DataFrame for tests
 register(DataFrame);
 
-// Тестовые данные для использования во всех тестах
+// Test data for use in all tests
 const testData = [
   { value: 10, category: 'A', mixed: '20' },
   { value: 20, category: 'B', mixed: 30 },
@@ -32,88 +32,88 @@ const testData = [
 ];
 
 describe('first method', () => {
-  // Запускаем тесты с обоими типами хранилища
+  // Run tests with both storage types
   testWithBothStorageTypes((storageType) => {
     describe(`with ${storageType} storage`, () => {
-      // Создаем DataFrame с указанным типом хранилища
+      // Create a DataFrame with the specified storage type
       const df = createDataFrameWithStorage(DataFrame, testData, storageType);
 
-      // Тестирование функции first напрямую
+      // Test the first function directly
       it('should return the first value in a column', () => {
-        // Создаем функцию first с мок-валидатором
+        // Create a first function with a mock validator
         const validateColumn = vi.fn();
         const firstFn = first({ validateColumn });
 
-        // Вызываем функцию first
+        // Call the first function
         const result = firstFn(df, 'value');
 
-        // Проверяем результат
+        // Check the result
         expect(result).toBe(10);
         expect(validateColumn).toHaveBeenCalledWith(df, 'value');
       });
 
       it('should handle special values (null, undefined, NaN)', () => {
-        // Создаем функцию first с мок-валидатором
+        // Create a first function with a mock validator
         const validateColumn = vi.fn();
         const firstFn = first({ validateColumn });
 
-        // Проверяем, что первые значения возвращаются правильно
+        // Check that the first values are returned correctly
         expect(firstFn(df, 'mixed')).toBe('20');
         expect(validateColumn).toHaveBeenCalledWith(df, 'mixed');
       });
 
       it('should return undefined for empty DataFrame', () => {
-        // Создаем пустой DataFrame
+        // Create an empty DataFrame
         const emptyDf = createDataFrameWithStorage(DataFrame, [], storageType);
 
-        // Создаем функцию first с мок-валидатором
+        // Create a first function with a mock validator
         const validateColumn = vi.fn();
         const firstFn = first({ validateColumn });
 
-        // Вызываем функцию first
+        // Call the first function
         const result = firstFn(emptyDf, 'value');
 
-        // Проверяем результат
+        // Check the result
         expect(result).toBeUndefined();
-        // Для пустого DataFrame валидатор не вызывается, так как мы сразу возвращаем undefined
+        // For an empty DataFrame, the validator is not called, as we immediately return undefined
       });
 
       it('should throw error for non-existent column', () => {
-        // Создаем валидатор, который выбрасывает ошибку
+        // Create a validator that throws an error
         const validateColumn = (df, column) => {
           if (!df.columns.includes(column)) {
             throw new Error(`Column '${column}' not found`);
           }
         };
 
-        // Создаем функцию first с валидатором
+        // Create a first function with our validator
         const firstFn = first({ validateColumn });
 
-        // Проверяем, что функция выбрасывает ошибку для несуществующей колонки
+        // Check that the function throws an error for non-existent columns
         expect(() => firstFn(df, 'nonexistent')).toThrow(
           'Column \'nonexistent\' not found',
         );
       });
 
-      // Тестирование метода DataFrame.first
+      // Test the DataFrame.first method
       it('should be available as a DataFrame method', () => {
-        // Проверяем, что метод first доступен в DataFrame
+        // Check that the first method is available in DataFrame
         expect(typeof df.first).toBe('function');
 
-        // Вызываем метод first и проверяем результат
+        // Call the first method and check the result
         expect(df.first('value')).toBe(10);
         expect(df.first('category')).toBe('A');
       });
       it('should handle empty DataFrame gracefully', () => {
-        // Создаем пустой DataFrame
+        // Create an empty DataFrame
         const emptyDf = createDataFrameWithStorage(DataFrame, [], storageType);
 
-        // Проверяем, что метод first возвращает undefined для пустого DataFrame
+        // Check that the first method returns undefined for an empty DataFrame
         expect(emptyDf.first('value')).toBeUndefined();
       });
 
       it('should throw error for non-existent column', () => {
-        // Проверяем, что метод first выбрасывает ошибку для несуществующей колонки
+        // Check that the first method throws an error for non-existent columns
         expect(() => df.first('nonexistent')).toThrow(
           'Column \'nonexistent\' not found',
         );

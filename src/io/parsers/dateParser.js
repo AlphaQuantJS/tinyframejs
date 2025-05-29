@@ -1,33 +1,33 @@
 /**
- * Модуль для парсинга дат из различных форматов
+ * Module for parsing dates in various formats
  */
 
 /**
- * Преобразует строку с датой в объект Date
- * @param {string} dateString - Строка с датой
- * @param {Object} options - Опции парсинга
- * @param {string} options.format - Формат даты (например, 'YYYY-MM-DD')
- * @param {string} options.locale - Локаль для парсинга (например, 'ru-RU')
- * @returns {Date} - Объект Date
+ * Converts a date string to a Date object
+ * @param {string} dateString - Date string
+ * @param {Object} options - Parsing options
+ * @param {string} options.format - Date format (e.g., 'YYYY-MM-DD')
+ * @param {string} options.locale - Locale for parsing (e.g., 'ru-RU')
+ * @returns {Date} - Date object
  */
 export function parseDate(dateString, options = {}) {
   if (!dateString) {
     return null;
   }
 
-  // Если передан объект Date, возвращаем его
+  // If the input is already a Date object, return it as is
   if (dateString instanceof Date) {
     return dateString;
   }
 
-  // Пробуем стандартный парсинг
+  // Try standard parsing
   const date = new Date(dateString);
   if (!isNaN(date.getTime())) {
     return date;
   }
 
-  // Если стандартный парсинг не сработал, пробуем разные форматы
-  // ISO формат: YYYY-MM-DD
+  // If standard parsing fails, try different formats
+  // ISO format: YYYY-MM-DD
   const isoRegex = /^(\d{4})-(\d{2})-(\d{2})$/;
   const isoMatch = dateString.match(isoRegex);
   if (isoMatch) {
@@ -35,7 +35,7 @@ export function parseDate(dateString, options = {}) {
     return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
   }
 
-  // Формат DD.MM.YYYY
+  // Format DD.MM.YYYY
   const dotRegex = /^(\d{2})\.(\d{2})\.(\d{4})$/;
   const dotMatch = dateString.match(dotRegex);
   if (dotMatch) {
@@ -43,7 +43,7 @@ export function parseDate(dateString, options = {}) {
     return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
   }
 
-  // Формат MM/DD/YYYY
+  // Format MM/DD/YYYY
   const slashRegex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
   const slashMatch = dateString.match(slashRegex);
   if (slashMatch) {
@@ -51,15 +51,15 @@ export function parseDate(dateString, options = {}) {
     return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
   }
 
-  // Если ничего не сработало, возвращаем null
+  // If nothing worked, return null
   return null;
 }
 
 /**
- * Форматирует объект Date в строку в заданном формате
- * @param {Date} date - Объект Date
- * @param {string} format - Формат вывода (например, 'YYYY-MM-DD')
- * @returns {string} - Отформатированная строка с датой
+ * Formats a Date object into a string in the specified format
+ * @param {Date} date - Date object
+ * @param {string} format - Output format (e.g., 'YYYY-MM-DD')
+ * @returns {string} - Formatted date string
  */
 export function formatDate(date, format = 'YYYY-MM-DD') {
   if (!date || !(date instanceof Date) || isNaN(date.getTime())) {

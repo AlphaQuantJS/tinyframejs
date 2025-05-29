@@ -8,30 +8,30 @@
 export const first =
   ({ validateColumn }) =>
     (df, column) => {
-    // Для пустых фреймов сразу возвращаем undefined
+    // For empty frames, return undefined
       if (!df || !df.columns || df.columns.length === 0 || df.rowCount === 0) {
         return undefined;
       }
 
-      // Validate that the column exists - это выбросит ошибку для несуществующей колонки
+      // Validate that the column exists - this will throw an error for non-existent columns
       validateColumn(df, column);
 
       try {
       // Get Series for the column and extract values
         const series = df.col(column);
 
-        // Если серия не существует, возвращаем undefined
+        // If the series does not exist, return undefined
         if (!series) return undefined;
 
         const values = series.toArray();
 
-        // Если массив пустой, возвращаем undefined
+        // If the array is empty, return undefined
         if (values.length === 0) return undefined;
 
-        // Возвращаем первое значение, даже если оно null, undefined или NaN
+        // Return the first value, even if it is null, undefined, or NaN
         return values[0];
       } catch (error) {
-      // В случае ошибки возвращаем undefined
+      // In case of an error, return undefined
         return undefined;
       }
     };
@@ -41,17 +41,17 @@ export const first =
  * @param {Class} DataFrame - DataFrame class to extend
  */
 export const register = (DataFrame) => {
-  // Создаем валидатор для проверки существования колонки
+  // Create a validator for checking column existence
   const validateColumn = (df, column) => {
     if (!df.columns.includes(column)) {
       throw new Error(`Column '${column}' not found`);
     }
   };
 
-  // Создаем функцию first с валидатором
+  // Create a function first with validator
   const firstFn = first({ validateColumn });
 
-  // Регистрируем метод first в прототипе DataFrame
+  // Register the first method in the DataFrame prototype
   DataFrame.prototype.first = function(column) {
     return firstFn(this, column);
   };

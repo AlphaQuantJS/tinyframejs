@@ -1,5 +1,5 @@
 /**
- * Тесты для метода sum в Series
+ * Tests for the sum method in Series
  */
 
 import { describe, it, expect } from 'vitest';

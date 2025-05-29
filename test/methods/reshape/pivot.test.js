@@ -193,30 +193,30 @@ if (!DataFrame.prototype.pivot) {
             .map((col, i) => `${col}_${columnValue[i]}`)
             .join('.');
         } else {
-          // Для одноуровневых столбцов
+          // For single-level columns
           colName = `${columns}_${columnValue}`;
         }
 
-        // Агрегируем значения и добавляем в строку
+        // Aggregate values and add to row
         newRow[colName] =
           valuesToAggregate.length > 0 ? aggFunc(valuesToAggregate) : null;
       }
 
-      // Добавляем строку в результат
+      // Add row to result
       pivotedRows.push(newRow);
     }
 
-    // Создаем новый DataFrame из сводных строк
+    // Create new DataFrame from pivoted rows
     const result = DataFrame.fromRows(pivotedRows);
 
-    // Добавляем свойство frame для совместимости с тестами
+    // Add frame property for compatibility with tests
     result.frame = {
       columns: {},
       columnNames: result.columns,
       rowCount: pivotedRows.length,
     };
 
-    // Заполняем столбцы в frame.columns для совместимости с тестами
+    // Fill columns in frame.columns for compatibility with tests
     for (const col of result.columns) {
       result.frame.columns[col] = pivotedRows.map((row) => row[col]);
     }
@@ -243,7 +243,7 @@ const testData = [
   { product: 'Product B', region: 'South', quarter: 'Q1', sales: 25 },
   { product: 'Product B', region: 'East', quarter: 'Q1', sales: 35 },
   { product: 'Product B', region: 'West', quarter: 'Q1', sales: 45 },
-  // Данные для тестов с многоуровневыми индексами
+  // Data for tests with multi-level indices
   {
     product: 'Product A',
     category: 'Electronics',
@@ -300,7 +300,7 @@ const testData = [
     quarter: 'Q2',
     sales: 45,
   },
-  // Данные для тестов с null значениями
+  // Data for tests with null values
   { product: 'Product A', region: 'North', sales: 10 },
   { product: 'Product A', region: 'South', sales: null },
   { product: 'Product B', region: 'North', sales: 15 },
@@ -315,7 +315,7 @@ describe('DataFrame.pivot', () => {
       const df = createDataFrameWithStorage(DataFrame, testData, storageType);
 
       test('creates a pivot table with default aggregation function (sum)', () => {
-        // Создаем DataFrame только с данными для теста pivot
+        // Create DataFrame only with data for pivot test
         const testPivotData = [
           { product: 'Product A', region: 'North', quarter: 'Q1', sales: 10 },
           { product: 'Product A', region: 'South', quarter: 'Q1', sales: 20 },
@@ -483,7 +483,7 @@ describe('DataFrame.pivot', () => {
       });
 
       test('handles multi-index pivot tables', () => {
-        // Создаем DataFrame только с данными для теста pivot с multi-index
+        // Create DataFrame only with data for pivot test with multi-index
         const testPivotData = [
           {
             product: 'Product A',
@@ -553,7 +553,7 @@ describe('DataFrame.pivot', () => {
       });
 
       test('handles missing values in pivot table', () => {
-        // Создаем DataFrame только с данными для теста pivot с пропущенными значениями
+        // Create DataFrame only with data for pivot test with missing values
         const testPivotData = [
           { product: 'Product A', region: 'North', sales: 10 },
           { product: 'Product A', region: 'South', sales: 20 },
@@ -589,7 +589,7 @@ describe('DataFrame.pivot', () => {
       });
 
       test('handles null values correctly', () => {
-        // Создаем DataFrame только с данными для теста pivot с null значениями
+        // Create DataFrame only with data for pivot test with null values
         const testPivotData = [
           { product: 'Product A', region: 'North', sales: 10 },
           { product: 'Product A', region: 'South', sales: null },
@@ -630,7 +630,7 @@ describe('DataFrame.pivot', () => {
       });
 
       test('supports object parameter style', () => {
-        // Создаем DataFrame только с данными для теста pivot с объектным стилем параметров
+        // Create DataFrame only with data for pivot test with object parameter style
         const testPivotData = [
           { product: 'Product A', region: 'North', sales: 10 },
           { product: 'Product A', region: 'South', sales: 20 },
@@ -672,7 +672,7 @@ describe('DataFrame.pivot', () => {
       });
 
       test('supports multi-level columns', () => {
-        // Создаем DataFrame только с данными для теста pivot с multi-level columns
+        // Create DataFrame only with data for pivot test with multi-level columns
         const testPivotData = [
           { product: 'Product A', region: 'North', quarter: 'Q1', sales: 10 },
           { product: 'Product A', region: 'South', quarter: 'Q1', sales: 20 },

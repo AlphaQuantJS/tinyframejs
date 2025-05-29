@@ -8,7 +8,7 @@ import {
   createDataFrameWithStorage,
 } from '../../../utils/storageTestUtils.js';
 
-// Тестовые данные для использования во всех тестах
+// Test data to be used in all tests
 const testData = [
   { value: 10, category: 'A', mixed: '20' },
   { value: 20, category: 'B', mixed: 30 },
@@ -18,14 +18,14 @@ const testData = [
 ];
 
 describe('DataFrame.categorize', () => {
-  // Запускаем тесты с обоими типами хранилища
+  // Run tests with both storage types
   testWithBothStorageTypes((storageType) => {
     describe(`with ${storageType} storage`, () => {
-      // Создаем DataFrame с указанным типом хранилища
+      // Create DataFrame with specified storage type
       const df = createDataFrameWithStorage(DataFrame, testData, storageType);
 
       // Create a test DataFrame
-      // df создан выше с помощью createDataFrameWithStorage
+      // df created above with createDataFrameWithStorage
 
       // Create categorize function with dependency injection
       const categorizeWithDeps = categorize({ validateColumn });

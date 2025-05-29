@@ -1,6 +1,6 @@
 // src/io/transformers/jsonToFrame.js
 
-import { DataFrame } from '../../core/DataFrame.js';
+import { DataFrame } from '../../core/dataframe/DataFrame.js';
 
 /**
  * Transforms JSON data into a DataFrame.
@@ -21,11 +21,24 @@ export function jsonToFrame(jsonData, options = {}) {
 
   // Handle different JSON data formats
   if (Array.isArray(jsonData)) {
-    // Array of objects (rows)
-    return DataFrame.create(jsonData, { useTypedArrays, copy, saveRawData });
+    // Array of objects (rows) - преобразуем в формат столбцов
+    if (jsonData.length === 0) {
+      return new DataFrame({});
+    }
+
+    // Извлекаем имена столбцов из первого объекта
+    const columns = {};
+    const keys = Object.keys(jsonData[0]);
+
+    // Создаем массивы для каждого столбца
+    for (const key of keys) {
+      columns[key] = jsonData.map((row) => row[key]);
+    }
+
+    return new DataFrame(columns, { useTypedArrays, copy, saveRawData });
   } else if (jsonData && typeof jsonData === 'object') {
-    // Object with arrays as columns
-    return DataFrame.create(jsonData, { useTypedArrays, copy, saveRawData });
+    // Object with arrays as columns - уже в правильном формате
+    return new DataFrame(jsonData, { useTypedArrays, copy, saveRawData });
   }
 
   throw new Error(

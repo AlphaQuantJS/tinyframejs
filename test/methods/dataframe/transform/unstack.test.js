@@ -6,7 +6,7 @@ import {
   createDataFrameWithStorage,
 } from '../../../utils/storageTestUtils.js';
 
-// Тестовые данные для использования во всех тестах
+// Test data for all tests
 const testData = [
   { value: 10, category: 'A', mixed: '20' },
   { value: 20, category: 'B', mixed: 30 },
@@ -16,15 +16,15 @@ const testData = [
 ];
 
 describe('DataFrame.unstack', () => {
-  // Запускаем тесты с обоими типами хранилища
+  // Run tests with both storage types
   testWithBothStorageTypes((storageType) => {
     describe(`with ${storageType} storage`, () => {
-      // Создаем DataFrame с указанным типом хранилища
+      // Create DataFrame with specified storage type
       const df = createDataFrameWithStorage(DataFrame, testData, storageType);
 
       test('unstacks rows into columns', () => {
         // Create a test DataFrame in long format
-        // df создан выше с помощью createDataFrameWithStorage
+        // df created above with createDataFrameWithStorage
 
         // Call the unstack method
         const result = df.unstack('product', 'region', 'sales');
@@ -63,7 +63,7 @@ describe('DataFrame.unstack', () => {
 
       test('unstacks with multiple index columns', () => {
         // Create a test DataFrame in long format
-        // df создан выше с помощью createDataFrameWithStorage
+        // df created above with createDataFrameWithStorage
 
         // Call the unstack method with multiple index columns
         const result = df.unstack(['product', 'category'], 'region', 'sales');
@@ -105,7 +105,7 @@ describe('DataFrame.unstack', () => {
 
       test('handles duplicate index values by using the last occurrence', () => {
         // Create a test DataFrame with duplicate index values
-        // df создан выше с помощью createDataFrameWithStorage
+        // df created above with createDataFrameWithStorage
 
         // Call the unstack method
         const result = df.unstack('product', 'region', 'sales');
@@ -123,7 +123,7 @@ describe('DataFrame.unstack', () => {
 
       test('handles non-numeric values in unstack', () => {
         // Create a test DataFrame in long format
-        // df создан выше с помощью createDataFrameWithStorage
+        // df created above with createDataFrameWithStorage
 
         // Call the unstack method
         const result = df.unstack('product', 'year', 'status');
@@ -145,7 +145,7 @@ describe('DataFrame.unstack', () => {
 
       test('throws an error with invalid arguments', () => {
         // Create a test DataFrame
-        // df создан выше с помощью createDataFrameWithStorage
+        // df created above with createDataFrameWithStorage
 
         // Check that the method throws an error if index is not provided
         expect(() => df.unstack()).toThrow();

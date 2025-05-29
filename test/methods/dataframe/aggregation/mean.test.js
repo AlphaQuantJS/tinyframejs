@@ -92,17 +92,18 @@ describe('mean', () => {
 /**
  * Tests for the DataFrame.mean method
  */
+
 describe('DataFrame.mean', () => {
   test('should throw error for non-existent column via DataFrame method', () => {
-    // Создаем DataFrame с тестовыми данными
+    // Create a DataFrame with test data
     const df = DataFrame.create([{ values: 1 }, { values: 2 }]);
 
-    // Вызов метода mean с несуществующей колонкой должен выбросить ошибку
+    // Call the mean method with a non-existent column and expect it to throw an error
     expect(() => df.mean('nonexistent')).toThrow();
   });
 });
 
-// Тестовые данные для использования во всех тестах
+// Test data for use in all tests
 const testData = [
   { value: 10, category: 'A', mixed: '20' },
   { value: 20, category: 'B', mixed: 30 },
@@ -112,10 +113,10 @@ const testData = [
 ];
 
 describe('mean method', () => {
-  // Запускаем тесты с обоими типами хранилища
+  // Run tests with both storage types
   testWithBothStorageTypes((storageType) => {
     describe(`with ${storageType} storage`, () => {
-      // Создаем DataFrame с указанным типом хранилища
+      // Create a DataFrame with the specified storage type
       const df = createDataFrameWithStorage(DataFrame, testData, storageType);
 
       test('should calculate the mean of numeric values in a column', () => {

@@ -1,8 +1,8 @@
 /**
- * Единый экспорт всех методов (агрегация + трансформации)
+ * Central export of all methods (aggregation + transformations)
  *
- * Этот файл экспортирует все методы из соответствующих директорий
- * для DataFrame, Series и методов изменения формы данных.
+ * This file exports all methods from corresponding directories
+ * for DataFrame, Series and data shape change methods.
  */
 
 // DataFrame aggregation methods
@@ -44,7 +44,7 @@ export { notNull } from './series/filtering/register.js';
 export { isin } from './series/filtering/register.js';
 
 // Series transform methods
-// TODO: Добавить экспорты методов трансформации для Series
+// TODO: Add exports of transformation methods for Series
 
 // Reshape methods
 export { pivot } from './reshape/pivot.js';

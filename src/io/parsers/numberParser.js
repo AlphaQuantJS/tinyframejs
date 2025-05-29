@@ -1,96 +1,155 @@
 /**
- * Модуль для парсинга числовых значений из различных форматов
+ * Module for parsing numbers in various formats
  */
 
 /**
- * Преобразует строку с числом в числовое значение
- * @param {string|number} value - Строка с числом или число
- * @param {Object} options - Опции парсинга
- * @param {string} options.decimalSeparator - Разделитель десятичной части (по умолчанию '.')
- * @param {string} options.thousandsSeparator - Разделитель тысяч (по умолчанию ',')
- * @param {boolean} options.parsePercent - Преобразовывать ли проценты в десятичные дроби (по умолчанию true)
- * @returns {number} - Числовое значение или NaN, если парсинг не удался
+ * Converts a string with a number to a numeric value
+ * @param {string|number} value - String with a number or number
+ * @param {Object} options - Parsing options
+ * @param {string} options.decimalSeparator - Decimal separator (default '.')
+ * @param {string} options.thousandsSeparator - Thousands separator (default ',')
+ * @param {boolean} options.parsePercent - Convert percentages to decimal fractions (default true)
+ * @returns {number} - Numeric value or NaN if parsing fails
  */
 export function parseNumber(value, options = {}) {
-  // Значения по умолчанию
+  // Default values
   const decimalSeparator = options.decimalSeparator || '.';
   const thousandsSeparator = options.thousandsSeparator || ',';
   const parsePercent = options.parsePercent !== false;
 
-  // Если value уже число, возвращаем его
+  // If value is already a number, return it
   if (typeof value === 'number') {
-    return value;
+    return value === 0 ? 0 : value; // Convert -0 to 0
   }
 
-  // Если value не строка или пустая строка, возвращаем NaN
+  // If value is not a string or an empty string, return NaN
   if (typeof value !== 'string' || value.trim() === '') {
     return NaN;
   }
 
-  // Обрабатываем проценты
+  // Handle percentages
   let stringValue = value.trim();
   let percentMultiplier = 1;
 
-  if (parsePercent && stringValue.endsWith('%')) {
-    stringValue = stringValue.slice(0, -1).trim();
-    percentMultiplier = 0.01;
+  if (stringValue.endsWith('%')) {
+    if (parsePercent) {
+      stringValue = stringValue.slice(0, -1).trim();
+      percentMultiplier = 0.01;
+    } else {
+      // If parsePercent is false, just remove the % sign without applying multiplier
+      stringValue = stringValue.slice(0, -1).trim();
+    }
   }
 
-  // Удаляем разделители тысяч и заменяем десятичный разделитель на точку
-  const normalizedValue = stringValue
-    .replace(new RegExp(`\\${thousandsSeparator}`, 'g'), '')
-    .replace(new RegExp(`\\${decimalSeparator}`, 'g'), '.');
+  // Basic validation before processing
+  // Check for multiple minus signs
+  const minusCount = (stringValue.match(/-/g) || []).length;
+  if (minusCount > 1 || (minusCount === 1 && !stringValue.startsWith('-'))) {
+    return NaN;
+  }
 
-  // Преобразуем в число
-  const number = parseFloat(normalizedValue);
+  // Check for multiple decimal separators
+  const decimalCount = (
+    stringValue.match(new RegExp(`\\${decimalSeparator}`, 'g')) || []
+  ).length;
+  if (decimalCount > 1) {
+    return NaN;
+  }
 
-  // Применяем множитель для процентов
-  return isNaN(number) ? NaN : number * percentMultiplier;
+  // Simple approach for parsing with custom decimal separator
+  try {
+    // Handle the sign separately
+    const isNegative = stringValue.startsWith('-');
+    if (isNegative) {
+      stringValue = stringValue.substring(1);
+    }
+
+    // Split by decimal separator
+    const parts = stringValue.split(decimalSeparator);
+
+    // If we have more than 2 parts after splitting by decimal separator, it's invalid
+    if (parts.length > 2) {
+      return NaN;
+    }
+
+    // Get integer and fractional parts
+    let integerPart = parts[0] || '0';
+    const fractionalPart = parts.length > 1 ? parts[1] : '';
+
+    // Remove thousands separators from integer part
+    if (thousandsSeparator) {
+      integerPart = integerPart.replace(
+        new RegExp(`\\${thousandsSeparator}`, 'g'),
+        '',
+      );
+    }
+
+    // Check if the parts contain only digits
+    if (!/^\d*$/.test(integerPart) || !/^\d*$/.test(fractionalPart)) {
+      return NaN;
+    }
+
+    // Combine parts into a proper number string
+    const numberStr = `${isNegative ? '-' : ''}${integerPart}${fractionalPart ? '.' + fractionalPart : ''}`;
+
+    // Parse the number
+    const number = parseFloat(numberStr);
+
+    // Handle -0 case
+    if (Object.is(number, -0)) {
+      return 0;
+    }
+
+    // Apply percentage multiplier
+    return isNaN(number) ? NaN : number * percentMultiplier;
+  } catch (e) {
+    return NaN;
+  }
 }
 
 /**
- * Форматирует число в строку с заданными параметрами
- * @param {number} value - Число для форматирования
- * @param {Object} options - Опции форматирования
- * @param {string} options.decimalSeparator - Разделитель десятичной части (по умолчанию '.')
- * @param {string} options.thousandsSeparator - Разделитель тысяч (по умолчанию ',')
- * @param {number} options.precision - Количество знаков после запятой (по умолчанию 2)
- * @param {boolean} options.showPercent - Показывать ли значение как процент (по умолчанию false)
- * @returns {string} - Отформатированное число в виде строки
+ * Formats a number into a string with the specified parameters
+ * @param {number} value - Number to format
+ * @param {Object} options - Formatting options
+ * @param {string} options.decimalSeparator - Decimal separator (default '.')
+ * @param {string} options.thousandsSeparator - Thousands separator (default ',')
+ * @param {number} options.precision - Number of decimal places (default 2)
+ * @param {boolean} options.showPercent - Show value as percentage (default false)
+ * @returns {string} - Formatted number as string
  */
 export function formatNumber(value, options = {}) {
-  // Значения по умолчанию
+  // Default values
   const decimalSeparator = options.decimalSeparator || '.';
   const thousandsSeparator = options.thousandsSeparator || ',';
   const precision = options.precision !== undefined ? options.precision : 2;
   const showPercent = options.showPercent || false;
 
-  // Если value не число, возвращаем пустую строку
+  // If value is not a number, return an empty string
   if (typeof value !== 'number' || isNaN(value)) {
     return '';
   }
 
-  // Применяем множитель для процентов
+  // Apply percentage multiplier
   const multipliedValue = showPercent ? value * 100 : value;
 
-  // Форматируем число
+  // Format the number
   const [integerPart, decimalPart] = multipliedValue
     .toFixed(precision)
     .split('.');
 
-  // Добавляем разделители тысяч
+  // Add thousands separators
   const formattedIntegerPart = integerPart.replace(
     /\B(?=(\d{3})+(?!\d))/g,
     thousandsSeparator,
   );
 
-  // Собираем результат
+  // Assemble the result
   let result = formattedIntegerPart;
   if (precision > 0) {
     result += decimalSeparator + decimalPart;
   }
 
-  // Добавляем знак процента, если нужно
+  // Add percentage sign if needed
   if (showPercent) {
     result += '%';
   }

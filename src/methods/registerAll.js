@@ -1,8 +1,8 @@
 /**
- * Централизованная инъекция зависимостей для методов (валидаторы и пр.)
+ * Centralized dependency injection for methods (validators and others)
  *
- * Этот файл импортирует все регистраторы методов и применяет их к классам DataFrame и Series.
- * В соответствии с новой структурой, здесь регистрируются методы из директорий dataframe, series и reshape.
+ * This file imports all method registrars and applies them to DataFrame and Series classes.
+ * In accordance with the new structure, here all methods from directories dataframe, series and reshape are registered.
  */
 
 import { extendDataFrame } from './dataframe/registerAll.js';
@@ -10,19 +10,19 @@ import { extendSeries } from './series/registerAll.js';
 import { registerReshapeMethods } from './reshape/register.js';
 
 /**
- * Регистрирует все методы для классов DataFrame и Series
- * @param {Object} classes - Объект, содержащий классы DataFrame и Series
- * @param {Class} classes.DataFrame - Класс DataFrame для расширения
- * @param {Class} classes.Series - Класс Series для расширения
+ * Registers all methods for DataFrame and Series classes
+ * @param {Object} classes - Object containing DataFrame and Series classes
+ * @param {Class} classes.DataFrame - DataFrame class to extend
+ * @param {Class} classes.Series - Series class to extend
  */
 export function registerAllMethods({ DataFrame, Series }) {
-  // Применяем все регистраторы к классам DataFrame и Series
+  // Apply all registrars to DataFrame and Series classes
   extendDataFrame(DataFrame);
   extendSeries(Series);
   registerReshapeMethods(DataFrame);
 
-  // Здесь можно добавить логирование или другие действия при регистрации
-  console.debug('Все методы успешно зарегистрированы');
+  // Here you can add logging or other actions during registration
+  console.debug('All methods successfully registered');
 }
 
 export default registerAllMethods;

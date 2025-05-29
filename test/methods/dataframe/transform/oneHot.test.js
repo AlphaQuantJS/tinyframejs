@@ -6,7 +6,7 @@ import {
   createDataFrameWithStorage,
 } from '../../../utils/storageTestUtils.js';
 
-// Тестовые данные для использования во всех тестах
+// Test data to be used in all tests
 const testData = [
   { value: 10, category: 'A', mixed: '20' },
   { value: 20, category: 'B', mixed: 30 },
@@ -16,15 +16,15 @@ const testData = [
 ];
 
 describe('DataFrame.oneHot', () => {
-  // Запускаем тесты с обоими типами хранилища
+  // Run tests with both storage types
   testWithBothStorageTypes((storageType) => {
     describe(`with ${storageType} storage`, () => {
-      // Создаем DataFrame с указанным типом хранилища
+      // Create DataFrame with specified storage type
       const df = createDataFrameWithStorage(DataFrame, testData, storageType);
 
       test('creates one-hot encoding for a categorical column', () => {
         // Create a test DataFrame
-        // df создан выше с помощью createDataFrameWithStorage
+        // df created above with createDataFrameWithStorage
 
         // Call the oneHot method
         const result = df.oneHot('department');
@@ -60,7 +60,7 @@ describe('DataFrame.oneHot', () => {
 
       test('uses custom prefix for new columns', () => {
         // Create a test DataFrame
-        // df создан выше с помощью createDataFrameWithStorage
+        // df created above with createDataFrameWithStorage
 
         // Call oneHot with custom prefix
         const result = df.oneHot('department', { prefix: 'dept_' });
@@ -73,7 +73,7 @@ describe('DataFrame.oneHot', () => {
 
       test('removes original column when dropOriginal=true', () => {
         // Create a test DataFrame
-        // df создан выше с помощью createDataFrameWithStorage
+        // df created above with createDataFrameWithStorage
 
         // Call oneHot with dropOriginal=true
         const result = df.oneHot('department', { dropOriginal: true });
@@ -89,7 +89,7 @@ describe('DataFrame.oneHot', () => {
 
       test('drops first category when dropFirst=true', () => {
         // Create a test DataFrame
-        // df создан выше с помощью createDataFrameWithStorage
+        // df created above with createDataFrameWithStorage
 
         // Call oneHot with dropFirst=true
         const result = df.oneHot('department', { dropFirst: true });
@@ -104,7 +104,7 @@ describe('DataFrame.oneHot', () => {
 
       test('uses specified data type for encoded columns', () => {
         // Create a test DataFrame
-        // df создан выше с помощью createDataFrameWithStorage
+        // df created above with createDataFrameWithStorage
 
         // Call oneHot with different dtypes
         const resultI32 = df.oneHot('department', { dtype: 'i32' });
@@ -154,7 +154,7 @@ describe('DataFrame.oneHot', () => {
 
       test('uses predefined categories when provided', () => {
         // Create a test DataFrame
-        // df создан выше с помощью createDataFrameWithStorage
+        // df created above with createDataFrameWithStorage
 
         // Call oneHot with predefined categories
         const result = df.oneHot('department', {
@@ -175,7 +175,7 @@ describe('DataFrame.oneHot', () => {
 
       test('throws an error with invalid arguments', () => {
         // Create a test DataFrame
-        // df создан выше с помощью createDataFrameWithStorage
+        // df created above with createDataFrameWithStorage
 
         // Check that the method throws an error if column doesn't exist
         expect(() => df.oneHot('nonexistent')).toThrow();

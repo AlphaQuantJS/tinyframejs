@@ -1,8 +1,8 @@
 /**
- * Централизованная инъекция зависимостей для методов (валидаторы и пр.)
+ * Centralized dependency injection for methods (validators and others)
  *
- * Этот файл импортирует все методы из raw.js и инъектирует в них зависимости,
- * такие как валидаторы и другие утилиты, необходимые для их работы.
+ * This file imports all methods from raw.js and injects dependencies into them,
+ * such as validators and other utilities needed for their operation.
  */
 
 import * as rawFns from './raw.js';
@@ -10,28 +10,28 @@ import { validateColumn, validateType } from '../core/utils/validators.js';
 import { isNumeric } from '../core/utils/typeChecks.js';
 
 /**
- * Зависимости, которые будут инъектированы в методы
+ * Dependencies that will be injected into methods
  * @type {Object}
  */
 const deps = {
   validateColumn,
   isNumeric,
   validateType,
-  // Здесь можно добавить другие зависимости в будущем
+  // Add other dependencies in the future
 };
 
 /**
- * Инъектирует зависимости во все методы агрегации/трансформации и возвращает объект,
- * где каждый метод предварительно подготовлен с необходимыми зависимостями.
+ * Injects dependencies into all aggregation/transform methods and returns an object,
+ * where each method is prepared with the necessary dependencies.
  *
- * @returns {Record<string, Function>} Объект с именами методов в качестве ключей и
- * готовыми к использованию функциями в качестве значений
+ * @returns {Record<string, Function>} Object with method names as keys and
+ * prepared functions as values
  */
 export function injectMethods() {
   return Object.fromEntries(
     Object.entries(rawFns).map(([name, fn]) => [
       name,
-      typeof fn === 'function' ? fn(deps) : fn, // инъектируем зависимости только в функции
+      typeof fn === 'function' ? fn(deps) : fn, // inject dependencies only into functions
     ]),
   );
 }

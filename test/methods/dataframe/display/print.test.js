@@ -8,7 +8,7 @@ import {
 } from '../../../utils/storageTestUtils.js';
 
 // Test data to be used in all tests
-const testData = [
+const sampleData = [
   { value: 10, category: 'A', mixed: '20' },
   { value: 20, category: 'B', mixed: 30 },
   { value: 30, category: 'A', mixed: null },
@@ -20,10 +20,7 @@ describe('DataFrame print method', () => {
   // Run tests with both storage types
   testWithBothStorageTypes((storageType) => {
     describe(`with ${storageType} storage`, () => {
-      // Create DataFrame with the specified storage type
-      const df = createDataFrameWithStorage(DataFrame, testData, storageType);
-
-      // Create test data frame
+      // Create test data frame with people data for better readability in tests
       const testData = [
         { name: 'Alice', age: 25, city: 'New York' },
         { name: 'Bob', age: 30, city: 'Boston' },
@@ -32,7 +29,8 @@ describe('DataFrame print method', () => {
         { name: 'Eve', age: 45, city: 'El Paso' },
       ];
 
-      // df created above using createDataFrameWithStorage
+      // Create DataFrame with the specified storage type
+      const df = createDataFrameWithStorage(DataFrame, testData, storageType);
 
       it('should format data as a table string', () => {
         // Mock console.log to check output
@@ -42,7 +40,7 @@ describe('DataFrame print method', () => {
 
         // Call print function directly
         const printFn = print();
-        printFn(df._frame);
+        printFn(df);
 
         // Check that console.log was called
         expect(consoleSpy).toHaveBeenCalled();
@@ -65,17 +63,17 @@ describe('DataFrame print method', () => {
       });
 
       it('should return the frame for method chaining', () => {
-        // Mock console.log
+        // Mock console.log to prevent output
         const consoleSpy = vi
           .spyOn(console, 'log')
           .mockImplementation(() => {});
 
-        // Call print function directly
+        // Call print function and check the return value
         const printFn = print();
-        const result = printFn(df._frame);
+        const result = printFn(df);
 
         // Check that the function returns the frame
-        expect(result).toBe(df._frame);
+        expect(result).toBe(df);
 
         // Restore console.log
         consoleSpy.mockRestore();
@@ -88,7 +86,11 @@ describe('DataFrame print method', () => {
           value: i * 10,
         }));
 
-        const largeDf = DataFrame.create(largeData);
+        const largeDf = createDataFrameWithStorage(
+          DataFrame,
+          largeData,
+          storageType,
+        );
 
         // Mock console.log
         const consoleSpy = vi
@@ -97,7 +99,7 @@ describe('DataFrame print method', () => {
 
         // Call print function with row limit
         const printFn = print();
-        printFn(largeDf._frame, 5);
+        printFn(largeDf, 5);
 
         // Get the output
         const output = consoleSpy.mock.calls[0][0];
@@ -111,11 +113,19 @@ describe('DataFrame print method', () => {
 
       it('should respect cols limit', () => {
         // Create a frame with many columns
-        const wideData = [
-          { col1: 1, col2: 2, col3: 3, col4: 4, col5: 5, col6: 6 },
-        ];
+        const wideData = {
+          col1: [1, 2, 3],
+          col2: [4, 5, 6],
+          col3: [7, 8, 9],
+          col4: [10, 11, 12],
+          col5: [13, 14, 15],
+        };
 
-        const wideDf = DataFrame.create(wideData);
+        const wideDf = createDataFrameWithStorage(
+          DataFrame,
+          wideData,
+          storageType,
+        );
 
         // Mock console.log
         const consoleSpy = vi
@@ -124,7 +134,7 @@ describe('DataFrame print method', () => {
 
         // Call print function with column limit
         const printFn = print();
-        printFn(wideDf._frame, undefined, 3);
+        printFn(wideDf, Infinity, 2);
 
         // Get the output
         const output = consoleSpy.mock.calls[0][0];

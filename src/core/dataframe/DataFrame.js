@@ -1,7 +1,5 @@
 // src/core/dataframe/DataFrame.js
 import { Series } from './Series.js';
-import { VectorFactory } from '../storage/VectorFactory.js';
-import { shouldUseArrow } from '../strategy/shouldUseArrow.js';
 
 export class DataFrame {
   /**
@@ -15,80 +13,73 @@ export class DataFrame {
     this._order = Object.keys(data);
 
     for (const name of this._order) {
-      // If data is already a Series, use it directly
-      if (data[name] instanceof Series) {
-        this._columns[name] = data[name];
-      } else {
-        // Otherwise create a new Series
-        this._columns[name] = new Series(data[name], {
-          name,
-          ...opts,
-        });
-      }
+      // Re-use Series or wrap raw data
+      this._columns[name] =
+        data[name] instanceof Series
+          ? data[name]
+          : new Series(data[name], { name, ...opts });
     }
     Object.freeze(this._order);
+
+    /* -------------------------------------------------- *
+     *  Internal helper (used by tests / plugins)         *
+     * -------------------------------------------------- */
+    Object.defineProperty(this, 'frame', {
+      enumerable: false,
+      configurable: false,
+      value: {
+        /**
+         * low-level vector getter (internal)
+         * @param n
+         */
+        getColumn: (n) => this._columns[n]?.vector,
+      },
+    });
   }
 
   /* ------------------------------------------------------------------ *
-   *  Factories (static methods)                                        *
+   *  Factory helpers                                                   *
    * ------------------------------------------------------------------ */
 
-  static create(cols, opts = {}) {
-    return new DataFrame(cols, opts);
-  }
-  static fromColumns(cols, opts = {}) {
-    return new DataFrame(cols, opts);
-  }
+  static create = (cols, opts = {}) => new DataFrame(cols, opts);
+  static fromColumns = (cols, opts = {}) => new DataFrame(cols, opts);
 
-  /**
-   * Array of objects → DataFrame
-   * @param rows
-   * @param opts
-   */
   static fromRows(rows = [], opts = {}) {
     if (!rows.length) return new DataFrame({}, opts);
-    const keys = Object.keys(rows[0] || {});
     const cols = {};
-    for (const k of keys) cols[k] = rows.map((r) => r[k]);
+    for (const k of Object.keys(rows[0])) cols[k] = rows.map((r) => r[k]);
     return new DataFrame(cols, opts);
   }
 
-  /**
-   * Apache Arrow Table → DataFrame
-   * @param table
-   */
   static fromArrow(table) {
     const cols = {};
-    for (const field of table.schema.fields) {
-      cols[field.name] = table.getColumn(field.name).toArray();
-    }
+    for (const f of table.schema.fields)
+      cols[f.name] = table.getColumn(f.name).toArray();
     return new DataFrame(cols, { preferArrow: true });
   }
 
   /* ------------------------------------------------------------------ *
-   *  Data Export                                                       *
+   *  Export helpers                                                    *
    * ------------------------------------------------------------------ */
 
-  /** DataFrame → { col: Array } */
   toColumns() {
     const out = {};
-    for (const name of this._order) out[name] = this._columns[name].toArray();
+    for (const n of this._order) out[n] = this._columns[n].toArray();
     return out;
   }
 
-  /** DataFrame → Arrow.Table (if lib is available) */
-  toArrow() {
-    const { tableFromArrays } = require('apache-arrow');
+  async toArrow() {
+    const { tableFromArrays } = await import('apache-arrow');
     const arrays = {};
-    for (const name of this._order) {
-      const vec = this._columns[name].vector;
-      arrays[name] = vec._arrow ?? vec._data; // ArrowVector | TypedArray
+    for (const n of this._order) {
+      const v = this._columns[n].vector;
+      arrays[n] = v._arrow ?? v._data; // ArrowVector | TypedArray
     }
     return tableFromArrays(arrays);
   }
 
   /* ------------------------------------------------------------------ *
-   *  Getters and quick accessors                                       *
+   *  Accessors                                                         *
    * ------------------------------------------------------------------ */
 
   get rowCount() {
@@ -98,166 +89,112 @@ export class DataFrame {
     return [...this._order];
   }
 
-  col(name) {
-    return this._columns[name];
-  }
-  sum(name) {
-    return this.col(name).sum();
-  }
+  col = (n) => this._columns[n];
+  sum = (n) => this.col(n).sum();
+  /**
+   * low-level vector getter
+   * @param n
+   */
+  getVector = (n) => this._columns[n]?.vector;
 
   /* ------------------------------------------------------------------ *
-   *  DataFrame operations                                               *
+   *  Column-level helpers (select / drop / assign)                     *
    * ------------------------------------------------------------------ */
 
-  /**
-   * Returns a new DataFrame with a subset of columns
-   * @param names
-   */
   select(names) {
-    const subset = {};
-    for (const n of names) subset[n] = this._columns[n].toArray();
-    return new DataFrame(subset);
+    const cols = {};
+    for (const n of names) cols[n] = this._columns[n].toArray();
+    return new DataFrame(cols);
   }
 
-  /**
-   * Remove specified columns
-   * @param names
-   */
   drop(names) {
-    const keep = {};
-    for (const n of this._order)
-      if (!names.includes(n)) keep[n] = this._columns[n].toArray();
-    return new DataFrame(keep);
+    const keep = this.columns.filter((c) => !names.includes(c));
+    return this.select(keep);
   }
 
-  /**
-   * Add / replace columns.
-   * @param {Record<string, Array|TypedArray|Series>} obj
-   */
   assign(obj) {
-    const merged = this.toColumns(); // existing columns
-    for (const [k, v] of Object.entries(obj)) {
+    const merged = this.toColumns();
+    for (const [k, v] of Object.entries(obj))
       merged[k] = v instanceof Series ? v.toArray() : v;
-    }
     return new DataFrame(merged);
   }
 
   /* ------------------------------------------------------------------ *
-   *  Convert to array of rows (row-wise)                               *
+   *  Conversion to row array                                           *
    * ------------------------------------------------------------------ */
 
   toArray() {
-    // If there are no columns, return an empty array
     if (!this._order.length) return [];
-
-    const out = [];
     const len = this.rowCount;
-    for (let i = 0; i < len; i++) {
-      const row = {};
-      for (const name of this._order) {
-        row[name] = this._columns[name].get(i);
-      }
-      out.push(row);
-    }
-    return out;
+    const rows = Array.from({ length: len }, (_, i) => {
+      const r = {};
+      for (const n of this._order) r[n] = this._columns[n].get(i);
+      return r;
+    });
+    return rows;
   }
 
   /* ------------------------------------------------------------------ *
-   *  Lazy API                                                          *
+   *  Lazy & meta                                                       *
    * ------------------------------------------------------------------ */
 
-  /** @returns {Promise<LazyFrame>} */
-  lazy() {
-    return import('../lazy/LazyFrame.js').then((m) =>
-      m.LazyFrame.fromDataFrame(this),
-    );
+  lazy = () =>
+    import('../lazy/LazyFrame.js').then((m) => m.LazyFrame.fromDataFrame(this));
+
+  setMeta = (m) => ((this._meta = m), this);
+  getMeta = () => this._meta ?? {};
+
+  async optimizeFor(op) {
+    const { switchStorage } = await import('../strategy/storageStrategy.js');
+    return switchStorage(this, op);
   }
 
   /* ------------------------------------------------------------------ *
-   *  Visualization                                                     *
+   *  Simple render helpers                                             *
    * ------------------------------------------------------------------ */
 
-  /**
-   * Output as HTML table (for Jupyter-like UI)
-   * @returns {string} HTML string
-   */
   toHTML() {
-    const headers = this.columns.map((name) => `<th>${name}</th>`).join('');
-    const rows = this.toArray()
-      .map((row) => {
-        const cells = this.columns
-          .map((name) => `<td>${row[name]}</td>`)
-          .join('');
-        return `<tr>${cells}</tr>`;
-      })
+    const head = this.columns.map((n) => `<th>${n}</th>`).join('');
+    const body = this.toArray()
+      .map(
+        (row) =>
+          '<tr>' +
+          this.columns.map((n) => `<td>${row[n]}</td>`).join('') +
+          '</tr>',
+      )
       .join('');
-    return `<table><thead><tr>${headers}</tr></thead><tbody>${rows}</tbody></table>`;
+    return `<table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
   }
 
-  /**
-   * Output as Markdown table (for .md reports)
-   * @returns {string} Markdown table string
-   */
   toMarkdown() {
     const header = '| ' + this.columns.join(' | ') + ' |';
     const divider = '| ' + this.columns.map(() => '---').join(' | ') + ' |';
     const rows = this.toArray().map(
-      (row) => '| ' + this.columns.map((name) => row[name]).join(' | ') + ' |',
+      (r) => '| ' + this.columns.map((n) => r[n]).join(' | ') + ' |',
     );
     return [header, divider, ...rows].join('\n');
   }
-
   /* ------------------------------------------------------------------ *
-   *  DataFrame operations                                               *
+   *  Meta & storage helpers                                            *
    * ------------------------------------------------------------------ */
 
   /**
-   * Select subset of columns (select)
-   * @param names
+   * Set metadata for the DataFrame
+   * @param {any} m - Metadata to set
+   * @returns {DataFrame} - This DataFrame for chaining
    */
-  select(names) {
-    const selected = {};
-    for (const name of names) {
-      selected[name] = this.col(name).toArray();
-    }
-    return new DataFrame(selected);
-  }
+  setMeta = (m) => ((this._meta = m), this);
 
   /**
-   * Remove specified columns (drop)
-   * @param names
+   * Get metadata for the DataFrame
+   * @returns {any} - DataFrame metadata or empty object if not set
    */
-  drop(names) {
-    const remaining = this.columns.filter((name) => !names.includes(name));
-    return this.select(remaining);
-  }
-
-  /**
-   * Add or update columns
-   * @param obj
-   */
-  assign(obj) {
-    const updated = this.toColumns();
-    for (const key in obj) updated[key] = obj[key];
-    return new DataFrame(updated);
-  }
-
-  /**
-   * Insert metadata
-   * @param meta
-   */
-  setMeta(meta) {
-    this._meta = meta;
-    return this;
-  }
-
-  getMeta() {
-    return this._meta ?? {};
-  }
+  getMeta = () => this._meta ?? {};
 
   /**
    * Optimize storage for operation
-   * @param op
+   * @param {string} op - Operation to optimize for
+   * @returns {Promise<DataFrame>} - Optimized DataFrame
    */
   async optimizeFor(op) {
     const { switchStorage } = await import('../strategy/storageStrategy.js');

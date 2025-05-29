@@ -81,9 +81,9 @@ export class ApiClient {
   async request(urlOrOptions, options = {}) {
     // Handle different argument formats
     const requestOptions =
-      typeof urlOrOptions === 'string' ?
-        { ...options, url: urlOrOptions } :
-        { ...urlOrOptions };
+      typeof urlOrOptions === 'string'
+        ? { ...options, url: urlOrOptions }
+        : { ...urlOrOptions };
 
     // Apply base URL if relative URL is provided
     if (this.baseUrl && !requestOptions.url.startsWith('http')) {
@@ -103,12 +103,13 @@ export class ApiClient {
     };
 
     // Apply hooks in sequence
-    const executeRequest = async (ctx) => fetchWithRetry(ctx.request.url, {
-      method: ctx.request.method,
-      headers: ctx.request.headers,
-      body: ctx.request.body,
-      ...this.retryOptions,
-    });
+    const executeRequest = async (ctx) =>
+      fetchWithRetry(ctx.request.url, {
+        method: ctx.request.method,
+        headers: ctx.request.headers,
+        body: ctx.request.body,
+        ...this.retryOptions,
+      });
 
     // Chain hooks together
     const chainedRequest = this.hooks.reduceRight(
@@ -149,9 +150,9 @@ export class ApiClient {
       ...options,
       method: 'POST',
       headers: {
-        'Content-Type': isJson ?
-          'application/json' :
-          'application/x-www-form-urlencoded',
+        'Content-Type': isJson
+          ? 'application/json'
+          : 'application/x-www-form-urlencoded',
         ...options.headers,
       },
       body: isJson ? JSON.stringify(data) : data,
@@ -173,9 +174,9 @@ export class ApiClient {
       ...options,
       method: 'PUT',
       headers: {
-        'Content-Type': isJson ?
-          'application/json' :
-          'application/x-www-form-urlencoded',
+        'Content-Type': isJson
+          ? 'application/json'
+          : 'application/x-www-form-urlencoded',
         ...options.headers,
       },
       body: isJson ? JSON.stringify(data) : data,

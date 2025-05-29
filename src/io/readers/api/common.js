@@ -73,6 +73,7 @@ export async function fetchWithRetry(url, options = {}) {
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
       const response = await fetch(url, {
+        ...config,
         headers: requestHeaders,
         signal: controller.signal,
       });
@@ -140,30 +141,30 @@ function applyAuthentication(url, headers, auth) {
   } = auth;
 
   switch (type) {
-  case 'basic':
-    if (username && password) {
-      const credentials = btoa(`${username}:${password}`);
-      headers['Authorization'] = `Basic ${credentials}`;
-    }
-    break;
-
-  case 'bearer':
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-    break;
-
-  case 'apikey':
-    if (apiKey) {
-      if (apiKeyLocation === 'header') {
-        headers[apiKeyName] = apiKey;
-      } else if (apiKeyLocation === 'query') {
-        // Modify the URL to include the API key
-        const separator = url.includes('?') ? '&' : '?';
-        url += `${separator}${apiKeyName}=${apiKey}`;
+    case 'basic':
+      if (username && password) {
+        const credentials = btoa(`${username}:${password}`);
+        headers['Authorization'] = `Basic ${credentials}`;
       }
-    }
-    break;
+      break;
+
+    case 'bearer':
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      break;
+
+    case 'apikey':
+      if (apiKey) {
+        if (apiKeyLocation === 'header') {
+          headers[apiKeyName] = apiKey;
+        } else if (apiKeyLocation === 'query') {
+          // Modify the URL to include the API key
+          const separator = url.includes('?') ? '&' : '?';
+          url += `${separator}${apiKeyName}=${apiKey}`;
+        }
+      }
+      break;
   }
 }
 

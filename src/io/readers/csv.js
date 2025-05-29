@@ -976,7 +976,7 @@ async function* readCsvInBatches(source, options = {}) {
 
       // When batch is full, yield a DataFrame
       if (batch.length >= options.batchSize) {
-        yield DataFrame.fromRows(batch);
+        yield DataFrame.fromRows(batch, options.frameOptions);
         batch = [];
       }
     }

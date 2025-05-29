@@ -76,13 +76,9 @@ export function createDataFrameWithStorage(DataFrameClass, data, storageType) {
     // Create DataFrame
     const df = new DataFrameClass(columns);
 
-    // Add frame property for compatibility with tests
-    df.frame = {
-      columns: df.columns,
-      columnNames: df.columns,
-      rowCount: df.rowCount,
-    };
-
+    // We don't need to set frame property manually anymore
+    // It's now a getter in DataFrame class
+    // Just return the DataFrame instance
     return df;
   } finally {
     // Restore the original function

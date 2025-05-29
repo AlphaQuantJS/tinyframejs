@@ -1,9 +1,9 @@
 // src/core/utils/transpose.js
 
 /**
- * Транспонирует «массив строк» в «объект колонок».
+ * Transposes an array of objects into an object of arrays.
  *
- * Пример:
+ * Example:
  *   const rows = [
  *     { a: 1, b: 2 },
  *     { a: 3, b: 4 }
@@ -11,11 +11,11 @@
  *   transpose(rows);
  *   // 👉 { a: [1, 3], b: [2, 4] }
  *
- * ⚠️  Предполагает, что все объекты имеют одинаковый набор ключей.
+ * ⚠️  Assumes all objects have the same set of keys.
  *
  * @template T extends Record<string, any>
- * @param {T[]} rows  Массив объектов-строк
- * @returns {Record<keyof T, any[]>}  Объект “колонка → массив”
+ * @param {T[]} rows  Array of objects
+ * @returns {Record<keyof T, any[]>}  Object “column → array”
  */
 export function transpose(rows) {
   if (!Array.isArray(rows) || rows.length === 0) {

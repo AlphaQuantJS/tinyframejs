@@ -25,7 +25,7 @@ export function optimize(plan) {
 
     /* ---------- 1. Merging filter + filter ---------- */
     if (step.op === 'filter' && prev.op === 'filter') {
-      // Сохраняем оригинальные функции, чтобы избежать циклических ссылок
+      // Save original functions to avoid circular references
       const prevFn = prev.fn;
       const stepFn = step.fn;
       prev.fn = (row) => prevFn(row) && stepFn(row);

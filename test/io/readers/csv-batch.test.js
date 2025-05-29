@@ -3,7 +3,7 @@
  */
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
-import { DataFrame } from '../../../src/core/DataFrame.js';
+import { DataFrame } from '../../../src/core/dataframe/DataFrame.js';
 
 // Mock the csv.js module
 vi.mock('../../../src/io/readers/csv.js', () => {
@@ -19,9 +19,9 @@ vi.mock('../../../src/io/readers/csv.js', () => {
       const values = dataLines[i].split(',');
       const row = {};
       header.forEach((col, idx) => {
-        row[col] = options.dynamicTyping ?
-          parseFloat(values[idx]) || values[idx] :
-          values[idx];
+        row[col] = options.dynamicTyping
+          ? parseFloat(values[idx]) || values[idx]
+          : values[idx];
       });
       batch.push(row);
 
@@ -87,9 +87,9 @@ vi.mock('../../../src/io/readers/csv.js', () => {
       const values = line.split(',');
       const row = {};
       header.forEach((col, idx) => {
-        row[col] = options.dynamicTyping ?
-          parseFloat(values[idx]) || values[idx] :
-          values[idx];
+        row[col] = options.dynamicTyping
+          ? parseFloat(values[idx]) || values[idx]
+          : values[idx];
       });
       return row;
     });
@@ -138,7 +138,7 @@ import {
 addCsvBatchMethods(DataFrame);
 
 // Add toArray method to DataFrame for tests
-DataFrame.prototype.toArray = vi.fn().mockImplementation(function() {
+DataFrame.prototype.toArray = vi.fn().mockImplementation(function () {
   const frame = this._frame;
   const result = [];
 

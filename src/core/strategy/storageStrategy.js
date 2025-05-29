@@ -4,11 +4,11 @@ import { ArrowVector } from '../storage/ArrowVector.js';
 import { TypedArrayVector } from '../storage/TypedArrayVector.js';
 
 /**
- * Runtime-оптимизатор хранилища.
- * Переключает колонки DataFrame c Arrow ⇄ TypedArray в зависимости
- * от типа предстоящей операции (join, groupBy, heavy-math и т.д.).
+ * Runtime optimizer for storage.
+ * Switches columns of DataFrame between Arrow ⇄ TypedArray depending
+ * on the type of the upcoming operation (join, groupBy, heavy-math and so on).
  *
- * Эвристика (первая итерация):
+ * Heuristics (first iteration):
  *   • "join" / "groupBy" / "string"  → ArrowVector
  *   • "numericAgg" / "rolling" / "math" → TypedArrayVector
  *
@@ -23,7 +23,7 @@ export async function switchStorage(df, operation) {
     const series = df.col(name);
     const vec = series.vector;
 
-    /* ---------- 1. Перевод в Arrow, если нужно ---------- */
+    /* ---------- 1. Convert to Arrow if needed ---------- */
     if (wantsArrow && !(vec instanceof ArrowVector)) {
       const newVec = await VectorFactory.from(vec.toArray(), {
         preferArrow: true,
@@ -31,7 +31,7 @@ export async function switchStorage(df, operation) {
       series.vector = newVec;
     }
 
-    /* ---------- 2. Перевод в TypedArray, если heavy-math ---------- */
+    /* ---------- 2. Convert to TypedArray if heavy-math ---------- */
     if (wantsTA && vec instanceof ArrowVector) {
       const arr = vec.toArray();
       const numeric = arr.every(

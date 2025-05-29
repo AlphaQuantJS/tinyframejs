@@ -23,7 +23,7 @@
  * readCsv - Main function for reading CSV data from various sources and returning a DataFrame.
  */
 
-import { DataFrame } from '../../core/DataFrame.js';
+import { DataFrame } from '../../core/dataframe/DataFrame.js';
 import { createRequire } from 'module';
 
 /**
@@ -126,15 +126,15 @@ function parseRow(row, delimiter) {
     }
 
     switch (true) {
-    case isQuote:
-      inQuotes = !inQuotes;
-      break;
-    case isDelimiter:
-      values.push(currentValue);
-      currentValue = '';
-      break;
-    default:
-      currentValue += char;
+      case isQuote:
+        inQuotes = !inQuotes;
+        break;
+      case isDelimiter:
+        values.push(currentValue);
+        currentValue = '';
+        break;
+      default:
+        currentValue += char;
     }
 
     i++;
@@ -169,7 +169,7 @@ function createDataObject(
 
   // Define value processing function
   const processValue = (value) =>
-    (convertTypes ? convertType(value, emptyValue) : value);
+    convertTypes ? convertType(value, emptyValue) : value;
 
   // If we have headers, use them as keys
   if (hasHeader && headers.length > 0) {
@@ -448,14 +448,27 @@ function tryParseWithCsvParse(content, options) {
     const require = createRequire(import.meta.url);
     const csvParseModule = require('csv-parse/sync');
 
+    // Если используем csv-parse с опцией columns, то он уже возвращает массив объектов
+    // Если header=true, используем первую строку как заголовки
     const parseOptions = {
       delimiter,
-      columns: header,
+      columns: header, // Если true, то первая строка будет использована как заголовки
       skipEmptyLines,
       cast: dynamicTyping,
     };
 
+    // Парсим CSV-данные
     const records = csvParseModule.parse(content, parseOptions);
+
+    // Валидация заголовков - проверяем, что все заголовки валидны
+    if (header && records.length > 0) {
+      const headerKeys = Object.keys(records[0]);
+      if (headerKeys.some((key) => key.trim() === '')) {
+        throw new Error(
+          'Invalid CSV header row: headers must be non-empty strings',
+        );
+      }
+    }
 
     // Additional processing to convert types using the convertType function
     if (dynamicTyping && records.length > 0) {
@@ -471,7 +484,7 @@ function tryParseWithCsvParse(content, options) {
       }
     }
 
-    return { result: DataFrame.create(records, frameOptions), error: null };
+    return { result: DataFrame.fromRows(records, frameOptions), error: null };
   } catch (error) {
     return { result: null, error };
   }
@@ -569,9 +582,9 @@ async function tryParseWithBun(content, options) {
     const textLines = lines.map((line) => decoder.decode(line));
 
     // Filter empty lines if needed
-    const filteredLines = skipEmptyLines ?
-      textLines.filter((line) => line.trim() !== '') :
-      textLines;
+    const filteredLines = skipEmptyLines
+      ? textLines.filter((line) => line.trim() !== '')
+      : textLines;
 
     // Parse CSV manually
     let headerRow = [];
@@ -586,9 +599,9 @@ async function tryParseWithBun(content, options) {
         continue;
       }
 
-      const record = header ?
-        createDataObject(values, headerRow, true, dynamicTyping, emptyValue) :
-        createDataObject(values, [], false, dynamicTyping, emptyValue);
+      const record = header
+        ? createDataObject(values, headerRow, true, dynamicTyping, emptyValue)
+        : createDataObject(values, [], false, dynamicTyping, emptyValue);
 
       records.push(record);
     }
@@ -633,38 +646,99 @@ export function parseWithBuiltIn(content, options) {
   const lines = content.split(/\r?\n/);
 
   // Filter empty lines if requested
-  const filteredLines = skipEmptyLines ?
-    lines.filter((line) => line.trim().length > 0) :
-    lines;
+  const filteredLines = skipEmptyLines
+    ? lines.filter((line) => line.trim().length > 0)
+    : lines;
 
   if (filteredLines.length === 0) {
-    return DataFrame.create([], frameOptions);
+    return DataFrame.fromRows([], frameOptions);
   }
-
-  // Process header and data rows
-  const headerRow = header ? parseRow(filteredLines[0], delimiter) : [];
-  const startIndex = header ? 1 : 0;
 
   // Prepare array for rows
   const rows = [];
 
-  // Process each line into a data row - using for loop for better performance with large datasets
-  for (let i = startIndex; i < filteredLines.length; i++) {
-    const line = filteredLines[i];
+  if (header && filteredLines.length > 0) {
+    // Используем первую строку как заголовки
+    const headers = parseRow(filteredLines[0], delimiter);
 
-    // Skip empty lines if configured to do so
-    if (line.trim() === '' && skipEmptyLines) {
-      continue;
+    // Валидация заголовков
+    if (
+      !Array.isArray(headers) ||
+      headers.some((h) => typeof h !== 'string' || h.trim() === '')
+    ) {
+      throw new Error(
+        'Invalid CSV header row: headers must be non-empty strings',
+      );
     }
 
-    // Parse the row (empty or not)
-    const parsedRow = parseRow(line, delimiter);
-    rows.push(
-      createDataObject(parsedRow, headerRow, header, dynamicTyping, emptyValue),
-    );
+    // Обрабатываем остальные строки, начиная со второй
+    for (let i = 1; i < filteredLines.length; i++) {
+      const line = filteredLines[i];
+
+      // Пропускаем пустые строки
+      if (line.trim() === '' && skipEmptyLines) {
+        continue;
+      }
+
+      // Парсим строку
+      const values = parseRow(line, delimiter);
+
+      // Валидация: проверяем, что количество значений соответствует количеству заголовков
+      if (values.length !== headers.length) {
+        console.warn(
+          `Warning: Row at line ${i + 1} has ${values.length} values, but header has ${headers.length} columns. Data may be misaligned.`,
+        );
+      }
+
+      // Создаем объект для текущей строки
+      const obj = {};
+
+      // Заполняем объект значениями
+      for (let j = 0; j < headers.length; j++) {
+        let value = values[j];
+
+        // Преобразуем значения, если нужно
+        if (dynamicTyping) {
+          value = convertType(value, emptyValue);
+        }
+
+        obj[headers[j]] = value;
+      }
+
+      rows.push(obj);
+    }
+  } else {
+    // Без заголовков - используем числовые индексы
+    for (let i = 0; i < filteredLines.length; i++) {
+      const line = filteredLines[i];
+
+      // Пропускаем пустые строки
+      if (line.trim() === '' && skipEmptyLines) {
+        continue;
+      }
+
+      // Парсим строку
+      const values = parseRow(line, delimiter);
+
+      // Создаем объект с числовыми индексами
+      const obj = {};
+
+      for (let j = 0; j < values.length; j++) {
+        let value = values[j];
+
+        // Преобразуем значения, если нужно
+        if (dynamicTyping) {
+          value = convertType(value, emptyValue);
+        }
+
+        obj[String(j)] = value;
+      }
+
+      rows.push(obj);
+    }
   }
 
-  return DataFrame.create(rows, frameOptions);
+  return DataFrame.fromRows(rows, frameOptions);
 }
 
 /**
@@ -722,11 +796,11 @@ export function parseWithBuiltIn(content, options) {
  */
 function logCsvParseError(error) {
   const isModuleNotFound = error && error.code === 'MODULE_NOT_FOUND';
-  const message = isModuleNotFound ?
-    'For better CSV parsing performance in Node.js, consider installing the csv-parse package:\n' +
+  const message = isModuleNotFound
+    ? 'For better CSV parsing performance in Node.js, consider installing the csv-parse package:\n' +
       'npm install csv-parse\n' +
-      'Using built-in parser as fallback.' :
-    `csv-parse module failed, falling back to built-in parser: ${error.message}`;
+      'Using built-in parser as fallback.'
+    : `csv-parse module failed, falling back to built-in parser: ${error.message}`;
 
   console[isModuleNotFound ? 'info' : 'warn'](message);
 }
@@ -851,14 +925,14 @@ async function* readCsvInBatches(source, options = {}) {
 
       // When batch is full, yield a DataFrame
       if (batch.length >= options.batchSize) {
-        yield new DataFrame(batch, options.frameOptions);
+        yield DataFrame.fromRows(batch, options.frameOptions);
         batch = [];
       }
     }
 
     // Yield remaining rows if any
     if (batch.length > 0) {
-      yield DataFrame.create(batch);
+      yield DataFrame.fromRows(batch, options.frameOptions);
     }
   } else {
     // For other sources, get all content and process in batches
@@ -902,14 +976,14 @@ async function* readCsvInBatches(source, options = {}) {
 
       // When batch is full, yield a DataFrame
       if (batch.length >= options.batchSize) {
-        yield DataFrame.create(batch);
+        yield DataFrame.fromRows(batch);
         batch = [];
       }
     }
 
     // Yield remaining rows if any
     if (batch.length > 0) {
-      yield DataFrame.create(batch, options.frameOptions);
+      yield DataFrame.fromRows(batch, options.frameOptions);
     }
   }
 }
@@ -943,6 +1017,14 @@ export async function readCsv(source, options = {}) {
     options.emptyValue !== undefined ? options.emptyValue : undefined;
   options.frameOptions = options.frameOptions || {};
 
+  // Дополнительные опции для приведения типов (для будущих версий)
+  options.parseNumbers =
+    options.parseNumbers !== undefined
+      ? options.parseNumbers
+      : options.dynamicTyping;
+  options.parseDates =
+    options.parseDates !== undefined ? options.parseDates : false;
+
   // If batchSize is specified, use streaming processing
   if (options.batchSize) {
     return {
@@ -968,7 +1050,7 @@ export async function readCsv(source, options = {}) {
         for await (const batchDf of batchGenerator) {
           allData.push(...batchDf.toArray());
         }
-        return DataFrame.create(allData);
+        return DataFrame.fromRows(allData, options.frameOptions);
       },
     };
   }

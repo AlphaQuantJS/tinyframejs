@@ -1,7 +1,12 @@
 // src/core/dataframe/GroupBy.js
 import { DataFrame } from './DataFrame.js';
 import { Series } from './Series.js';
+import { sum as seriesSum } from '../../methods/series/aggregation/sum.js';
+import { mean as seriesMean } from '../../methods/series/aggregation/mean.js';
 
+/**
+ * GroupBy class for DataFrame aggregation operations
+ */
 export class GroupBy {
   /**
    * @param {DataFrame} df - Source DataFrame
@@ -126,7 +131,7 @@ export class GroupBy {
    */
   sum(column) {
     const agg = {};
-    agg[column] = (series) => series.sum();
+    agg[column] = (series) => seriesSum(series);
     return this.agg(agg);
   }
 
@@ -137,7 +142,7 @@ export class GroupBy {
    */
   mean(column) {
     const agg = {};
-    agg[column] = (series) => series.mean();
+    agg[column] = (series) => seriesMean(series);
     return this.agg(agg);
   }
 }

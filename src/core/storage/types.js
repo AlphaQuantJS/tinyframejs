@@ -1,7 +1,7 @@
 // src/core/storage/types.js
 /**
- * Канонические коды внутренних dtypes.
- * Используются при конвертации JS-массивов ➜ TypedArray или Arrow types.
+ * Canonical codes for internal dtypes.
+ * Used when converting JS arrays ➜ TypedArray or Arrow types.
  */
 export const DType = {
   // Float
@@ -24,11 +24,11 @@ export const DType = {
   // String / categorical
   STRING: 'str',
 
-  // Timestamp / Date (зарезервировано, пока не реализовано)
+  // Timestamp / Date (reserved, not implemented yet)
   TIMESTAMP_MS: 'ts_ms',
   DATE_DAY: 'date',
 
-  // Дополнять при необходимости:
-  // - 'dec128' для Decimal128
-  // - 'list'   для Arrow ListVector
+  // To be extended:
+  // - 'dec128' for Decimal128
+  // - 'list'   for Arrow ListVector
 };

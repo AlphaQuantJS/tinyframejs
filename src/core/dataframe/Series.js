@@ -11,22 +11,12 @@ export class Series {
     this.name = opts.name || '';
 
     // Create vector from data
-    if (data?._isVector) {
+    if (data._isVector) {
       this.vector = data;
-      this._length = data.length;
-    } else if (Array.isArray(data)) {
-      // For simplicity in tests, we use a simple array
-      this._array = data;
-      this._length = data.length;
-    } else if (data === undefined) {
-      // Empty array for initialization
-      this._array = [];
-      this._length = 0;
     } else {
-      // For other data types, we try to create a vector
-      // Note: VectorFactory.from is asynchronous, but we simplify it for tests
-      this._array = Array.isArray(data) ? data : [];
-      this._length = this._array.length;
+      this.vector = VectorFactory.from(data, {
+        preferArrow: opts.preferArrow ?? shouldUseArrow(data, opts),
+      });
     }
   }
 
@@ -43,19 +33,15 @@ export class Series {
    * ------------------------------------------------------------------ */
 
   get length() {
-    if (this.vector) return this.vector.length;
-    if (this._array) return this._array.length;
-    return this._length || 0;
+    return this.vector.length;
   }
 
   get values() {
-    if (this.vector) return this.vector.toArray();
-    return this._array || [];
+    return this.vector.toArray();
   }
 
   get(index) {
-    if (this.vector) return this.vector.get(index);
-    return this._array ? this._array[index] : undefined;
+    return this.vector.get(index);
   }
 
   /* ------------------------------------------------------------------ *
@@ -63,32 +49,7 @@ export class Series {
    * ------------------------------------------------------------------ */
 
   toArray() {
-    if (this.vector) return this.vector.toArray();
-    return this._array || [];
-  }
-
-  /* ------------------------------------------------------------------ *
-   *  Aggregation methods                                              *
-   * ------------------------------------------------------------------ */
-
-  /**
-   * Calculates the sum of all values in the Series
-   * @returns {number} - Sum of all values
-   */
-  sum() {
-    const data = this.toArray();
-    return data.reduce((acc, val) => acc + (Number(val) || 0), 0);
-  }
-
-  /**
-   * Calculates the mean (average) of all values in the Series
-   * @returns {number} - Mean of all values
-   */
-  mean() {
-    const data = this.toArray();
-    if (!data.length) return NaN;
-    const sum = data.reduce((acc, val) => acc + (Number(val) || 0), 0);
-    return sum / data.length;
+    return this.vector.toArray();
   }
 
   /* ------------------------------------------------------------------ *

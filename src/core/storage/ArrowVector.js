@@ -3,8 +3,8 @@ import { ColumnVector } from './ColumnVector.js';
 import { Vector } from 'apache-arrow';
 
 /**
- * Обёртка над Apache Arrow Vector.
- * Поддерживает get / sum / map и сериализацию.
+ * Wrapper around Apache Arrow Vector.
+ * Supports get / sum / map and serialization.
  */
 export class ArrowVector extends ColumnVector {
   /**
@@ -17,7 +17,7 @@ export class ArrowVector extends ColumnVector {
   }
 
   /* -------------------------------------------------- *
-   *  Доступ к элементам                                 *
+   *  Element access                                    *
    * -------------------------------------------------- */
 
   get(i) {
@@ -25,21 +25,21 @@ export class ArrowVector extends ColumnVector {
   }
 
   /* -------------------------------------------------- *
-   *  Агрегаты                                           *
+   *  Aggregates                                          *
    * -------------------------------------------------- */
 
   sum() {
-    // Arrow Vector имеет reduce
+    // Arrow Vector has reduce
     return this._arrow.reduce((acc, v) => acc + (v ?? 0), 0);
   }
 
   /* -------------------------------------------------- *
-   *  Трансформации                                      *
+   *  Transformations                                     *
    * -------------------------------------------------- */
 
   /**
-   * Возвращает новый ArrowVector, к которому применена функция fn.
-   * Arrow JS Vector уже имеет метод map, который создаёт новый Vector.
+   * Returns a new ArrowVector with the function fn applied.
+   * Arrow JS Vector already has a map method that creates a new Vector.
    * @param fn
    */
   map(fn) {
@@ -48,25 +48,25 @@ export class ArrowVector extends ColumnVector {
   }
 
   /* -------------------------------------------------- *
-   *  Сериализация / экспорт                             *
+   *  Serialization / export                            *
    * -------------------------------------------------- */
 
-  /** Быстрое преобразование в JS-массив */
+  /** Fast conversion to JS array */
   toArray() {
     return this._arrow.toArray();
   }
 
-  /** Поддержка JSON.stringify(series) */
+  /** Support for JSON.stringify(series) */
   toJSON() {
     return this.toArray();
   }
 
-  /** Совместимость с ColumnVector.toArrow() */
+  /** Compatibility with ColumnVector.toArrow() */
   toArrow() {
     return this._arrow;
   }
 
-  /** Маркер, что это Arrow-бэкенд (для внутренней логики) */
+  /** Marker, that this is Arrow backend (for internal logic) */
   get isArrow() {
     return true;
   }

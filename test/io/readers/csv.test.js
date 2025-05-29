@@ -1,13 +1,13 @@
 /**
- * Unit tests for CSV reader
+ * Comprehensive tests for CSV reader in Node.js environment
  */
 
 import { describe, test, expect, vi, beforeEach } from 'vitest';
-import { readCsv } from '../../../src/io/readers/csv.js';
-import { DataFrame } from '../../../src/core/DataFrame.js';
+import { readCsv, detectEnvironment } from '../../../src/io/readers/csv.js';
+import { DataFrame } from '../../../src/core/dataframe/DataFrame.js';
 import path from 'path';
 
-// Sample CSV content
+// Sample CSV content with valid data
 const csvContent =
   'date,open,high,low,close,volume\n' +
   '2023-01-01,100.5,105.75,99.25,103.5,1000000\n' +
@@ -16,13 +16,38 @@ const csvContent =
   '2023-01-04,109.5,112.75,108.0,112.0,1400000\n' +
   '2023-01-05,112.25,115.5,111.0,115.0,1600000';
 
-describe('CSV Reader', () => {
+// CSV with misaligned columns
+const csvMisalignedContent =
+  'date,open,high,low,close,volume\n' +
+  '2023-01-01,100.5,105.75,99.25,103.5\n' + // Missing volume
+  '2023-01-02,103.75,108.25,102.5,107.25,1500000,extra\n' + // Extra column
+  '2023-01-03,107.5,110.0,106.25,109.75,1200000';
+
+// CSV with invalid headers
+const csvInvalidHeadersContent =
+  ',open,,low,close,volume\n' + // Empty header names
+  '2023-01-01,100.5,105.75,99.25,103.5,1000000';
+
+// CSV with date strings for testing parseDates option
+const csvWithDatesContent =
+  'date,value\n2023-01-01,100\n2023-01-02,200\n2023-01-03,300';
+
+describe('CSV Reader Tests', () => {
   // Mock fs.promises.readFile
   vi.mock('fs', () => ({
     promises: {
       readFile: vi.fn().mockResolvedValue(csvContent),
     },
   }));
+
+  /**
+   * Tests environment detection
+   */
+  test('should detect current environment', () => {
+    const env = detectEnvironment();
+    // We're running in Node.js, so this should be 'node'
+    expect(env).toBe('node');
+  });
 
   /**
    * Tests basic CSV reading functionality
@@ -39,6 +64,12 @@ describe('CSV Reader', () => {
     expect(df.columns).toContain('low');
     expect(df.columns).toContain('close');
     expect(df.columns).toContain('volume');
+
+    // Проверка типов данных
+    const firstRow = df.toArray()[0];
+    expect(typeof firstRow.date).toBe('string');
+    expect(typeof firstRow.open).toBe('number');
+    expect(typeof firstRow.volume).toBe('number');
   });
 
   /**
@@ -119,7 +150,7 @@ describe('CSV Reader', () => {
    * Tests not skipping empty lines in CSV
    * Verifies that empty lines are included when skipEmptyLines is false
    */
-  test('should not skip empty lines when configured', async () => {
+  test('should include empty lines when skipEmptyLines is false', async () => {
     const contentWithEmptyLines =
       'date,open,high,low,close,volume\n' +
       '2023-01-01,100.5,105.75,99.25,103.5,1000000\n' +
@@ -128,8 +159,98 @@ describe('CSV Reader', () => {
 
     const df = await readCsv(contentWithEmptyLines, { skipEmptyLines: false });
 
-    // The empty line will be included as a row with null values
+    // The empty line should be included in the result
     expect(df.rowCount).toBe(3);
+  });
+
+  /**
+   * Tests batch processing
+   */
+  test('should support batch processing', async () => {
+    // Read CSV with batch processing
+    const batchProcessor = await readCsv(csvContent, { batchSize: 2 });
+
+    // Verify that batch processor has the expected methods
+    expect(batchProcessor).toHaveProperty('process');
+    expect(batchProcessor).toHaveProperty('collect');
+    expect(typeof batchProcessor.process).toBe('function');
+    expect(typeof batchProcessor.collect).toBe('function');
+
+    // Test collect method
+    const df = await batchProcessor.collect();
+
+    // Verify collect results
+    expect(df).toBeInstanceOf(DataFrame);
+    expect(df.rowCount).toBe(5);
+  });
+
+  /**
+   * Tests handling of misaligned columns
+   */
+  test('should handle misaligned columns with warnings', async () => {
+    // Spy on console.warn
+    const warnSpy = vi.spyOn(console, 'warn');
+
+    const df = await readCsv(csvMisalignedContent);
+
+    // Verify the result
+    expect(df).toBeInstanceOf(DataFrame);
+    expect(df.rowCount).toBe(3);
+
+    // Verify that warnings were logged
+    expect(warnSpy).toHaveBeenCalled();
+
+    // Restore console.warn
+    warnSpy.mockRestore();
+  });
+
+  /**
+   * Tests validation of headers
+   */
+  test('should throw error for invalid headers', async () => {
+    // Expect the readCsv function to throw an error for invalid headers
+    await expect(readCsv(csvInvalidHeadersContent)).rejects.toThrow(
+      'Invalid CSV header',
+    );
+  });
+
+  /**
+   * Tests options for type conversion
+   */
+  test('should respect dynamicTyping option', async () => {
+    // With dynamicTyping: false
+    const dfWithoutTyping = await readCsv(csvContent, { dynamicTyping: false });
+    const firstRowWithoutTyping = dfWithoutTyping.toArray()[0];
+
+    // Values should remain as strings
+    expect(typeof firstRowWithoutTyping.open).toBe('string');
+    expect(typeof firstRowWithoutTyping.volume).toBe('string');
+
+    // With dynamicTyping: true (default)
+    const dfWithTyping = await readCsv(csvContent);
+    const firstRowWithTyping = dfWithTyping.toArray()[0];
+
+    // Values should be converted to numbers
+    expect(typeof firstRowWithTyping.open).toBe('number');
+    expect(typeof firstRowWithTyping.volume).toBe('number');
+  });
+
+  /**
+   * Tests handling of empty lines based on skipEmptyLines option
+   */
+  test('should handle empty lines based on skipEmptyLines option', async () => {
+    const csvWithEmptyLines = csvContent + '\n\n\n';
+
+    // With skipEmptyLines: true (default)
+    const dfSkipEmpty = await readCsv(csvWithEmptyLines);
+    expect(dfSkipEmpty.rowCount).toBe(5);
+
+    // With skipEmptyLines: false
+    const dfKeepEmpty = await readCsv(csvWithEmptyLines, {
+      skipEmptyLines: false,
+    });
+    // Expect more rows due to empty lines being included
+    expect(dfKeepEmpty.rowCount).toBeGreaterThan(5);
   });
 
   /**

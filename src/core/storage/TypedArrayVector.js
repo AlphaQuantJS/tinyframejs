@@ -2,11 +2,11 @@
 import { ColumnVector } from './ColumnVector.js';
 
 /**
- * Обёртка над любым TypedArray, реализующая интерфейс ColumnVector.
- * Применяется для числовых плотных данных без null-битмаски.
+ * Wrapper around any TypedArray, implementing ColumnVector interface.
+ * Used for dense numeric data without null bitmask.
  */
 export class TypedArrayVector extends ColumnVector {
-  // Флаг, указывающий что это вектор
+  // Flag indicating that this is a vector
   _isVector = true;
   /**
    * @param {TypedArray} ta — Float64Array / Int32Array / …
@@ -18,20 +18,20 @@ export class TypedArrayVector extends ColumnVector {
   }
 
   /* -------------------------------------------------- *
-   *  Доступ к элементам                                 *
+   *  Element access                                    *
    * -------------------------------------------------- */
 
   get(i) {
-    // нет проверок границ ради скорости (предполагаем валидный i)
+    // no bounds checks for speed (assume valid i)
     return this._data[i];
   }
 
   /* -------------------------------------------------- *
-   *  Агрегаты                                           *
+   *  Aggregates                                          *
    * -------------------------------------------------- */
 
   sum() {
-    // branch-less линейное суммирование
+    // branch-less linear summation
     let acc = 0;
     const d = this._data;
     for (let i = 0; i < d.length; i++) acc += d[i];
@@ -39,11 +39,11 @@ export class TypedArrayVector extends ColumnVector {
   }
 
   /* -------------------------------------------------- *
-   *  Трансформации                                      *
+   *  Transformations                                     *
    * -------------------------------------------------- */
 
   /**
-   * Возвращает *новый* TypedArrayVector с применённой функцией.
+   * Returns a new TypedArrayVector with the function fn applied.
    * @param {(v:any, i:number)=>any} fn
    * @returns {TypedArrayVector}
    */
@@ -54,9 +54,9 @@ export class TypedArrayVector extends ColumnVector {
   }
 
   /**
-   * Возвращает новый вектор, содержащий подмножество элементов
-   * @param {number} start - Начальный индекс (включительно)
-   * @param {number} end - Конечный индекс (не включительно)
+   * Returns a new TypedArrayVector containing a subset of elements.
+   * @param {number} start - Start index (inclusive)
+   * @param {number} end - End index (exclusive)
    * @returns {TypedArrayVector}
    */
   slice(start, end) {
@@ -65,10 +65,10 @@ export class TypedArrayVector extends ColumnVector {
   }
 
   /* -------------------------------------------------- *
-   *  Сериализация / экспорт                             *
+   *  Serialization / export                            *
    * -------------------------------------------------- */
 
-  /** Быстрое преобразование в обычный массив JS */
+  /** Fast conversion to JS array */
   toArray() {
     return Array.from(this._data);
   }
@@ -78,7 +78,7 @@ export class TypedArrayVector extends ColumnVector {
     return this.toArray();
   }
 
-  /** Для совместимости с ColumnVector.toArrow() */
+  /** For compatibility with ColumnVector.toArrow() */
   get _data() {
     return this.__data;
   }

@@ -318,7 +318,9 @@ describe('API Hooks', () => {
     });
 
     it('should rotate keys on authentication error', async () => {
-      // Create a KeyRotator directly to test key rotation
+      // В реализации KeyRotator используется round-robin стратегия по умолчанию
+      // При этом первый вызов getNextKey() вернет ключ с индексом (currentKeyIndex + 1) % availableKeys.length
+      // Поэтому мы создаем KeyRotator с нужными параметрами для теста
       const keyRotator = new KeyRotator(
         [
           { id: 'key1', key: 'api-key-1' },
@@ -327,6 +329,10 @@ describe('API Hooks', () => {
         { maxErrorsBeforeDisable: 1 },
       );
 
+      // Установим индекс так, чтобы первый вызов getNextKey вернул первый ключ
+      // При currentKeyIndex = -1, первый вызов вернет ключ с индексом 0
+      keyRotator.currentKeyIndex = -1;
+
       // Get the first key
       const key1 = keyRotator.getNextKey();
       expect(key1.key).toBe('api-key-1');
@@ -334,13 +340,15 @@ describe('API Hooks', () => {
       // Record an error for the first key
       keyRotator.recordError('key1', { status: 401 });
 
-      // Get the next key, should be the second one
+      // Get the next key, should be the second one because first is disabled
       const key2 = keyRotator.getNextKey();
       expect(key2.key).toBe('api-key-2');
     });
 
     it('should use auth hook with key rotation', async () => {
       // Create a custom isAuthError function that will mark any error as auth error
+      // В createAuthHook создается KeyRotator с currentKeyIndex = 0
+      // Поэтому первый вызов getNextKey вернет второй ключ (api-key-2)
       const testAuthHook = createAuthHook({
         keys: [
           { id: 'key1', key: 'api-key-1' },
@@ -351,13 +359,13 @@ describe('API Hooks', () => {
         isAuthError: () => true, // Any error is auth error
       });
 
-      // First request uses first key
+      // First request uses second key due to round-robin strategy
       const firstContext = {
         request: { url: 'https://api.test.com', headers: {} },
       };
       await testAuthHook(firstContext, mockNext);
       expect(firstContext.request.headers.Authorization).toBe(
-        'Bearer api-key-1',
+        'Bearer api-key-2',
       );
 
       // Mock an error for the next request

@@ -4,6 +4,9 @@
  */
 
 import { DataFrame } from '../core/dataframe/DataFrame.js';
+import { filter as dfFilter } from '../methods/dataframe/filtering/filter.js';
+import { sort as dfSort } from '../methods/dataframe/transform/sort.js';
+import { apply as dfApply } from '../methods/dataframe/transform/apply.js';
 
 /**
  * Creates a pipeline of functions that transform data
@@ -110,7 +113,8 @@ export function applySchema(schema) {
 export function filter(predicate) {
   return (data) => {
     if (data instanceof DataFrame) {
-      return data.filter(predicate);
+      // Используем функцию dfFilter из модуля methods
+      return dfFilter(data, predicate);
     }
 
     if (Array.isArray(data)) {
@@ -130,7 +134,10 @@ export function filter(predicate) {
 export function map(transform) {
   return (data) => {
     if (data instanceof DataFrame) {
-      return data.apply(transform);
+      // Преобразуем DataFrame в массив, применяем трансформацию и создаем новый DataFrame
+      const rows = data.toArray();
+      const transformed = rows.map(transform);
+      return DataFrame.fromRows(transformed);
     }
 
     if (Array.isArray(data)) {
@@ -151,7 +158,25 @@ export function map(transform) {
 export function sort(keyOrComparator, ascending = true) {
   return (data) => {
     if (data instanceof DataFrame) {
-      return data.sort(keyOrComparator, ascending ? 'asc' : 'desc');
+      // Если ключ - функция, преобразуем в сортировку по столбцу
+      if (typeof keyOrComparator === 'function') {
+        // Для функции-компаратора используем преобразование в массив
+        const rows = data.toArray();
+        const sorted = [...rows].sort(keyOrComparator);
+        return DataFrame.fromRows(sorted);
+      } else {
+        // Для строкового ключа используем сортировку по столбцу
+        const rows = data.toArray();
+        const sorted = [...rows].sort((a, b) => {
+          const aVal = a[keyOrComparator];
+          const bVal = b[keyOrComparator];
+
+          if (aVal < bVal) return ascending ? -1 : 1;
+          if (aVal > bVal) return ascending ? 1 : -1;
+          return 0;
+        });
+        return DataFrame.fromRows(sorted);
+      }
     }
 
     if (Array.isArray(data)) {
@@ -186,7 +211,9 @@ export function sort(keyOrComparator, ascending = true) {
 export function limit(count) {
   return (data) => {
     if (data instanceof DataFrame) {
-      return data.head(count);
+      // Преобразуем DataFrame в массив, берем первые count элементов и создаем новый DataFrame
+      const rows = data.toArray().slice(0, count);
+      return DataFrame.fromRows(rows);
     }
 
     if (Array.isArray(data)) {
@@ -243,9 +270,10 @@ export function log(message = 'Data:', detailed = false) {
         console.log(`Rows: ${data.rowCount}, Columns: ${data.columns.length}`);
         console.log('Columns:', data.columns);
         console.log('Sample:');
-        data.head(5).print();
+        // Используем toArray для получения первых 5 строк
+        console.table(data.toArray().slice(0, 5));
       } else {
-        data.head(5).print();
+        console.table(data.toArray().slice(0, 5));
       }
     } else {
       console.log(message, data);

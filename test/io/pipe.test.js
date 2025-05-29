@@ -88,10 +88,13 @@ describe('Pipe Utilities', () => {
       };
 
       // Mock processor that doubles values
-      const processor = vi.fn((batch) => batch.apply((row) => ({
-        ...row,
-        value: row.value * 2,
-      })));
+      const processor = vi.fn((batch) =>
+        // Преобразуем батч в массив и применяем map
+        batch.toArray().map((row) => ({
+          ...row,
+          value: row.value * 2,
+        })),
+      );
 
       // Mock progress callback
       const onProgress = vi.fn();
@@ -122,11 +125,12 @@ describe('Pipe Utilities', () => {
 
       // Check results contain processed batches
       expect(results).toHaveLength(2);
-      expect(results[0].toArray()).toEqual([
+      // Процессор теперь возвращает массив, а не DataFrame
+      expect(results[0]).toEqual([
         { id: 1, value: 20 },
         { id: 2, value: 40 },
       ]);
-      expect(results[1].toArray()).toEqual([
+      expect(results[1]).toEqual([
         { id: 3, value: 60 },
         { id: 4, value: 80 },
       ]);

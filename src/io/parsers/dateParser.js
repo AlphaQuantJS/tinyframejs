@@ -32,7 +32,22 @@ export function parseDate(dateString, options = {}) {
   const isoMatch = dateString.match(isoRegex);
   if (isoMatch) {
     const [, year, month, day] = isoMatch;
-    return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    const parsedYear = parseInt(year);
+    const parsedMonth = parseInt(month) - 1;
+    const parsedDay = parseInt(day);
+
+    // Создаем дату
+    const date = new Date(parsedYear, parsedMonth, parsedDay);
+
+    // Проверяем, что дата валидна (день и месяц не были скорректированы)
+    if (
+      date.getFullYear() === parsedYear &&
+      date.getMonth() === parsedMonth &&
+      date.getDate() === parsedDay
+    ) {
+      return date;
+    }
+    return null;
   }
 
   // Format DD.MM.YYYY
@@ -40,7 +55,22 @@ export function parseDate(dateString, options = {}) {
   const dotMatch = dateString.match(dotRegex);
   if (dotMatch) {
     const [, day, month, year] = dotMatch;
-    return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    const parsedDay = parseInt(day);
+    const parsedMonth = parseInt(month) - 1;
+    const parsedYear = parseInt(year);
+
+    // Создаем дату
+    const date = new Date(parsedYear, parsedMonth, parsedDay);
+
+    // Проверяем, что дата валидна (день и месяц не были скорректированы)
+    if (
+      date.getFullYear() === parsedYear &&
+      date.getMonth() === parsedMonth &&
+      date.getDate() === parsedDay
+    ) {
+      return date;
+    }
+    return null;
   }
 
   // Format MM/DD/YYYY
@@ -48,7 +78,22 @@ export function parseDate(dateString, options = {}) {
   const slashMatch = dateString.match(slashRegex);
   if (slashMatch) {
     const [, month, day, year] = slashMatch;
-    return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    const parsedMonth = parseInt(month) - 1;
+    const parsedDay = parseInt(day);
+    const parsedYear = parseInt(year);
+
+    // Создаем дату
+    const date = new Date(parsedYear, parsedMonth, parsedDay);
+
+    // Проверяем, что дата валидна (день и месяц не были скорректированы)
+    if (
+      date.getFullYear() === parsedYear &&
+      date.getMonth() === parsedMonth &&
+      date.getDate() === parsedDay
+    ) {
+      return date;
+    }
+    return null;
   }
 
   // If nothing worked, return null

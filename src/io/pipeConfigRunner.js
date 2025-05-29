@@ -116,58 +116,56 @@ function createTransformerFromConfig(config) {
 
   // Handle built-in transformers
   switch (type) {
-  case 'filter':
-    // Convert string expression to function
-    if (typeof params.predicate === 'string') {
-      // Simple expression parser for basic conditions
-      const expr = params.predicate;
-      return filter((row) => {
+    case 'filter':
+      // Convert string expression to function
+      if (typeof params.predicate === 'string') {
+        // Simple expression parser for basic conditions
+        const expr = params.predicate;
+        return filter((row) => {
+          const fn = new Function('row', `return ${expr}`);
+          return fn(row);
+        });
+      }
+      return filter(params.predicate);
 
-        const fn = new Function('row', `return ${expr}`);
-        return fn(row);
-      });
-    }
-    return filter(params.predicate);
+    case 'map':
+      // Convert string expression to function
+      if (typeof params.transform === 'string') {
+        // Simple expression parser for basic transformations
+        const expr = params.transform;
+        return map((row) => {
+          const fn = new Function('row', `return ${expr}`);
+          return fn(row);
+        });
+      }
+      return map(params.transform);
 
-  case 'map':
-    // Convert string expression to function
-    if (typeof params.transform === 'string') {
-      // Simple expression parser for basic transformations
-      const expr = params.transform;
-      return map((row) => {
+    case 'sort':
+      return sort(params.key, params.ascending);
 
-        const fn = new Function('row', `return ${expr}`);
-        return fn(row);
-      });
-    }
-    return map(params.transform);
+    case 'limit':
+      return limit(params.count);
 
-  case 'sort':
-    return sort(params.key, params.ascending);
+    case 'log':
+      return log(params.message, params.detailed);
 
-  case 'limit':
-    return limit(params.count);
+    case 'toDataFrame':
+      return toDataFrame(params);
 
-  case 'log':
-    return log(params.message, params.detailed);
+    case 'schema':
+      return (data) => applySchema(data, params.schema);
 
-  case 'toDataFrame':
-    return toDataFrame(params);
+    case 'validate':
+      return createValidator(params.schema, params.options);
 
-  case 'schema':
-    return (data) => applySchema(data, params.schema);
+    default:
+      // Check custom transformer registry
+      if (!transformerRegistry.has(type)) {
+        throw new Error(`Unknown transformer type: ${type}`);
+      }
 
-  case 'validate':
-    return createValidator(params.schema, params.options);
-
-  default:
-    // Check custom transformer registry
-    if (!transformerRegistry.has(type)) {
-      throw new Error(`Unknown transformer type: ${type}`);
-    }
-
-    const transformerFactory = transformerRegistry.get(type);
-    return transformerFactory(params);
+      const transformerFactory = transformerRegistry.get(type);
+      return transformerFactory(params);
   }
 }
 
@@ -280,9 +278,9 @@ registerReader(
   'api',
   ({ url, method = 'GET', baseUrl, headers, ...options }) => {
     const client = new ApiClient({ baseUrl, defaultHeaders: headers });
-    return method.toUpperCase() === 'GET' ?
-      client.fetchJson(url, options) :
-      client.request(url, { method, ...options }).then((res) => res.json());
+    return method.toUpperCase() === 'GET'
+      ? client.fetchJson(url, options)
+      : client.request(url, { method, ...options }).then((res) => res.json());
   },
 );
 

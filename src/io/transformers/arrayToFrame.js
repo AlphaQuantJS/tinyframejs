@@ -1,6 +1,6 @@
 // src/io/transformers/arrayToFrame.js
 
-import { DataFrame } from '../../core/DataFrame.js';
+import { DataFrame } from '../../core/dataframe/DataFrame.js';
 
 /**
  * Transforms array data into a DataFrame.
@@ -29,67 +29,54 @@ export function arrayToFrame(arrayData, options = {}) {
 
   if (arrayData.length === 0) {
     // Return empty frame
-    return DataFrame.create([], {
-      useTypedArrays,
-      copy,
-      saveRawData,
-    });
+    return new DataFrame({});
   }
 
   // Determine if it's an array of arrays or array of objects
   const firstItem = arrayData[0];
 
-  if (Array.isArray(firstItem)) {
-    // Array of arrays (rows)
-    let data;
-    let colNames;
+  try {
+    if (Array.isArray(firstItem)) {
+      // Array of arrays (rows)
+      let data;
+      let colNames;
 
-    if (headerRow) {
-      // First row contains column names
-      colNames = firstItem;
-      data = arrayData.slice(1);
-    } else {
-      // Use provided column names or generate them
-      colNames =
-        columns.length > 0 ?
-          columns :
-          Array.from({ length: firstItem.length }, (_, i) => `column${i}`);
-      data = arrayData;
+      if (headerRow) {
+        // First row contains column names
+        colNames = firstItem;
+        data = arrayData.slice(1);
+      } else {
+        // Use provided column names or generate them
+        colNames =
+          columns.length > 0 ?
+            columns :
+            Array.from({ length: firstItem.length }, (_, i) => `column${i}`);
+        data = arrayData;
+      }
+
+      // Преобразуем массив массивов в формат строк для DataFrame.fromRows
+      const rows = data.map((row) => {
+        const obj = {};
+        for (let i = 0; i < colNames.length; i++) {
+          obj[colNames[i]] = i < row.length ? row[i] : null;
+        }
+        return obj;
+      });
+
+      return DataFrame.fromRows(rows);
+    } else if (typeof firstItem === 'object' && firstItem !== null) {
+      // Массив объектов - используем напрямую DataFrame.fromRows
+      return DataFrame.fromRows(arrayData);
     }
 
-    // Convert to array of objects
-    const rows = data.map((row) => {
-      const obj = {};
-      for (let i = 0; i < colNames.length; i++) {
-        obj[colNames[i]] = i < row.length ? row[i] : null;
-      }
-      return obj;
-    });
+    // Array of primitives (single column)
+    const colName = columns.length > 0 ? columns[0] : 'value';
+    const rows = arrayData.map((value) => ({ [colName]: value }));
 
-    // Create a DataFrame with the extracted rows
-    return DataFrame.create(rows, {
-      useTypedArrays,
-      copy,
-      saveRawData,
-    });
-  } else if (typeof firstItem === 'object' && firstItem !== null) {
-    // Array of objects (already in the right format)
-    // If it's an array of arrays, use it directly
-    return DataFrame.create(arrayData, {
-      useTypedArrays,
-      copy,
-      saveRawData,
-    });
+    // Create a DataFrame from rows
+    return DataFrame.fromRows(rows);
+  } catch (error) {
+    console.error('Error creating DataFrame:', error);
+    throw error;
   }
-
-  // Array of primitives (single column)
-  const colName = columns.length > 0 ? columns[0] : 'value';
-  const obj = { [colName]: arrayData };
-
-  // Create a DataFrame with the transformed object
-  return DataFrame.create(obj, {
-    useTypedArrays,
-    copy,
-    saveRawData,
-  });
 }

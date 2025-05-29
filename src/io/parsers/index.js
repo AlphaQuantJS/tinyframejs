@@ -1,20 +1,20 @@
 /**
- * Экспорт парсеров для различных форматов данных
+ * Export parsers for various data formats
  */
 
 import * as dateParser from './dateParser.js';
 import * as numberParser from './numberParser.js';
 
-// Экспорт всех парсеров
+// Export all parsers
 export { dateParser, numberParser };
 
-// Экспорт отдельных функций для удобства
+// Export individual functions for convenience
 export const parseDate = dateParser.parseDate;
 export const formatDate = dateParser.formatDate;
 export const parseNumber = numberParser.parseNumber;
 export const formatNumber = numberParser.formatNumber;
 
-// Экспорт по умолчанию
+// Export default
 export default {
   dateParser,
   numberParser,

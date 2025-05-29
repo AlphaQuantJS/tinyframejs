@@ -7,7 +7,7 @@ import {
   createDataFrameWithStorage,
 } from '../../../utils/storageTestUtils.js';
 
-// Тестовые данные для использования во всех тестах
+// Test data for use in all tests
 const testData = [
   { value: 10, category: 'A', mixed: '20' },
   { value: 20, category: 'B', mixed: 30 },
@@ -17,10 +17,10 @@ const testData = [
 ];
 
 describe('median method', () => {
-  // Запускаем тесты с обоими типами хранилища
+  // Run tests with both storage types
   testWithBothStorageTypes((storageType) => {
     describe(`with ${storageType} storage`, () => {
-      // Создаем тестовые данные для нечетного количества элементов
+      // Create test data for odd number of elements
       const testDataOdd = [
         { value: 30, category: 'A', mixed: '20' },
         { value: 10, category: 'B', mixed: 30 },
@@ -29,7 +29,7 @@ describe('median method', () => {
         { value: 20, category: 'B', mixed: NaN },
       ];
 
-      // Создаем тестовые данные для четного количества элементов
+      // Create test data for even number of elements
       const testDataEven = [
         { value: 30, category: 'A', mixed: '20' },
         { value: 10, category: 'B', mixed: 30 },
@@ -39,7 +39,7 @@ describe('median method', () => {
         { value: 60, category: 'D', mixed: 40 },
       ];
 
-      // Создаем DataFrame с указанным типом хранилища
+      // Create a DataFrame with the specified storage type
       const dfOdd = createDataFrameWithStorage(
         DataFrame,
         testDataOdd,

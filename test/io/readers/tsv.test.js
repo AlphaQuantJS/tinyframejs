@@ -4,7 +4,7 @@
 
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { readTsv } from '../../../src/io/readers/tsv.js';
-import { DataFrame } from '../../../src/core/DataFrame.js';
+import { DataFrame } from '../../../src/core/dataframe/DataFrame.js';
 import path from 'path';
 
 // Sample TSV content

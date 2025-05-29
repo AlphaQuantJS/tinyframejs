@@ -12,7 +12,7 @@ import {
   min,
 } from '../../../../src/methods/dataframe/transform/pivot.js';
 
-// Тестовые данные для использования во всех тестах
+// Test data for all tests
 const testData = [
   { value: 10, category: 'A', mixed: '20' },
   { value: 20, category: 'B', mixed: 30 },
@@ -25,12 +25,12 @@ describe('DataFrame.pivotTable', () => {
   // Запускаем тесты с обоими типами хранилища
   testWithBothStorageTypes((storageType) => {
     describe(`with ${storageType} storage`, () => {
-      // Создаем DataFrame с указанным типом хранилища
+      // Create DataFrame with specified storage type
       const df = createDataFrameWithStorage(DataFrame, testData, storageType);
 
       test('creates a pivot table with a single aggregation function', () => {
         // Create a test DataFrame with sales data
-        // df создан выше с помощью createDataFrameWithStorage
+        // df created above with createDataFrameWithStorage
 
         // Call the pivotTable method with a single aggregation function
         const result = df.pivotTable({
@@ -71,7 +71,7 @@ describe('DataFrame.pivotTable', () => {
 
       test('creates a pivot table with multiple aggregation functions as an array', () => {
         // Create a test DataFrame with multiple sales entries per region
-        // df создан выше с помощью createDataFrameWithStorage
+        // df created above with createDataFrameWithStorage
 
         // Call the pivotTable method with multiple aggregation functions
         const result = df.pivotTable({
@@ -124,7 +124,7 @@ describe('DataFrame.pivotTable', () => {
 
       test('creates a pivot table with multiple aggregation functions as an object', () => {
         // Create a test DataFrame with sales data
-        // df создан выше с помощью createDataFrameWithStorage
+        // df created above with createDataFrameWithStorage
 
         // Call the pivotTable method with multiple aggregation functions as an object
         const result = df.pivotTable({
@@ -184,7 +184,7 @@ describe('DataFrame.pivotTable', () => {
 
       test('supports multi-level indices and columns with multiple aggregation functions', () => {
         // Create a test DataFrame with multiple dimensions
-        // df создан выше с помощью createDataFrameWithStorage
+        // df created above with createDataFrameWithStorage
 
         // Call the pivotTable method with multi-level indices and columns
         const result = df.pivotTable({
@@ -305,7 +305,7 @@ describe('DataFrame.pivotTable', () => {
 
       test('throws an error with invalid aggregation functions', () => {
         // Create a test DataFrame
-        // df создан выше с помощью createDataFrameWithStorage
+        // df created above with createDataFrameWithStorage
 
         // Check that the method throws an error if aggFunc is not a function, array, or object
         expect(() =>

@@ -6,7 +6,7 @@ import {
   createDataFrameWithStorage,
 } from '../../../utils/storageTestUtils.js';
 
-// Тестовые данные для использования во всех тестах
+// Test data to be used in all tests
 const testData = [
   { value: 10, category: 'A', mixed: '20' },
   { value: 20, category: 'B', mixed: 30 },
@@ -16,15 +16,15 @@ const testData = [
 ];
 
 describe('DataFrame.melt', () => {
-  // Запускаем тесты с обоими типами хранилища
+  // Run tests with both storage types
   testWithBothStorageTypes((storageType) => {
     describe(`with ${storageType} storage`, () => {
-      // Создаем DataFrame с указанным типом хранилища
+      // Create DataFrame with specified storage type
       const df = createDataFrameWithStorage(DataFrame, testData, storageType);
 
       test('unpivots DataFrame from wide to long format', () => {
         // Create a test DataFrame in wide format (pivot table)
-        // df создан выше с помощью createDataFrameWithStorage
+        // df created above with createDataFrameWithStorage
 
         // Call the melt method
         const result = df.melt(['product']);
@@ -70,7 +70,7 @@ describe('DataFrame.melt', () => {
 
       test('unpivots with custom variable and value names', () => {
         // Create a test DataFrame in wide format
-        // df создан выше с помощью createDataFrameWithStorage
+        // df created above with createDataFrameWithStorage
 
         // Call the melt method with custom variable and value names
         const result = df.melt(['product'], null, 'region', 'sales');
@@ -102,7 +102,7 @@ describe('DataFrame.melt', () => {
 
       test('unpivots with specified value variables', () => {
         // Create a test DataFrame in wide format
-        // df создан выше с помощью createDataFrameWithStorage
+        // df created above with createDataFrameWithStorage
 
         // Call the melt method with specific value variables
         const result = df.melt(['product', 'id'], ['North', 'South']);
@@ -134,7 +134,7 @@ describe('DataFrame.melt', () => {
 
       test('handles non-numeric values in melt', () => {
         // Create a test DataFrame with string values
-        // df создан выше с помощью createDataFrameWithStorage
+        // df created above with createDataFrameWithStorage
 
         // Call the melt method
         const result = df.melt(['product']);
@@ -168,7 +168,7 @@ describe('DataFrame.melt', () => {
 
       test('throws an error with invalid arguments', () => {
         // Create a test DataFrame
-        // df создан выше с помощью createDataFrameWithStorage
+        // df created above with createDataFrameWithStorage
 
         // Check that the method throws an error if idVars is not an array
         expect(() => df.melt('product')).toThrow();

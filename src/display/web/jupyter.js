@@ -64,7 +64,7 @@ export function registerJupyterDisplay(DataFrame) {
   // Add repr_html method to DataFrame for Jupyter display
   // Using non-camelCase name because this is a Jupyter-specific convention
   // eslint-disable-next-line camelcase
-  DataFrame.prototype._repr_html_ = function () {
+  DataFrame.prototype._repr_html_ = function() {
     // Import the toHTML function from html.js
     const { toHTML } = require('./html.js');
 
@@ -81,7 +81,7 @@ export function registerJupyterDisplay(DataFrame) {
   // Add repr_mimebundle method for more control over display
   // Using non-camelCase name because this is a Jupyter-specific convention
   // eslint-disable-next-line camelcase
-  DataFrame.prototype._repr_mimebundle_ = function (include, exclude) {
+  DataFrame.prototype._repr_mimebundle_ = function(include, exclude) {
     // Convert DataFrame to TinyFrame format
     const frame = {
       columns: this._columns,

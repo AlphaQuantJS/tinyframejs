@@ -8,24 +8,24 @@
 export const min =
   ({ validateColumn }) =>
     (df, column) => {
-    // Для пустых фреймов сразу возвращаем null
+    // For empty frames, return null
       if (!df || !df.columns || df.columns.length === 0) {
         return null;
       }
 
-      // Validate that the column exists - это выбросит ошибку для несуществующей колонки
+      // Validate that the column exists - this will throw an error for non-existent columns
       validateColumn(df, column);
 
       try {
       // Get Series for the column and extract values
         const series = df.col(column);
 
-        // Если серия не существует, возвращаем null
+        // If the series does not exist, return null
         if (!series) return null;
 
         const values = series.toArray();
 
-        // Если массив пустой, возвращаем null
+        // If the array is empty, return null
         if (values.length === 0) return null;
 
         let minValue = Number.POSITIVE_INFINITY;
@@ -47,7 +47,7 @@ export const min =
 
         return hasValidValue ? minValue : null;
       } catch (error) {
-      // В случае ошибки возвращаем null
+      // In case of an error, return null
         return null;
       }
     };
@@ -57,17 +57,17 @@ export const min =
  * @param {Class} DataFrame - DataFrame class to extend
  */
 export const register = (DataFrame) => {
-  // Создаем валидатор для проверки существования колонки
+  // Create a validator for checking column existence
   const validateColumn = (df, column) => {
     if (!df.columns.includes(column)) {
       throw new Error(`Column '${column}' not found`);
     }
   };
 
-  // Создаем функцию min с валидатором
+  // Create a function min with validator
   const minFn = min({ validateColumn });
 
-  // Регистрируем метод min в прототипе DataFrame
+  // Register the min method in the DataFrame prototype
   DataFrame.prototype.min = function(column) {
     return minFn(this, column);
   };

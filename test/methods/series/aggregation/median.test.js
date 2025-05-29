@@ -1,5 +1,5 @@
 /**
- * Тесты для метода median в Series
+ * Tests for the median method in Series
  */
 
 import { describe, it, expect } from 'vitest';

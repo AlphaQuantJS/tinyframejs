@@ -1,6 +1,6 @@
 // src/io/readers/json.js
 
-import { DataFrame } from '../../core/DataFrame.js';
+import { DataFrame } from '../../core/dataframe/DataFrame.js';
 import {
   detectEnvironment,
   safeRequire,
@@ -57,9 +57,9 @@ function convertType(value, emptyValue = undefined) {
         test: () => !isNaN(trimmed) && trimmed !== '',
         convert: () => {
           const intValue = parseInt(trimmed, 10);
-          return intValue.toString() === trimmed ?
-            intValue :
-            parseFloat(trimmed);
+          return intValue.toString() === trimmed
+            ? intValue
+            : parseFloat(trimmed);
         },
       },
       // Date values - includes detection for various date formats
@@ -221,9 +221,9 @@ async function* processJsonInBatches(data, options) {
 
         for (const key in item) {
           const value = item[key];
-          processedItem[key] = dynamicTyping ?
-            convertType(value, emptyValue) :
-            value;
+          processedItem[key] = dynamicTyping
+            ? convertType(value, emptyValue)
+            : value;
         }
 
         batch.push(processedItem);
@@ -236,9 +236,9 @@ async function* processJsonInBatches(data, options) {
       }
     } else if (Array.isArray(targetData[0])) {
       // Array of arrays case
-      const headers = Array.isArray(targetData[0]) ?
-        targetData[0] :
-        Array.from({ length: targetData[0].length }, (_, i) => `column${i}`);
+      const headers = Array.isArray(targetData[0])
+        ? targetData[0]
+        : Array.from({ length: targetData[0].length }, (_, i) => `column${i}`);
 
       let batch = [];
 
@@ -248,9 +248,9 @@ async function* processJsonInBatches(data, options) {
 
         for (let j = 0; j < headers.length; j++) {
           const value = row[j];
-          obj[headers[j]] = dynamicTyping ?
-            convertType(value, emptyValue) :
-            value;
+          obj[headers[j]] = dynamicTyping
+            ? convertType(value, emptyValue)
+            : value;
         }
 
         batch.push(obj);
@@ -289,9 +289,9 @@ async function* processJsonInBatches(data, options) {
       const processedItem = {};
       for (const key in targetData) {
         const value = targetData[key];
-        processedItem[key] = dynamicTyping ?
-          convertType(value, emptyValue) :
-          value;
+        processedItem[key] = dynamicTyping
+          ? convertType(value, emptyValue)
+          : value;
       }
       yield DataFrame.create([processedItem], frameOptions);
     }
@@ -371,7 +371,7 @@ export async function readJson(source, options = {}) {
             allData.push(...batchDf.toArray());
           }
 
-          return DataFrame.create(allData, frameOptions);
+          return DataFrame.fromRows(allData, frameOptions);
         },
       };
     }
@@ -395,7 +395,7 @@ export async function readJson(source, options = {}) {
     if (Array.isArray(data)) {
       // Empty array case
       if (data.length === 0) {
-        return DataFrame.create([], frameOptions);
+        return DataFrame.fromRows([], frameOptions);
       }
 
       // Array of objects case
@@ -404,32 +404,32 @@ export async function readJson(source, options = {}) {
           const processedItem = {};
           for (const key in item) {
             const value = item[key];
-            processedItem[key] = dynamicTyping ?
-              convertType(value, emptyValue) :
-              value;
+            processedItem[key] = dynamicTyping
+              ? convertType(value, emptyValue)
+              : value;
           }
           return processedItem;
         });
-        return DataFrame.create(processedData, frameOptions);
+        return DataFrame.fromRows(processedData, frameOptions);
       }
 
       // Array of arrays case
       if (Array.isArray(data[0])) {
-        const headers = Array.isArray(data[0]) ?
-          data[0] :
-          Array.from({ length: data[0].length }, (_, i) => `column${i}`);
+        const headers = Array.isArray(data[0])
+          ? data[0]
+          : Array.from({ length: data[0].length }, (_, i) => `column${i}`);
 
         processedData = data.slice(1).map((row) => {
           const obj = {};
           for (let i = 0; i < headers.length; i++) {
             const value = row[i];
-            obj[headers[i]] = dynamicTyping ?
-              convertType(value, emptyValue) :
-              value;
+            obj[headers[i]] = dynamicTyping
+              ? convertType(value, emptyValue)
+              : value;
           }
           return obj;
         });
-        return DataFrame.create(processedData, frameOptions);
+        return DataFrame.fromRows(processedData, frameOptions);
       }
     } else if (typeof data === 'object' && data !== null) {
       // Object with column arrays case
@@ -449,19 +449,21 @@ export async function readJson(source, options = {}) {
               processedColumns[key] = data[key];
             }
           }
-          return DataFrame.create(processedColumns, frameOptions);
+          // Для данных, организованных по колонкам, создаем DataFrame напрямую
+          return new DataFrame(processedColumns, frameOptions);
         }
-        return DataFrame.create(data, frameOptions);
+        // Для данных, организованных по колонкам, создаем DataFrame напрямую
+        return new DataFrame(data, frameOptions);
       } else {
         // Single object case - convert to array with one item
         const processedItem = {};
         for (const key in data) {
           const value = data[key];
-          processedItem[key] = dynamicTyping ?
-            convertType(value, emptyValue) :
-            value;
+          processedItem[key] = dynamicTyping
+            ? convertType(value, emptyValue)
+            : value;
         }
-        return DataFrame.create([processedItem], frameOptions);
+        return DataFrame.fromRows([processedItem], frameOptions);
       }
     }
 

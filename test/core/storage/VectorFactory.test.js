@@ -50,12 +50,12 @@ describe('VectorFactory', () => {
     expect(vector).toBeDefined();
     expect(vector.length).toBe(5);
 
-    // В TypedArrayVector строки, булевы значения и null/undefined преобразуются в числа или NaN
-    // Поэтому проверяем только длину массива и первый элемент, который должен остаться числом
+    // In TypedArrayVector strings, boolean values and null/undefined are converted to numbers or NaN
+    // So we only check the length of the array and the first element, which should remain a number
     const array = vector.toArray();
     expect(array.length).toBe(5);
     expect(array[0]).toBe(1);
-    // Остальные элементы могут быть преобразованы в NaN или числа
+    // Other elements may be converted to NaN or numbers
   });
 
   /**

@@ -1,5 +1,5 @@
 /**
- * Тесты для метода max в Series
+ * Tests for the max method in Series
  */
 
 import { describe, it, expect } from 'vitest';

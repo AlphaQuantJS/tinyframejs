@@ -3,7 +3,7 @@
  * Transforms API response data into a DataFrame
  */
 
-import { DataFrame } from '../../core/DataFrame.js';
+import { DataFrame } from '../../core/dataframe/DataFrame.js';
 
 // Internal helper functions
 
@@ -221,7 +221,20 @@ function _cleanDataFrame(df, options = {}) {
   }
 
   // Create new DataFrame from cleaned data
-  return DataFrame.create(rows);
+  // Преобразуем массив объектов в формат столбцов для DataFrame
+  if (Array.isArray(rows) && rows.length > 0) {
+    const columns = {};
+    const keys = Object.keys(rows[0]);
+
+    for (const key of keys) {
+      columns[key] = rows.map((row) => row[key]);
+    }
+
+    return new DataFrame(columns);
+  } else {
+    // Пустой DataFrame
+    return new DataFrame({});
+  }
 }
 
 /**
@@ -326,11 +339,29 @@ export function apiToFrame(apiData, options = {}) {
   }
 
   // Create DataFrame from the transformed data
-  let result = DataFrame.create(transformedData, {
-    index: options.index,
-    columns: options.columns,
-    types: options.types,
-  });
+  // Преобразуем массив объектов в формат столбцов для DataFrame
+  let result;
+  if (Array.isArray(transformedData) && transformedData.length > 0) {
+    const columns = {};
+    const keys = Object.keys(transformedData[0]);
+
+    for (const key of keys) {
+      columns[key] = transformedData.map((row) => row[key]);
+    }
+
+    result = new DataFrame(columns, {
+      index: options.index,
+      columns: options.columns,
+      types: options.types,
+    });
+  } else {
+    // Пустой DataFrame или объект с массивами
+    result = new DataFrame(transformedData || {}, {
+      index: options.index,
+      columns: options.columns,
+      types: options.types,
+    });
+  }
 
   // Apply post-cleaning if needed
   if (Object.keys(postClean).length > 0) {
@@ -341,12 +372,31 @@ export function apiToFrame(apiData, options = {}) {
   if (!cleanFirst && Object.keys(clean).length > 0) {
     const rows = result.toArray();
     const cleanedRows = _cleanApiData(rows, clean);
-    const newResult = DataFrame.create(cleanedRows, {
-      index: options.index,
-      columns: options.columns,
-      types: options.types,
-    });
-    result = newResult;
+
+    // Преобразуем массив объектов в формат столбцов для DataFrame
+    if (Array.isArray(cleanedRows) && cleanedRows.length > 0) {
+      const columns = {};
+      const keys = Object.keys(cleanedRows[0]);
+
+      for (const key of keys) {
+        columns[key] = cleanedRows.map((row) => row[key]);
+      }
+
+      const newResult = new DataFrame(columns, {
+        index: options.index,
+        columns: options.columns,
+        types: options.types,
+      });
+      result = newResult;
+    } else {
+      // Пустой DataFrame или объект с массивами
+      const newResult = new DataFrame(cleanedRows || {}, {
+        index: options.index,
+        columns: options.columns,
+        types: options.types,
+      });
+      result = newResult;
+    }
   }
 
   return result;

@@ -20,7 +20,7 @@ import {
  * Tests for the DataFrame count function
  */
 
-// Тестовые данные для использования во всех тестах
+// Test data for use in all tests
 const testData = [
   { value: 10, category: 'A', mixed: '20' },
   { value: 20, category: 'B', mixed: 30 },
@@ -30,129 +30,129 @@ const testData = [
 ];
 
 describe('DataFrame count function', () => {
-  // Тестируем функцию count напрямую
+  // Test the count function directly
   test('should count all values in a column', () => {
-    // Создаем мок для validateColumn
+    // Create a mock for validateColumn
     const validateColumn = vi.fn();
 
-    // Создаем серию с данными
+    // Create a series with data
     const series = new Series([1, 2, 3, 4, 5]);
 
-    // Создаем фрейм с правильной структурой
+    // Create a frame with the correct structure
     const df = {
       columns: ['testColumn'],
       col: () => series,
     };
 
-    // Создаем функцию count с моком validateColumn
+    // Create a count function with the mock validateColumn
     const countFn = count({ validateColumn });
 
-    // Вызываем функцию count
+    // Call the count function
     const result = countFn(df, 'testColumn');
 
-    // Проверяем результат
+    // Check the result
     expect(validateColumn).toHaveBeenCalledWith(df, 'testColumn');
     expect(result).toBe(5);
   });
 
   test('should ignore null, undefined, and NaN values', () => {
-    // Создаем мок для validateColumn
+    // Create a mock for validateColumn
     const validateColumn = vi.fn();
 
-    // Создаем серию с данными, включая null, undefined и NaN
+    // Create a series with data, including null, undefined and NaN
     const series = new Series([1, null, 3, undefined, 5, NaN]);
 
-    // Создаем фрейм с правильной структурой
+    // Create a frame with the correct structure
     const df = {
       columns: ['testColumn'],
       col: () => series,
     };
 
-    // Создаем функцию count с моком validateColumn
+    // Create a count function with the mock validateColumn
     const countFn = count({ validateColumn });
 
-    // Вызываем функцию count
+    // Call the count function
     const result = countFn(df, 'testColumn');
 
-    // Проверяем результат
+    // Check the result
     expect(validateColumn).toHaveBeenCalledWith(df, 'testColumn');
-    expect(result).toBe(3); // Только 1, 3 и 5 являются валидными значениями
+    expect(result).toBe(3); // Only 1, 3 and 5 are valid values
   });
 
   test('should return 0 for an empty column', () => {
-    // Создаем мок для validateColumn
+    // Create a mock for validateColumn
     const validateColumn = vi.fn();
 
-    // Создаем пустую серию
+    // Create an empty series
     const series = new Series([]);
 
-    // Создаем фрейм с правильной структурой
+    // Create a frame with the correct structure
     const df = {
       columns: ['testColumn'],
       col: () => series,
     };
 
-    // Создаем функцию count с моком validateColumn
+    // Create a count function with the mock validateColumn
     const countFn = count({ validateColumn });
 
-    // Вызываем функцию count
+    // Call the count function
     const result = countFn(df, 'testColumn');
 
-    // Проверяем результат
+    // Check the result
     expect(validateColumn).toHaveBeenCalledWith(df, 'testColumn');
     expect(result).toBe(0);
   });
 
   test('should throw an error for non-existent column', () => {
-    // Создаем валидатор, который выбрасывает ошибку для несуществующей колонки
+    // Create a validator that throws an error for non-existent columns
     const validateColumn = (df, column) => {
       if (!df.columns.includes(column)) {
         throw new Error(`Column '${column}' not found`);
       }
     };
 
-    // Создаем фрейм с колонками a, b, c
+    // Create a frame with columns a, b, c
     const df = {
       columns: ['a', 'b', 'c'],
     };
 
-    // Создаем функцию count с нашим валидатором
+    // Create a count function with our validator
     const countFn = count({ validateColumn });
 
-    // Проверяем, что функция выбрасывает ошибку для несуществующей колонки
+    // Check that the function throws an error for non-existent columns
     expect(() => countFn(df, 'z')).toThrow('Column \'z\' not found');
   });
 });
 
-// Тесты с использованием реальных DataFrame
+// Tests with real DataFrames
 describe('DataFrame count with real DataFrames', () => {
-  // Запускаем тесты с обоими типами хранилища
+  // Run tests with both storage types
   testWithBothStorageTypes((storageType) => {
     describe(`with ${storageType} storage`, () => {
-      // Создаем DataFrame с указанным типом хранилища
+      // Create a DataFrame with the specified storage type
       const df = createDataFrameWithStorage(DataFrame, testData, storageType);
 
       test('should count all non-null, non-undefined, non-NaN values in a column', () => {
-        // Создаем валидатор, который ничего не делает
+        // Create a validator that does nothing
         const validateColumn = () => {};
         const countFn = count({ validateColumn });
 
-        // Вызываем функцию count напрямую
-        // В колонке value все 5 значений валидны
+        // Call the count function directly
+        // All 5 values in the value column are valid
         expect(countFn(df, 'value')).toBe(5);
-        // В колонке category все 5 значений валидны
+        // All 5 values in the category column are valid
         expect(countFn(df, 'category')).toBe(5);
-        // В колонке mixed только 2 валидных значения ('20' и 30), остальные - null, undefined и NaN
+        // Only 2 valid values ('20' and 30) in the mixed column, others are null, undefined and NaN
         expect(countFn(df, 'mixed')).toBe(2);
       });
 
       test('should handle mixed data types and ignore null, undefined, and NaN', () => {
-        // Создаем валидатор, который ничего не делает
+        // Create a validator that does nothing
         const validateColumn = () => {};
         const countFn = count({ validateColumn });
 
-        // В колонке mixed есть строка '20', число 30, null, undefined и NaN
-        // Функция count должна считать только валидные значения ('20' и 30)
+        // In the mixed column there is a string '20', a number 30, null, undefined and NaN
+        // The count function should only count valid values ('20' and 30)
         expect(countFn(df, 'mixed')).toBe(2);
       });
 

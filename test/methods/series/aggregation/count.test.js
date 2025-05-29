@@ -1,5 +1,5 @@
 /**
- * Тесты для метода count в Series
+ * Tests for the count method in Series
  */
 
 import { describe, it, expect } from 'vitest';

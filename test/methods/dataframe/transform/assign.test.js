@@ -6,7 +6,7 @@ import {
   createDataFrameWithStorage,
 } from '../../../utils/storageTestUtils.js';
 
-// Тестовые данные для использования во всех тестах
+// Test data to be used in all tests
 const testData = [
   { value: 10, category: 'A', mixed: '20' },
   { value: 20, category: 'B', mixed: 30 },
@@ -16,15 +16,15 @@ const testData = [
 ];
 
 describe('DataFrame.assign', () => {
-  // Запускаем тесты с обоими типами хранилища
+  // Run tests with both storage types
   testWithBothStorageTypes((storageType) => {
     describe(`with ${storageType} storage`, () => {
-      // Создаем DataFrame с указанным типом хранилища
+      // Create DataFrame with specified storage type
       const df = createDataFrameWithStorage(DataFrame, testData, storageType);
 
       test('adds a new column with a constant value', () => {
         // Create a test DataFrame
-        // df создан выше с помощью createDataFrameWithStorage
+        // df created above with createDataFrameWithStorage
 
         // Call the assign method with a constant value
         const result = df.assign({ c: 100 });
@@ -43,7 +43,7 @@ describe('DataFrame.assign', () => {
 
       test('adds a new column based on a function', () => {
         // Create a test DataFrame
-        // df создан выше с помощью createDataFrameWithStorage
+        // df created above with createDataFrameWithStorage
 
         // Call the assign method with a function
         const result = df.assign({
@@ -59,7 +59,7 @@ describe('DataFrame.assign', () => {
 
       test('adds multiple columns simultaneously', () => {
         // Create a test DataFrame
-        // df создан выше с помощью createDataFrameWithStorage
+        // df created above with createDataFrameWithStorage
 
         // Call the assign method with multiple definitions
         const result = df.assign({
@@ -81,7 +81,7 @@ describe('DataFrame.assign', () => {
 
       test('handles null and undefined in functions', () => {
         // Create a test DataFrame
-        // df создан выше с помощью createDataFrameWithStorage
+        // df created above with createDataFrameWithStorage
 
         // Call the assign method with functions that return null/undefined
         const result = df.assign({
@@ -104,7 +104,7 @@ describe('DataFrame.assign', () => {
 
       test('changes the column type if necessary', () => {
         // Create a test DataFrame
-        // df создан выше с помощью createDataFrameWithStorage
+        // df created above with createDataFrameWithStorage
 
         // Call the assign method with a function that returns strings
         const result = df.assign({
@@ -115,13 +115,13 @@ describe('DataFrame.assign', () => {
         expect(result.frame.columns).toHaveProperty('category');
         expect(result.frame.dtypes.category).toBe('str');
 
-        // Проверяем значения новой колонки
+        // Check the values of the new column
         expect(result.frame.columns.category).toEqual(['low', 'low', 'high']);
       });
 
       test('throws an error with incorrect arguments', () => {
         // Create a test DataFrame
-        // df создан выше с помощью createDataFrameWithStorage
+        // df created above with createDataFrameWithStorage
 
         // Check that the method throws an error if columnDefs is not an object
         try {

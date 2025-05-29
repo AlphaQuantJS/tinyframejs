@@ -7,7 +7,7 @@ import {
   createDataFrameWithStorage,
 } from '../../../utils/storageTestUtils.js';
 
-// Тестовые данные для использования во всех тестах
+// Test data for use in all tests
 const testData = [
   { value: 10, category: 'A', mixed: '20' },
   { value: 20, category: 'B', mixed: 30 },
@@ -17,10 +17,10 @@ const testData = [
 ];
 
 describe('min method', () => {
-  // Запускаем тесты с обоими типами хранилища
+  // Run tests with both storage types
   testWithBothStorageTypes((storageType) => {
     describe(`with ${storageType} storage`, () => {
-      // Создаем DataFrame с указанным типом хранилища
+      // Create a DataFrame with the specified storage type
       const df = createDataFrameWithStorage(DataFrame, testData, storageType);
 
       it('should find the minimum value in a numeric column', () => {
@@ -72,10 +72,10 @@ describe('min method', () => {
         const emptyDf = createDataFrameWithStorage(DataFrame, [], storageType);
 
         // Call min function directly with a validator that doesn't throw for empty frames
-        const validateColumn = () => {}; // Пустой валидатор, который ничего не проверяет
+        const validateColumn = () => {}; // Empty validator that doesn't check anything
         const minFn = min({ validateColumn });
 
-        // Проверяем, что для пустого DataFrame результат равен null
+        // Check that for an empty DataFrame the result is null
         expect(minFn(emptyDf, 'value')).toBe(null);
       });
     });

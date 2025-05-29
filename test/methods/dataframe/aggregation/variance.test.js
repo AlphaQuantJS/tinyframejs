@@ -65,7 +65,7 @@ describe('variance method', () => {
         // Variance (unbiased estimate) = 50/1 = 50
         const expected = 50;
 
-        // Проверяем, что результат близок к ожидаемому значению
+        // Check that the result is close to the expected value
         expect(result).toBeCloseTo(expected, 10);
         expect(validateColumn).toHaveBeenCalledWith(df, 'mixed');
       });

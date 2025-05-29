@@ -34,13 +34,15 @@ vi.mock('../../../src/io/readers/csv.js', () => {
           }, {});
         }
 
-        // Create the correct TinyFrame structure
-        const frame = {
-          columns: createColumnsFromBatch(batch, header),
-          rowCount: batch.length,
-        };
-
-        yield new DataFrame(frame);
+        // Создаем DataFrame с правильной структурой для совместимости с реальной реализацией
+        const columns = {};
+        if (batch.length > 0) {
+          const keys = Object.keys(batch[0]);
+          for (const key of keys) {
+            columns[key] = batch.map((row) => row[key]);
+          }
+        }
+        yield new DataFrame(columns);
         batch = [];
       }
     }
@@ -64,16 +66,15 @@ vi.mock('../../../src/io/readers/csv.js', () => {
             allData.push(...batchDf.toArray());
           }
 
-          // Create the correct TinyFrame structure
-          const frame = {
-            columns: Object.keys(allData[0] || {}).reduce((acc, key) => {
-              acc[key] = allData.map((item) => item[key]);
-              return acc;
-            }, {}),
-            rowCount: allData.length,
-          };
-
-          return new DataFrame(frame);
+          // Создаем DataFrame с правильной структурой для совместимости с реальной реализацией
+          const columns = {};
+          if (allData.length > 0) {
+            const keys = Object.keys(allData[0]);
+            for (const key of keys) {
+              columns[key] = allData.map((row) => row[key]);
+            }
+          }
+          return new DataFrame(columns);
         },
       };
     }
@@ -94,15 +95,15 @@ vi.mock('../../../src/io/readers/csv.js', () => {
       return row;
     });
 
-    const frame = {
-      columns: header.reduce((acc, col) => {
-        acc[col] = data.map((row) => row[col]);
-        return acc;
-      }, {}),
-      rowCount: data.length,
-    };
-
-    return new DataFrame(frame);
+    // Создаем DataFrame с правильной структурой для совместимости с реальной реализацией
+    const columns = {};
+    if (data.length > 0) {
+      const keys = Object.keys(data[0]);
+      for (const key of keys) {
+        columns[key] = data.map((row) => row[key]);
+      }
+    }
+    return new DataFrame(columns);
   };
 
   // Create a mock for the addCsvBatchMethods function
@@ -137,21 +138,22 @@ import {
 // Initialize DataFrame with CSV methods
 addCsvBatchMethods(DataFrame);
 
-// Add toArray method to DataFrame for tests
+// Добавляем метод toArray для тестов
 DataFrame.prototype.toArray = vi.fn().mockImplementation(function () {
-  const frame = this._frame;
+  // Реализация, совместимая с настоящим DataFrame
   const result = [];
+  const order = this._order || Object.keys(this._columns || {});
 
-  if (!frame || !frame.columns || !frame.rowCount) {
-    return [];
-  }
+  if (!order.length) return [];
 
-  const columns = Object.keys(frame.columns);
-  for (let i = 0; i < frame.rowCount; i++) {
+  const len = this.rowCount;
+  for (let i = 0; i < len; i++) {
     const row = {};
-    columns.forEach((col) => {
-      row[col] = frame.columns[col][i];
-    });
+    for (const name of order) {
+      row[name] = this._columns[name]?.get
+        ? this._columns[name].get(i)
+        : this._columns[name]?.[i];
+    }
     result.push(row);
   }
 

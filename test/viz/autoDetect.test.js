@@ -1,7 +1,7 @@
 // test/viz/autoDetect.test.js
 
 import { describe, test, expect, vi, beforeEach } from 'vitest';
-import { DataFrame } from '../../src/core/DataFrame.js';
+import { DataFrame } from '../../src/core/dataframe/DataFrame.js';
 import { detectChartType } from '../../src/viz/utils/autoDetect.js';
 import * as viz from '../../src/viz/index.js';
 

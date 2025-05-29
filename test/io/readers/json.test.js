@@ -4,7 +4,7 @@
 
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { readJson } from '../../../src/io/readers/json.js';
-import { DataFrame } from '../../../src/core/DataFrame.js';
+import { DataFrame } from '../../../src/core/dataframe/DataFrame.js';
 import path from 'path';
 
 // Sample JSON content

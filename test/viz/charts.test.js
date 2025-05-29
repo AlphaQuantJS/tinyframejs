@@ -1,7 +1,7 @@
 // test/viz/charts.test.js
 
 import { describe, it, expect, beforeAll } from 'vitest';
-import { DataFrame } from '../../src/core/DataFrame.js';
+import { DataFrame } from '../../src/core/dataframe/DataFrame.js';
 import * as viz from '../../src/viz/index.js';
 import fs from 'fs/promises';
 import path from 'path';

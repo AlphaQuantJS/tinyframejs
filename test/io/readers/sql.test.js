@@ -4,10 +4,10 @@
 
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { readSql } from '../../../src/io/readers/sql.js';
-import { DataFrame } from '../../../src/core/DataFrame.js';
+import { DataFrame } from '../../../src/core/dataframe/DataFrame.js';
 
 // Mock DataFrame.create - this should be done before importing the tested module
-vi.mock('../../../src/core/DataFrame.js', () => {
+vi.mock('../../../src/core/dataframe/DataFrame.js', () => {
   const mockDataFrame = {
     columns: {
       id: [1, 2, 3, 4],

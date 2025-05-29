@@ -22,15 +22,15 @@ const testData = [
 ];
 
 describe('DataFrame.pivot', () => {
-  // Запускаем тесты с обоими типами хранилища
+  // Run tests with both storage types
   testWithBothStorageTypes((storageType) => {
     describe(`with ${storageType} storage`, () => {
-      // Создаем DataFrame с указанным типом хранилища
+      // Create DataFrame with specified storage type
       const df = createDataFrameWithStorage(DataFrame, testData, storageType);
 
       test('creates a pivot table with default aggregation function (sum)', () => {
         // Create a test DataFrame with sales data
-        // df создан выше с помощью createDataFrameWithStorage
+        // df created above with createDataFrameWithStorage
 
         // Call the pivot method
         const result = df.pivot('product', 'region', 'sales');
@@ -69,7 +69,7 @@ describe('DataFrame.pivot', () => {
 
       test('uses built-in mean aggregation function', () => {
         // Create a test DataFrame with multiple sales entries per region
-        // df создан выше с помощью createDataFrameWithStorage
+        // df created above with createDataFrameWithStorage
 
         // Call the pivot method with mean aggregation function
         const result = df.pivot('product', 'region', 'sales', mean);
@@ -89,7 +89,7 @@ describe('DataFrame.pivot', () => {
 
       test('uses built-in count aggregation function', () => {
         // Create a test DataFrame with multiple entries
-        // df создан выше с помощью createDataFrameWithStorage
+        // df created above with createDataFrameWithStorage
 
         // Call the pivot method with count aggregation function
         const result = df.pivot('product', 'region', 'sales', count);
@@ -109,7 +109,7 @@ describe('DataFrame.pivot', () => {
 
       test('uses built-in max and min aggregation functions', () => {
         // Create a test DataFrame with multiple entries
-        // df создан выше с помощью createDataFrameWithStorage
+        // df created above with createDataFrameWithStorage
 
         // Call the pivot method with max aggregation function
         const resultMax = df.pivot('product', 'region', 'sales', max);
@@ -136,7 +136,7 @@ describe('DataFrame.pivot', () => {
 
       test('handles multi-index pivot tables', () => {
         // Create a test DataFrame with multiple dimensions
-        // df создан выше с помощью createDataFrameWithStorage
+        // df created above with createDataFrameWithStorage
 
         // Call the pivot method with multiple index columns
         const result = df.pivot(['product', 'category'], 'region', 'sales');

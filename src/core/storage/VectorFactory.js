@@ -5,29 +5,31 @@ import { ColumnVector } from './ColumnVector.js';
 import { shouldUseArrow } from '../strategy/shouldUseArrow.js';
 import { SimpleVector } from './SimpleVector.js';
 
-// Статический импорт Arrow вместо динамического
-// Для продакшена лучше использовать условный импорт на уровне пакера (import.meta.env)
-let vectorFromArray;
+// Импортируем адаптер Apache Arrow
+import {
+  vectorFromArray as arrowVectorFromArray,
+  isArrowAvailable,
+  Arrow,
+} from './ArrowAdapter.js';
 
-// Попытка загрузить Arrow адаптер синхронно
+// Переменная для хранения доступности Arrow
+let arrowAvailable = false;
+
+// Инициализация интеграции с Apache Arrow
 try {
-  // Для Node.js используем require
-  const arrowAdapter = require('apache-arrow/adapter');
-  vectorFromArray = arrowAdapter.vectorFromArray;
-} catch (e) {
-  try {
-    // Для браузера можем попробовать использовать глобальный объект Arrow
-    if (
-      typeof window !== 'undefined' &&
-      window.Arrow &&
-      window.Arrow.vectorFromArray
-    ) {
-      vectorFromArray = window.Arrow.vectorFromArray;
-    }
-  } catch (e2) {
-    console.warn('Apache Arrow adapter not available at startup');
-    vectorFromArray = null;
+  // Проверяем доступность Arrow через адаптер
+  arrowAvailable = isArrowAvailable();
+
+  if (arrowAvailable) {
+    console.log('Apache Arrow integration initialized successfully');
+  } else {
+    console.warn(
+      'Apache Arrow not available or vectorFromArray function not found',
+    );
   }
+} catch (e) {
+  console.warn('Apache Arrow initialization failed:', e.message);
+  arrowAvailable = false;
 }
 
 export const VectorFactory = {
@@ -49,10 +51,10 @@ export const VectorFactory = {
      * ------------------------------------------------- */
     const useArrow = opts.preferArrow ?? shouldUseArrow(data, opts);
 
-    if (useArrow && vectorFromArray) {
+    if (useArrow && arrowAvailable) {
       try {
-        // Используем синхронный вызов vectorFromArray
-        return new ArrowVector(vectorFromArray(data));
+        // Используем синхронный вызов arrowVectorFromArray из адаптера
+        return new ArrowVector(arrowVectorFromArray(data));
       } catch (error) {
         console.warn(
           'Error using Arrow adapter, falling back to TypedArray',

@@ -36,15 +36,15 @@ export function testWithBothStorageTypes(testFn) {
  * @returns {DataFrame} - Created DataFrame with the specified storage type
  */
 export function createDataFrameWithStorage(DataFrameClass, data, storageType) {
+  // Напрямую регистрируем методы фильтрации для тестов
   try {
-    // Import autoExtend.js to extend DataFrame with methods
-    // Note: path adjusted to match actual project structure
-    import('../../src/methods/autoExtend.js').catch((e) =>
-      console.warn('Warning: Could not import autoExtend.js:', e.message),
-    );
+    // Импортируем регистратор методов фильтрации
+    const {
+      registerDataFrameFiltering,
+    } = require('../../src/methods/dataframe/filtering/register.js');
+    registerDataFrameFiltering(DataFrameClass);
   } catch (e) {
-    // If import failed, continue without it
-    console.warn('Warning: Error during import of autoExtend.js:', e.message);
+    console.warn('Warning: Error registering filtering methods:', e.message);
   }
 
   // Save the original shouldUseArrow function
@@ -76,9 +76,8 @@ export function createDataFrameWithStorage(DataFrameClass, data, storageType) {
     // Create DataFrame
     const df = new DataFrameClass(columns);
 
-    // We don't need to set frame property manually anymore
-    // It's now a getter in DataFrame class
-    // Just return the DataFrame instance
+    // В новом коре frame это геттер, не нужно устанавливать его вручную
+    // Просто возвращаем DataFrame
     return df;
   } finally {
     // Restore the original function

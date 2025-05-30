@@ -9,96 +9,137 @@
 export const iloc = (df, rowSelector, colSelector) => {
   const rows = df.toArray();
   const allColumns = df.columns;
+  const rowCount = df.rowCount;
 
-  // Process row selector
-  let selectedRows = [];
+  // Определяем индексы строк для выбора
+  let selectedIndices = [];
+
   if (typeof rowSelector === 'number') {
-    // Single row index
-    const idx = rowSelector < 0 ? rows.length + rowSelector : rowSelector;
-    if (idx < 0 || idx >= rows.length) {
+    // Один индекс строки
+    const idx = rowSelector < 0 ? rowCount + rowSelector : rowSelector;
+    if (idx < 0 || idx >= rowCount) {
       throw new Error(
-        `Row index ${rowSelector} is out of bounds for DataFrame with ${rows.length} rows`,
+        `Row index ${rowSelector} is out of bounds for DataFrame with ${rowCount} rows`,
       );
     }
-    selectedRows = [rows[idx]];
+    selectedIndices = [idx];
   } else if (Array.isArray(rowSelector)) {
-    // Array of row indices
-    selectedRows = rowSelector.map((idx) => {
-      const adjustedIdx = idx < 0 ? rows.length + idx : idx;
-      if (adjustedIdx < 0 || adjustedIdx >= rows.length) {
+    // Массив индексов строк
+    selectedIndices = rowSelector.map((idx) => {
+      const adjustedIdx = idx < 0 ? rowCount + idx : idx;
+      if (adjustedIdx < 0 || adjustedIdx >= rowCount) {
         throw new Error(
-          `Row index ${idx} is out of bounds for DataFrame with ${rows.length} rows`,
+          `Row index ${idx} is out of bounds for DataFrame with ${rowCount} rows`,
         );
       }
-      return rows[adjustedIdx];
+      return adjustedIdx;
     });
   } else if (typeof rowSelector === 'function') {
-    // Function that returns true/false for each row index
-    selectedRows = rows.filter((_, idx) => rowSelector(idx));
+    // Функция, возвращающая true/false для каждого индекса строки
+    for (let i = 0; i < rowCount; i++) {
+      if (rowSelector(i)) {
+        selectedIndices.push(i);
+      }
+    }
   } else if (rowSelector === undefined || rowSelector === null) {
-    // Select all rows if no selector provided
-    selectedRows = rows;
+    // Выбираем все строки, если селектор не указан
+    selectedIndices = Array.from({ length: rowCount }, (_, i) => i);
   } else {
     throw new Error(
       'Invalid row selector: must be a number, array of numbers, or function',
     );
   }
 
-  // If no column selector, return the selected rows
+  // Если не указан селектор колонок, возвращаем все колонки для выбранных строк
   if (colSelector === undefined || colSelector === null) {
-    // If only one row was selected, return it as an object
-    if (selectedRows.length === 1 && typeof rowSelector === 'number') {
-      return selectedRows[0];
+    // Создаем новый DataFrame с сохранением типов массивов
+    const filteredData = {};
+    for (const col of allColumns) {
+      const originalArray = df.col(col).toArray();
+      const values = selectedIndices.map((index) => originalArray[index]);
+
+      // Если оригинальный массив был типизированным, создаем новый типизированный массив
+      if (
+        ArrayBuffer.isView(originalArray) &&
+        !(originalArray instanceof DataView)
+      ) {
+        const TypedArrayConstructor = originalArray.constructor;
+        filteredData[col] = new TypedArrayConstructor(values);
+      } else {
+        filteredData[col] = values;
+      }
     }
-    return df.constructor.fromRows(selectedRows);
+
+    return new df.constructor(filteredData);
   }
 
-  // Process column selector
-  let selectedColumns = [];
+  // Определяем индексы колонок для выбора
+  let selectedColumnIndices = [];
   if (typeof colSelector === 'number') {
-    // Single column index
+    // Один индекс колонки
     const idx = colSelector < 0 ? allColumns.length + colSelector : colSelector;
     if (idx < 0 || idx >= allColumns.length) {
       throw new Error(
         `Column index ${colSelector} is out of bounds for DataFrame with ${allColumns.length} columns`,
       );
     }
-    selectedColumns = [allColumns[idx]];
+    selectedColumnIndices = [idx];
   } else if (Array.isArray(colSelector)) {
-    // Array of column indices
-    selectedColumns = colSelector.map((idx) => {
+    // Массив индексов колонок
+    selectedColumnIndices = colSelector.map((idx) => {
       const adjustedIdx = idx < 0 ? allColumns.length + idx : idx;
       if (adjustedIdx < 0 || adjustedIdx >= allColumns.length) {
         throw new Error(
           `Column index ${idx} is out of bounds for DataFrame with ${allColumns.length} columns`,
         );
       }
-      return allColumns[adjustedIdx];
+      return adjustedIdx;
     });
   } else if (typeof colSelector === 'function') {
-    // Function that returns true/false for each column index
-    selectedColumns = allColumns.filter((_, idx) => colSelector(idx));
+    // Функция, возвращающая true/false для каждого индекса колонки
+    for (let i = 0; i < allColumns.length; i++) {
+      if (colSelector(i)) {
+        selectedColumnIndices.push(i);
+      }
+    }
   } else {
     throw new Error(
       'Invalid column selector: must be a number, array of numbers, or function',
     );
   }
 
-  // Filter rows to only include selected columns
-  const filteredRows = selectedRows.map((row) => {
-    const filteredRow = {};
-    for (const col of selectedColumns) {
-      filteredRow[col] = row[col];
-    }
-    return filteredRow;
-  });
+  // Получаем имена выбранных колонок
+  const selectedColumns = selectedColumnIndices.map((idx) => allColumns[idx]);
 
-  // If only one row was selected, return it as an object
-  if (filteredRows.length === 1 && typeof rowSelector === 'number') {
-    return filteredRows[0];
+  // Если выбрана только одна строка и одна колонка, возвращаем значение
+  if (
+    selectedIndices.length === 1 &&
+    selectedColumns.length === 1 &&
+    typeof rowSelector === 'number' &&
+    typeof colSelector === 'number'
+  ) {
+    return df.col(selectedColumns[0]).toArray()[selectedIndices[0]];
   }
 
-  return df.constructor.fromRows(filteredRows);
+  // Создаем новый DataFrame с сохранением типов массивов
+  const filteredData = {};
+  for (const col of selectedColumns) {
+    const originalArray = df.col(col).toArray();
+    const values = selectedIndices.map((index) => originalArray[index]);
+
+    // Если оригинальный массив был типизированным, создаем новый типизированный массив
+    if (
+      ArrayBuffer.isView(originalArray) &&
+      !(originalArray instanceof DataView)
+    ) {
+      const TypedArrayConstructor = originalArray.constructor;
+      filteredData[col] = new TypedArrayConstructor(values);
+    } else {
+      filteredData[col] = values;
+    }
+  }
+
+  return new df.constructor(filteredData);
 };
 
 /**
@@ -106,7 +147,7 @@ export const iloc = (df, rowSelector, colSelector) => {
  * @param {Class} DataFrame - DataFrame class to extend
  */
 export const register = (DataFrame) => {
-  DataFrame.prototype.iloc = function(rowSelector, colSelector) {
+  DataFrame.prototype.iloc = function (rowSelector, colSelector) {
     return iloc(this, rowSelector, colSelector);
   };
 };

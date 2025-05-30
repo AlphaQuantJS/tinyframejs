@@ -6,6 +6,11 @@
  * @returns {DataFrame} - New DataFrame with only the selected columns
  */
 export const select = (df, columns) => {
+  // Проверяем, что columns является массивом
+  if (!Array.isArray(columns)) {
+    throw new Error('Columns должен быть массивом');
+  }
+
   // Validate that all columns exist
   for (const col of columns) {
     if (!df.columns.includes(col)) {
@@ -28,11 +33,12 @@ export const select = (df, columns) => {
  * @param {Class} DataFrame - DataFrame class to extend
  */
 export const register = (DataFrame) => {
-  DataFrame.prototype.select = function(columns) {
-    return select(
-      this,
-      Array.isArray(columns) ? columns : [].slice.call(arguments),
-    );
+  DataFrame.prototype.select = function (...args) {
+    // Если передан не массив, а несколько аргументов, преобразуем их в массив
+    const columnsArray =
+      args.length > 1 ? args : Array.isArray(args[0]) ? args[0] : [args[0]];
+
+    return select(this, columnsArray);
   };
 };
 

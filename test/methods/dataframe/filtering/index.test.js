@@ -11,7 +11,7 @@ import {
   createDataFrameWithStorage,
 } from '../../../utils/storageTestUtils.js';
 
-// Тестовые данные для использования во всех тестах
+// Test data for use in all tests
 const testData = [
   { value: 10, category: 'A', mixed: '20' },
   { value: 20, category: 'B', mixed: 30 },
@@ -21,10 +21,10 @@ const testData = [
 ];
 
 describe('Filtering Methods Index', () => {
-  // Запускаем тесты с обоими типами хранилища
+  // Run tests with both storage types
   testWithBothStorageTypes((storageType) => {
     describe(`with ${storageType} storage`, () => {
-      // Создаем DataFrame с указанным типом хранилища
+      // Create DataFrame with the specified storage type
       const df = createDataFrameWithStorage(DataFrame, testData, storageType);
 
       test('should export all filtering methods', () => {
@@ -44,7 +44,7 @@ describe('Filtering Methods Index', () => {
 
       test('should successfully extend DataFrame with filtering methods', () => {
         // Create a sample DataFrame
-        // df создан выше с помощью createDataFrameWithStorage
+        // df was created above using createDataFrameWithStorage
 
         // Check that all filtering methods are available on the DataFrame instance
         expect(typeof df.select).toBe('function');

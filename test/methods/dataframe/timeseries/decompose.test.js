@@ -19,9 +19,6 @@ describe('decompose', () => {
   // Запускаем тесты с обоими типами хранилища
   testWithBothStorageTypes((storageType) => {
     describe(`with ${storageType} storage`, () => {
-      // Создаем DataFrame с указанным типом хранилища
-      const df = createDataFrameWithStorage(DataFrame, testData, storageType);
-
       // Создаем тестовые данные
       const dates = [];
       const values = [];

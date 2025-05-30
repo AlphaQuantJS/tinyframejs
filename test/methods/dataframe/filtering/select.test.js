@@ -11,13 +11,12 @@ import {
 } from '../../../utils/storageTestUtils.js';
 
 // Тестовые данные для использования во всех тестах
-const testData = [
-  { value: 10, category: 'A', mixed: '20' },
-  { value: 20, category: 'B', mixed: 30 },
-  { value: 30, category: 'A', mixed: null },
-  { value: 40, category: 'C', mixed: undefined },
-  { value: 50, category: 'B', mixed: NaN },
-];
+const testData = {
+  name: ['Alice', 'Bob', 'Charlie'],
+  age: [25, 30, 35],
+  city: ['New York', 'San Francisco', 'Chicago'],
+  salary: [70000, 85000, 90000],
+};
 
 describe('Select Method', () => {
   // Запускаем тесты с обоими типами хранилища
@@ -26,13 +25,17 @@ describe('Select Method', () => {
       // Создаем DataFrame с указанным типом хранилища
       const df = createDataFrameWithStorage(DataFrame, testData, storageType);
 
-      // Sample data for testing
-      const data = {
+      // Создаем DataFrame с типизированными массивами для тестирования сохранения типов
+      const typedData = {
         name: ['Alice', 'Bob', 'Charlie'],
-        age: [25, 30, 35],
-        city: ['New York', 'San Francisco', 'Chicago'],
-        salary: [70000, 85000, 90000],
+        age: new Int32Array([25, 30, 35]),
+        salary: new Float64Array([70000, 85000, 90000]),
       };
+      const typedDf = createDataFrameWithStorage(
+        DataFrame,
+        typedData,
+        storageType,
+      );
 
       test('should select specific columns', () => {
         // df создан выше с помощью createDataFrameWithStorage
@@ -56,9 +59,12 @@ describe('Select Method', () => {
         expect(() => df.select(['name', 'nonexistent'])).toThrow();
       });
 
-      test('should throw error for non-array input', () => {
+      test('should handle string input as single column', () => {
         // df создан выше с помощью createDataFrameWithStorage
-        expect(() => df.select('name')).toThrow();
+        // Проверяем, что строка обрабатывается как массив из одного элемента
+        const result = df.select('name');
+        expect(result.columns).toEqual(['name']);
+        expect(result.rowCount).toBe(df.rowCount);
       });
 
       test('should handle empty array input', () => {

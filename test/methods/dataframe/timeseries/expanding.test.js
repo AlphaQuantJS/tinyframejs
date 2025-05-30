@@ -19,9 +19,7 @@ describe('expanding', () => {
   // Запускаем тесты с обоими типами хранилища
   testWithBothStorageTypes((storageType) => {
     describe(`with ${storageType} storage`, () => {
-      // Создаем DataFrame с указанным типом хранилища
-      const df = createDataFrameWithStorage(DataFrame, testData, storageType);
-
+      // Создаем DataFrame с тестовыми данными
       const data = {
         columns: {
           value: [10, 20, 15, 30, 25, 40],

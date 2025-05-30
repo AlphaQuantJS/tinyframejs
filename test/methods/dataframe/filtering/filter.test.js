@@ -11,13 +11,12 @@ import {
 } from '../../../utils/storageTestUtils.js';
 
 // Тестовые данные для использования во всех тестах
-const testData = [
-  { value: 10, category: 'A', mixed: '20' },
-  { value: 20, category: 'B', mixed: 30 },
-  { value: 30, category: 'A', mixed: null },
-  { value: 40, category: 'C', mixed: undefined },
-  { value: 50, category: 'B', mixed: NaN },
-];
+const testData = {
+  name: ['Alice', 'Bob', 'Charlie'],
+  age: [25, 30, 35],
+  city: ['New York', 'San Francisco', 'Chicago'],
+  salary: [70000, 85000, 90000],
+};
 
 describe('Filter Method', () => {
   // Запускаем тесты с обоими типами хранилища
@@ -25,14 +24,6 @@ describe('Filter Method', () => {
     describe(`with ${storageType} storage`, () => {
       // Создаем DataFrame с указанным типом хранилища
       const df = createDataFrameWithStorage(DataFrame, testData, storageType);
-
-      // Sample data for testing
-      const data = {
-        name: ['Alice', 'Bob', 'Charlie'],
-        age: [25, 30, 35],
-        city: ['New York', 'San Francisco', 'Chicago'],
-        salary: [70000, 85000, 90000],
-      };
 
       test('should filter rows based on a condition', () => {
         // df создан выше с помощью createDataFrameWithStorage
@@ -99,12 +90,21 @@ describe('Filter Method', () => {
           salary: new Float64Array([70000, 85000, 90000]),
         };
 
-        // df создан выше с помощью createDataFrameWithStorage
-        const result = df.filter((row) => row.age > 25);
+        // Создаем новый DataFrame с типизированными массивами
+        const typedDf = createDataFrameWithStorage(
+          DataFrame,
+          typedData,
+          storageType,
+        );
+
+        // Фильтруем данные
+        const result = typedDf.filter((row) => row.age > 25);
 
         // Check that the result has the same array types
-        expect(result.frame.columns.age).toBeInstanceOf(Int32Array);
-        expect(result.frame.columns.salary).toBeInstanceOf(Float64Array);
+        expect(result._columns.age.vector.__data).toBeInstanceOf(Int32Array);
+        expect(result._columns.salary.vector.__data).toBeInstanceOf(
+          Float64Array,
+        );
       });
     });
   });

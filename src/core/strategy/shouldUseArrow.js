@@ -19,9 +19,9 @@ export function shouldUseArrow(data, opts = {}) {
   if (typeof opts.preferArrow === 'boolean') return opts.preferArrow;
 
   // ─────────────────────────────────────────────────────
-  // 2. If already Arrow.NativeVector
+  // 2. If already Arrow.NativeVector or ArrowVector wrapper
   // ─────────────────────────────────────────────────────
-  if (data?.isArrow) return true;
+  if (data?.isArrow || data?._isArrowVector) return true;
 
   // ─────────────────────────────────────────────────────
   // 3. If this is TypedArray – already optimal, Arrow «not needed»
@@ -29,7 +29,7 @@ export function shouldUseArrow(data, opts = {}) {
   if (ArrayBuffer.isView(data)) return false;
 
   // ─────────────────────────────────────────────────────
-  // 4. Check if data is an array with length
+  // Check if data is an array or array-like object with length
   // ─────────────────────────────────────────────────────
   if (!data || typeof data !== 'object') return false;
 
@@ -37,7 +37,10 @@ export function shouldUseArrow(data, opts = {}) {
   const size = data.length ?? 0;
   if (size === 0) return false;
 
-  // Only process Arrays, not other iterables like Set/Map
+  // Check for very large arrays directly - this is a high priority rule
+  if (size > 1_000_000) return true;
+
+  // Only process Arrays for content analysis, not other iterables like Set/Map
   if (!Array.isArray(data)) return false;
 
   // ─────────────────────────────────────────────────────
@@ -59,9 +62,9 @@ export function shouldUseArrow(data, opts = {}) {
   }
 
   // Main conditions:
-  //  • very large column  (> 1e6)          → Arrow
   //  • string data                       → Arrow
   //  • null/NaN when non-numeric type      → Arrow
   //  • otherwise – leave as TypedArray (or Float64Array)
-  return size > 1_000_000 || hasString || (hasNulls && !numeric);
+  //  • Note: very large arrays (> 1e6) are checked earlier
+  return hasString || (hasNulls && !numeric);
 }

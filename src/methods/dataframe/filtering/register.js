@@ -9,6 +9,13 @@ import { register as registerSelect } from './select.js';
 import { register as registerDrop } from './drop.js';
 import { register as registerAt } from './at.js';
 import { register as registerIloc } from './iloc.js';
+import { register as registerStratifiedSample } from './stratifiedSample.js';
+import { register as registerHead } from './head.js';
+import { register as registerTail } from './tail.js';
+import { register as registerSample } from './sample.js';
+import { register as registerSelectByPattern } from './selectByPattern.js';
+import { register as registerLoc } from './loc.js';
+import { register as registerQuery } from './query.js';
 
 /**
  * Registers all filtering methods for DataFrame
@@ -23,6 +30,13 @@ export function registerDataFrameFiltering(DataFrame) {
   registerDrop(DataFrame);
   registerAt(DataFrame);
   registerIloc(DataFrame);
+  registerStratifiedSample(DataFrame);
+  registerHead(DataFrame);
+  registerTail(DataFrame);
+  registerSample(DataFrame);
+  registerSelectByPattern(DataFrame);
+  registerLoc(DataFrame);
+  registerQuery(DataFrame);
 
   // Add additional filtering methods here as they are implemented
   // For example: head, tail, query, loc, sample, stratifiedSample, selectByPattern

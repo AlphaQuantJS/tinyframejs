@@ -2,22 +2,25 @@
  * Removes specified columns from a DataFrame.
  *
  * @param {DataFrame} df - DataFrame instance
- * @param {string[]} columns - Array of column names to drop
+ * @param {string|string[]} columns - Column name or array of column names to drop
  * @returns {DataFrame} - New DataFrame without the dropped columns
  */
 export const drop = (df, columns) => {
+  // Ensure columns is an array
+  const columnsArray = Array.isArray(columns) ? columns : [columns];
+
   // Get all column names
   const allColumns = df.columns;
 
   // Validate that all columns to drop exist
-  for (const col of columns) {
+  for (const col of columnsArray) {
     if (!allColumns.includes(col)) {
       throw new Error(`Column '${col}' not found`);
     }
   }
 
   // Create a list of columns to keep
-  const columnsToKeep = allColumns.filter((col) => !columns.includes(col));
+  const columnsToKeep = allColumns.filter((col) => !columnsArray.includes(col));
 
   // Create a new object with only the kept columns
   const keptData = {};
@@ -34,11 +37,8 @@ export const drop = (df, columns) => {
  * @param {Class} DataFrame - DataFrame class to extend
  */
 export const register = (DataFrame) => {
-  DataFrame.prototype.drop = function(columns) {
-    return drop(
-      this,
-      Array.isArray(columns) ? columns : [].slice.call(arguments),
-    );
+  DataFrame.prototype.drop = function (columns) {
+    return drop(this, columns);
   };
 };
 

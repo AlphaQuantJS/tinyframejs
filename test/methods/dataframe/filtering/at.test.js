@@ -11,13 +11,12 @@ import {
 } from '../../../utils/storageTestUtils.js';
 
 // Тестовые данные для использования во всех тестах
-const testData = [
-  { value: 10, category: 'A', mixed: '20' },
-  { value: 20, category: 'B', mixed: 30 },
-  { value: 30, category: 'A', mixed: null },
-  { value: 40, category: 'C', mixed: undefined },
-  { value: 50, category: 'B', mixed: NaN },
-];
+const testData = {
+  name: ['Alice', 'Bob', 'Charlie'],
+  age: [25, 30, 35],
+  city: ['New York', 'San Francisco', 'Chicago'],
+  salary: [70000, 85000, 90000],
+};
 
 describe('At Method', () => {
   // Запускаем тесты с обоими типами хранилища
@@ -26,13 +25,18 @@ describe('At Method', () => {
       // Создаем DataFrame с указанным типом хранилища
       const df = createDataFrameWithStorage(DataFrame, testData, storageType);
 
-      // Sample data for testing
-      const data = {
+      // Создаем DataFrame с типизированными массивами для тестирования сохранения типов
+      const typedData = {
         name: ['Alice', 'Bob', 'Charlie'],
-        age: [25, 30, 35],
+        age: new Int32Array([25, 30, 35]),
         city: ['New York', 'San Francisco', 'Chicago'],
-        salary: [70000, 85000, 90000],
+        salary: new Float64Array([70000, 85000, 90000]),
       };
+      const typedDf = createDataFrameWithStorage(
+        DataFrame,
+        typedData,
+        storageType,
+      );
 
       test('should select a row by index', () => {
         // df создан выше с помощью createDataFrameWithStorage
@@ -90,27 +94,31 @@ describe('At Method', () => {
       });
 
       test('should handle empty DataFrame', () => {
-        // df создан выше с помощью createDataFrameWithStorage
-        expect(() => df.at(0)).toThrow();
+        // Создаем пустой DataFrame
+        const emptyData = {};
+        const emptyDf = createDataFrameWithStorage(
+          DataFrame,
+          emptyData,
+          storageType,
+        );
+        expect(() => emptyDf.at(0)).toThrow();
       });
 
       test('should handle typed arrays', () => {
-        // Create DataFrame with typed arrays
-        const typedData = {
-          name: ['Alice', 'Bob', 'Charlie'],
-          age: new Int32Array([25, 30, 35]),
-          salary: new Float64Array([70000, 85000, 90000]),
-        };
+        // Используем DataFrame с типизированными массивами, созданный выше
+        const result = typedDf.at(1);
 
-        // df создан выше с помощью createDataFrameWithStorage
-        const result = df.at(1);
-
-        // Check that the result has the correct values
+        // Проверяем, что результат содержит правильные значения
         expect(result).toEqual({
           name: 'Bob',
           age: 30,
+          city: 'San Francisco',
           salary: 85000,
         });
+
+        // Проверяем, что числовые значения имеют правильный тип
+        expect(typeof result.age).toBe('number');
+        expect(typeof result.salary).toBe('number');
       });
     });
   });

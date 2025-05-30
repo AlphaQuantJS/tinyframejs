@@ -11,13 +11,12 @@ import {
 } from '../../../utils/storageTestUtils.js';
 
 // Тестовые данные для использования во всех тестах
-const testData = [
-  { value: 10, category: 'A', mixed: '20' },
-  { value: 20, category: 'B', mixed: 30 },
-  { value: 30, category: 'A', mixed: null },
-  { value: 40, category: 'C', mixed: undefined },
-  { value: 50, category: 'B', mixed: NaN },
-];
+const testData = {
+  name: ['Alice', 'Bob', 'Charlie'],
+  age: [25, 30, 35],
+  city: ['New York', 'San Francisco', 'Chicago'],
+  salary: [70000, 85000, 90000],
+};
 
 describe('Drop Method', () => {
   // Запускаем тесты с обоими типами хранилища
@@ -25,14 +24,6 @@ describe('Drop Method', () => {
     describe(`with ${storageType} storage`, () => {
       // Создаем DataFrame с указанным типом хранилища
       const df = createDataFrameWithStorage(DataFrame, testData, storageType);
-
-      // Sample data for testing
-      const data = {
-        name: ['Alice', 'Bob', 'Charlie'],
-        age: [25, 30, 35],
-        city: ['New York', 'San Francisco', 'Chicago'],
-        salary: [70000, 85000, 90000],
-      };
 
       test('should drop specified columns', () => {
         // df создан выше с помощью createDataFrameWithStorage
@@ -56,9 +47,13 @@ describe('Drop Method', () => {
         expect(() => df.drop(['city', 'nonexistent'])).toThrow();
       });
 
-      test('should throw error for non-array input', () => {
+      test('should support string input for single column', () => {
         // df создан выше с помощью createDataFrameWithStorage
-        expect(() => df.drop('city')).toThrow();
+        const result = df.drop('city');
+
+        // Check that dropped column doesn't exist
+        expect(result.columns).not.toContain('city');
+        expect(result.columns.length).toBe(df.columns.length - 1);
       });
 
       test('should handle empty array input', () => {

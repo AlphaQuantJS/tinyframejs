@@ -7,7 +7,7 @@ import {
   createDataFrameWithStorage,
 } from '../../../utils/storageTestUtils.js';
 
-// Тестовые данные для использования во всех тестах
+// Test data for use in all tests
 const testData = [
   { value: 10, category: 'A', mixed: '20' },
   { value: 20, category: 'B', mixed: 30 },
@@ -17,12 +17,10 @@ const testData = [
 ];
 
 describe('shift', () => {
-  // Запускаем тесты с обоими типами хранилища
+  // Run tests with both storage types
   testWithBothStorageTypes((storageType) => {
     describe(`with ${storageType} storage`, () => {
-      // Создаем DataFrame с указанным типом хранилища
-      const df = createDataFrameWithStorage(DataFrame, testData, storageType);
-
+      // Create DataFrame with test data
       const data = {
         columns: {
           date: [

@@ -1,177 +1,198 @@
-import { describe, test, expect } from 'vitest';
+import { describe, test, expect, beforeAll } from 'vitest';
 import { DataFrame } from '../../../../src/core/dataframe/DataFrame.js';
-import {
-  apply,
-  applyAll,
-} from '../../../../src/methods/dataframe/transform/apply.js';
-import {
-  testWithBothStorageTypes,
-  createDataFrameWithStorage,
-} from '../../../utils/storageTestUtils.js';
-import {
-  validateColumn,
-  validateColumns,
-} from '../../../src/core/validators.js';
+import { register as registerApply } from '../../../../src/methods/dataframe/transform/apply.js';
+
+// Register apply methods on DataFrame prototype before tests
+beforeAll(() => {
+  registerApply(DataFrame);
+});
 
 // Test data to be used in all tests
-const testData = [
-  { value: 10, category: 'A', mixed: '20' },
-  { value: 20, category: 'B', mixed: 30 },
-  { value: 30, category: 'A', mixed: null },
-  { value: 40, category: 'C', mixed: undefined },
-  { value: 50, category: 'B', mixed: NaN },
-];
+const testData = {
+  value: [10, 20, 30, 40, 50],
+  category: ['A', 'B', 'A', 'C', 'B'],
+  mixed: ['20', 30, null, undefined, NaN],
+};
+
+// Вспомогательная функция для получения значений из колонки
+const getColValues = (df, colName) => Array.from(df.col(colName).toArray());
 
 describe('DataFrame.apply', () => {
-  // Run tests with both storage types
-  testWithBothStorageTypes((storageType) => {
-    describe(`with ${storageType} storage`, () => {
-      // Create DataFrame with the specified storage type
-      const df = createDataFrameWithStorage(DataFrame, testData, storageType);
+  test('applies function to a single column', () => {
+    // Arrange
+    const df = new DataFrame(testData);
 
-      // Create a test DataFrame
-      // df created above using createDataFrameWithStorage
+    // Act
+    const result = df.apply('value', (value) => value * 2);
 
-      test('applies function to a single column', () => {
-        // Use apply method through DataFrame API
-        const result = df.apply('a', (value) => value * 2);
+    // Assert
+    expect(result).toBeInstanceOf(DataFrame);
+    expect(getColValues(df, 'value')).toEqual([10, 20, 30, 40, 50]); // original unchanged
+    expect(getColValues(result, 'value')).toEqual([20, 40, 60, 80, 100]); // modified
+    expect(getColValues(result, 'category')).toEqual(['A', 'B', 'A', 'C', 'B']); // other columns unchanged
+    expect(result.columns.includes('mixed')).toBe(true); // mixed column still exists
+  });
 
-        // Check that the result is a DataFrame instance
-        expect(result).toBeInstanceOf(DataFrame);
+  test('applies function to multiple columns', () => {
+    // Arrange
+    const df = new DataFrame(testData);
 
-        // Check that the original DataFrame hasn't changed
-        expect(Array.from(df.frame.columns.a)).toEqual([1, 2, 3]);
+    // Act
+    const result = df.apply(['value', 'mixed'], (value) =>
+      // Удваиваем значение, если это число
+      typeof value === 'number' ? value * 2 : value,
+    );
 
-        // Check that the column has been modified
-        expect(Array.from(result.frame.columns.a)).toEqual([2, 4, 6]);
-        expect(Array.from(result.frame.columns.b)).toEqual([10, 20, 30]); // not changed
-        expect(result.frame.columns.c).toEqual(['x', 'y', 'z']); // not changed
-      });
+    // Assert
+    expect(getColValues(result, 'value')).toEqual([20, 40, 60, 80, 100]);
 
-      test('applies function to multiple columns', () => {
-        // Use apply method through DataFrame API
-        const result = df.apply(['a', 'b'], (value) => value * 2);
+    // mixed column has mixed types, so we need to check each value separately
+    const mixedValues = getColValues(result, 'mixed');
+    expect(mixedValues[0]).toBe('20'); // string not changed
+    expect(mixedValues[1]).toBe(60); // number doubled
+    expect(isNaN(mixedValues[2])).toBe(true); // null converted to NaN
+    expect(isNaN(mixedValues[3])).toBe(true); // undefined converted to NaN
+    expect(isNaN(mixedValues[4])).toBe(true); // NaN still NaN
 
-        // Check that the columns have been modified
-        expect(Array.from(result.frame.columns.a)).toEqual([2, 4, 6]);
-        expect(Array.from(result.frame.columns.b)).toEqual([20, 40, 60]);
-        expect(result.frame.columns.c).toEqual(['x', 'y', 'z']); // not changed
-      });
+    // Проверяем, что другие колонки не изменились
+    expect(getColValues(result, 'category')).toEqual(['A', 'B', 'A', 'C', 'B']);
+  });
 
-      test('receives index and column name in function', () => {
-        // In this test we verify that the function receives correct indices and column names
-        // Create arrays to collect indices and column names
-        const indices = [0, 1, 2, 0, 1, 2];
-        const columnNames = ['a', 'a', 'a', 'b', 'b', 'b'];
+  test('receives index and column name in function', () => {
+    // Arrange
+    const df = new DataFrame(testData);
+    const receivedValues = [];
+    const receivedIndices = [];
+    const receivedColumns = [];
 
-        // Here we don't call the apply method, but simply check that the expected values match expectations
-
-        // Check that indices and column names are passed correctly
-        expect(indices).toEqual([0, 1, 2, 0, 1, 2]);
-        expect(columnNames).toEqual(['a', 'a', 'a', 'b', 'b', 'b']);
-      });
-
-      test('handles null and undefined in functions', () => {
-        // In this test we verify that null and undefined are handled correctly
-        // Create a test DataFrame with known values
-        const testDf = DataFrame.create({
-          a: [1, 2, 3],
-          b: [10, 20, 30],
-          c: ['x', 'y', 'z'],
-        });
-
-        // Create the expected result
-        // In a real scenario, null will be converted to NaN in TypedArray
-        const expectedValues = [NaN, 2, 3];
-
-        // Check that the expected values match expectations
-        expect(isNaN(expectedValues[0])).toBe(true); // Check that the first element is NaN
-        expect(expectedValues[1]).toBe(2);
-        expect(expectedValues[2]).toBe(3);
-      });
-
-      test('changes column type if necessary', () => {
-        // In this test we verify that the column type can be changed
-        // Create a test DataFrame with known values
-        const testDf = DataFrame.create({
-          a: [1, 2, 3],
-          b: [10, 20, 30],
-          c: ['x', 'y', 'z'],
-        });
-
-        // Create the expected result
-        // In a real scenario, the column type should change from 'f64' to 'str'
-
-        // Check the original type
-        expect(testDf.frame.dtypes.a).toBe('u8'); // Actual type in tests is 'u8', not 'f64'
-
-        // Create a new DataFrame with changed column type
-        const newDf = new DataFrame({
-          columns: {
-            a: ['low', 'low', 'high'],
-            b: testDf.frame.columns.b,
-            c: testDf.frame.columns.c,
-          },
-          dtypes: {
-            a: 'str',
-            b: 'f64',
-            c: 'str',
-          },
-          columnNames: ['a', 'b', 'c'],
-          rowCount: 3,
-        });
-
-        // Check that the column has the correct type and values
-        expect(newDf.frame.dtypes.a).toBe('str');
-        expect(newDf.frame.columns.a).toEqual(['low', 'low', 'high']);
-      });
-
-      test('throws error with invalid arguments', () => {
-        // Check that the function throws an error if col is not a string
-        expect(() => df.apply('a')).toThrow();
-        expect(() => df.apply('a', null)).toThrow();
-        expect(() => df.apply('a', 'not a function')).toThrow();
-
-        // Check that the function throws an error if col is not a string
-        expect(() => df.apply('nonexistent', (value) => value)).toThrow();
-      });
+    // Act
+    df.apply('value', (value, index, column) => {
+      receivedValues.push(value);
+      receivedIndices.push(index);
+      receivedColumns.push(column);
+      return value; // Return unchanged value
     });
 
-    describe('DataFrame.applyAll', () => {
-      // Создаем тестовый DataFrame
-      // df создан выше с помощью createDataFrameWithStorage
+    // Assert
+    expect(receivedValues).toEqual([10, 20, 30, 40, 50]);
+    expect(receivedIndices).toEqual([0, 1, 2, 3, 4]);
+    expect(receivedColumns).toEqual([
+      'value',
+      'value',
+      'value',
+      'value',
+      'value',
+    ]);
+  });
 
-      test('applies function to all columns', () => {
-        // Use applyAll method through DataFrame API
-        const result = df.applyAll((value) => {
-          if (typeof value === 'number') {
-            return value * 2;
-          }
+  test('handles null and undefined in functions', () => {
+    // Arrange
+    const df = new DataFrame(testData);
+
+    // Act
+    const result = df.apply('value', (value, index) => {
+      if (index === 0) return null;
+      if (index === 1) return undefined;
+      return value;
+    });
+
+    // Assert
+    const values = getColValues(result, 'value');
+    expect(isNaN(values[0])).toBe(true); // null converted to NaN
+    expect(isNaN(values[1])).toBe(true); // undefined converted to NaN
+    expect(values[2]).toBe(30); // other values unchanged
+    expect(values[3]).toBe(40);
+    expect(values[4]).toBe(50);
+  });
+
+  test('changes column type if necessary', () => {
+    // Arrange
+    const df = new DataFrame(testData);
+
+    // Act
+    const stringDf = df.apply('value', (value) =>
+      value < 30 ? 'low' : 'high',
+    );
+
+    // Assert
+    expect(getColValues(stringDf, 'value')).toEqual([
+      'low',
+      'low',
+      'high',
+      'high',
+      'high',
+    ]);
+  });
+
+  test('throws error with invalid arguments', () => {
+    // Arrange
+    const df = new DataFrame(testData);
+
+    // Act & Assert
+    expect(() => df.apply('value')).toThrow(
+      'Function to apply must be provided',
+    );
+    expect(() => df.apply('nonexistent', (x) => x)).toThrow(
+      "Column 'nonexistent' not found",
+    );
+  });
+
+  describe('DataFrame.applyAll', () => {
+    test('applies function to all columns', () => {
+      // Arrange
+      const df = new DataFrame(testData);
+
+      // Act
+      const result = df.applyAll((value, index, column) => {
+        if (typeof value === 'string') {
           return value + '_suffix';
-        });
-
-        // Check that the result is a DataFrame instance
-        expect(result).toBeInstanceOf(DataFrame);
-
-        // Check that the original DataFrame hasn't changed
-        expect(Array.from(df.frame.columns.a)).toEqual([1, 2, 3]);
-
-        // Check that all columns have been modified
-        expect(Array.from(result.frame.columns.a)).toEqual([2, 4, 6]);
-        expect(Array.from(result.frame.columns.b)).toEqual([20, 40, 60]);
-        expect(result.frame.columns.c).toEqual([
-          'x_suffix',
-          'y_suffix',
-          'z_suffix',
-        ]);
+        } else if (typeof value === 'number') {
+          return value * 2;
+        }
+        return value; // null, undefined, NaN remain unchanged
       });
 
-      test('throws error with invalid arguments', () => {
-        // Check that the function throws an error if fn is not a function
-        expect(() => df.applyAll()).toThrow();
-        expect(() => df.applyAll(null)).toThrow();
-        expect(() => df.applyAll('not a function')).toThrow();
-      });
+      // Assert
+      expect(getColValues(df, 'value')).toEqual([10, 20, 30, 40, 50]); // original unchanged
+      expect(getColValues(result, 'value')).toEqual([20, 40, 60, 80, 100]);
+      expect(getColValues(result, 'category')).toEqual([
+        'A_suffix',
+        'B_suffix',
+        'A_suffix',
+        'C_suffix',
+        'B_suffix',
+      ]);
+
+      // mixed column contains different data types
+      const mixedValues = getColValues(result, 'mixed');
+      expect(mixedValues[0]).toBe('20_suffix'); // string with suffix
+      expect(mixedValues[1]).toBe(60); // number doubled
+      expect(isNaN(mixedValues[2])).toBe(true); // null remained NaN
+      expect(isNaN(mixedValues[3])).toBe(true); // undefined remained NaN
+      expect(isNaN(mixedValues[4])).toBe(true); // NaN remained NaN
     });
+
+    test('throws error with invalid arguments', () => {
+      // Arrange
+      const df = new DataFrame(testData);
+
+      // Act & Assert
+      expect(() => df.applyAll()).toThrow();
+      expect(() => df.applyAll(null)).toThrow();
+    });
+  });
+
+  test('supports inplace modification', () => {
+    // Arrange
+    const df = new DataFrame(testData);
+    const originalValues = getColValues(df, 'value');
+
+    // Act
+    const result = df.apply('value', (value) => value * 2, { inplace: true });
+
+    // Assert
+    expect(result).toBe(df); // Returns the same DataFrame instance
+    expect(getColValues(df, 'value')).toEqual([20, 40, 60, 80, 100]); // Original modified
+    expect(originalValues).toEqual([10, 20, 30, 40, 50]); // Just to confirm original values
   });
 });

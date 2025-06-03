@@ -1,56 +1,113 @@
 /**
  * Sort a DataFrame by a column
  *
- * @param {Object} options - Options object
- * @param {Function} options.validateColumn - Function to validate column existence
- * @returns {Function} - Function that takes a DataFrame and column name and returns a sorted DataFrame
+ * @param {DataFrame} df - DataFrame to sort
+ * @param {string} column - Column name to sort by
+ * @param {Object} options - Sort options
+ * @param {boolean} [options.descending=false] - Sort in descending order
+ * @param {boolean} [options.inplace=false] - Modify the DataFrame in place
+ * @returns {DataFrame} - Sorted DataFrame
  */
-export const sort =
-  ({ validateColumn }) =>
-    (frame, column, options = {}) => {
-    // Validate column
-      validateColumn(frame, column);
+function sort(df, column, options = {}) {
+  // Validate inputs
+  if (!df || typeof df !== 'object') {
+    throw new Error('DataFrame is required');
+  }
 
-      // Get column values
-      const arr = frame.columns[column];
+  if (!column || typeof column !== 'string') {
+    throw new Error('Column name is required');
+  }
 
-      // Create indices and sort them by column values
-      const sortedIndices = [...Array(arr.length).keys()].sort((a, b) => {
-        const valA = arr[a];
-        const valB = arr[b];
+  // Check if column exists
+  if (!df.columns.includes(column)) {
+    throw new Error(`Column '${column}' not found in DataFrame`);
+  }
 
-        // Handle null, undefined, and NaN values
-        if (
-          valA === null ||
-        valA === undefined ||
-        (typeof valA === 'number' && isNaN(valA))
-        ) {
-          return 1; // Move nulls to the end
-        }
-        if (
-          valB === null ||
-        valB === undefined ||
-        (typeof valB === 'number' && isNaN(valB))
-        ) {
-          return -1; // Move nulls to the end
-        }
+  const { descending = false, inplace = false } = options;
 
-        // Default ascending sort
-        return options.descending ? valB - valA : valA - valB;
-      });
+  // Get column values using public API
+  const values = df.col(column).toArray();
 
-      // Create a new object to hold the sorted columns
-      const sortedColumns = {};
+  // Create indices and sort them by column values
+  const indices = Array.from({ length: values.length }, (_, i) => i);
 
-      // Sort each column using the sorted indices
-      for (const colName of Object.keys(frame.columns)) {
-        const colValues = frame.columns[colName];
-        sortedColumns[colName] = sortedIndices.map((i) => colValues[i]);
+  indices.sort((a, b) => {
+    const valA = values[a];
+    const valB = values[b];
+
+    // Handle null, undefined, and NaN values
+    if (
+      valA === null ||
+      valA === undefined ||
+      (typeof valA === 'number' && isNaN(valA))
+    ) {
+      return 1; // Move nulls to the end
+    }
+    if (
+      valB === null ||
+      valB === undefined ||
+      (typeof valB === 'number' && isNaN(valB))
+    ) {
+      return -1; // Move nulls to the end
+    }
+
+    // Compare values based on their types
+    if (typeof valA === 'string' && typeof valB === 'string') {
+      return descending ? valB.localeCompare(valA) : valA.localeCompare(valB);
+    }
+
+    // Default numeric comparison
+    return descending ? valB - valA : valA - valB;
+  });
+
+  // Create a new object to hold the sorted columns
+  const sortedData = {};
+
+  // Sort each column using the sorted indices
+  for (const colName of df.columns) {
+    const colValues = df.col(colName).toArray();
+    sortedData[colName] = indices.map((i) => colValues[i]);
+  }
+
+  if (inplace) {
+    // For inplace modification, we need to modify the original DataFrame directly
+    // This requires accessing internal properties of DataFrame
+    // Note: This approach is not ideal as it relies on internal implementation details
+    // but is necessary for the inplace functionality to work correctly
+
+    // Create a new DataFrame with sorted data
+    const newDf = new df.constructor(sortedData);
+
+    // Replace the internal _columns object with the new one
+    // This is a direct modification of the internal state
+    for (const colName of df.columns) {
+      if (df._columns[colName]) {
+        // Replace the Series data with the sorted data
+        const sortedSeries = newDf.col(colName);
+        df._columns[colName] = sortedSeries;
       }
+    }
 
-      // Create a new DataFrame with the sorted columns
-      // Note: Using constructor directly instead of frame.clone() which doesn't exist
-      return new frame.constructor(sortedColumns);
-    };
+    return df;
+  }
 
-export default { sort };
+  // Create a new DataFrame with the sorted data
+  return new df.constructor(sortedData);
+}
+
+/**
+ * Registers the sort method on DataFrame prototype
+ * @param {Class} DataFrame - DataFrame class to extend
+ */
+function registerSort(DataFrame) {
+  DataFrame.prototype.sort = function (column, options = {}) {
+    const result = sort(this, column, options);
+    if (options.inplace) {
+      // For inplace modification, return this (the original DataFrame instance)
+      return this;
+    }
+    return result;
+  };
+}
+
+export { sort, registerSort };

@@ -1,183 +1,174 @@
-import { describe, test, expect } from 'vitest';
+import { describe, test, expect, beforeAll } from 'vitest';
 import { DataFrame } from '../../../../src/core/dataframe/DataFrame.js';
-import { categorize } from '../../../../src/methods/dataframe/transform/categorize.js';
-import { validateColumn } from '../../../src/core/validators.js';
-
 import {
-  testWithBothStorageTypes,
-  createDataFrameWithStorage,
-} from '../../../utils/storageTestUtils.js';
+  categorize,
+  register as registerCategorize,
+} from '../../../../src/methods/dataframe/transform/categorize.js';
+
+// Register categorize method on DataFrame prototype before tests
+beforeAll(() => {
+  registerCategorize(DataFrame);
+});
 
 // Test data to be used in all tests
-const testData = [
-  { value: 10, category: 'A', mixed: '20' },
-  { value: 20, category: 'B', mixed: 30 },
-  { value: 30, category: 'A', mixed: null },
-  { value: 40, category: 'C', mixed: undefined },
-  { value: 50, category: 'B', mixed: NaN },
-];
+const testData = {
+  value: [10, 20, 30, 40, 50],
+  category: ['A', 'B', 'A', 'C', 'B'],
+  mixed: ['20', 30, null, undefined, NaN],
+};
 
 describe('DataFrame.categorize', () => {
-  // Run tests with both storage types
-  testWithBothStorageTypes((storageType) => {
-    describe(`with ${storageType} storage`, () => {
-      // Create DataFrame with specified storage type
-      const df = createDataFrameWithStorage(DataFrame, testData, storageType);
+  test('categorizes values in a column', () => {
+    // Arrange
+    const df = new DataFrame(testData);
+    const categories = {
+      10: 'Low',
+      20: 'Low',
+      30: 'Medium',
+      40: 'Medium',
+      50: 'High',
+    };
 
-      // Create a test DataFrame
-      // df created above with createDataFrameWithStorage
+    // Act
+    const result = df.categorize('value', categories);
 
-      // Create categorize function with dependency injection
-      const categorizeWithDeps = categorize({ validateColumn });
+    // Assert
+    expect(result).toBeInstanceOf(DataFrame);
+    expect(result.columns).toContain('value_categorized');
+    expect(result.col('value_categorized').toArray()).toEqual([
+      'Low',
+      'Low',
+      'Medium',
+      'Medium',
+      'High',
+    ]);
+    expect(df.columns).not.toContain('value_categorized'); // Original DataFrame unchanged
+  });
 
-      test('creates a categorical column based on a numeric column', () => {
-        // Call the function directly with TinyFrame
-        const resultFrame = categorizeWithDeps(df.frame, 'age', {
-          bins: [0, 30, 50, 100],
-          labels: ['Young', 'Middle', 'Senior'],
-        });
+  test('uses custom target column name', () => {
+    // Arrange
+    const df = new DataFrame(testData);
+    const categories = {
+      10: 'Low',
+      20: 'Low',
+      30: 'Medium',
+      40: 'Medium',
+      50: 'High',
+    };
+    const targetColumn = 'value_group';
 
-        // Wrap the result in DataFrame for testing
-        const result = new DataFrame(resultFrame);
+    // Act
+    const result = df.categorize('value', categories, { targetColumn });
 
-        // Check that the result is a DataFrame instance
-        expect(result).toBeInstanceOf(DataFrame);
+    // Assert
+    expect(result.columns).toContain(targetColumn);
+    expect(result.columns).not.toContain('value_categorized'); // Default name not used
+    expect(result.col(targetColumn).toArray()).toEqual([
+      'Low',
+      'Low',
+      'Medium',
+      'Medium',
+      'High',
+    ]);
+  });
 
-        // Check that the original DataFrame hasn't changed
-        expect(df.frame.columns).not.toHaveProperty('age_category');
+  test('handles default category for values not in categories', () => {
+    // Arrange
+    const df = new DataFrame(testData);
+    const categories = {
+      10: 'Low',
+      30: 'Medium',
+      50: 'High',
+    };
+    const defaultCategory = 'Unknown';
 
-        // Check that the new column has been added
-        expect(result.frame.columns).toHaveProperty('age_category');
+    // Act
+    const result = df.categorize('value', categories, { defaultCategory });
 
-        // Check the values of the new column
-        expect(result.frame.columns.age_category).toEqual([
-          'Young',
-          'Young',
-          'Middle',
-          'Middle',
-          'Senior',
-          'Senior',
-        ]);
-      });
+    // Assert
+    expect(result.col('value_categorized').toArray()).toEqual([
+      'Low',
+      'Unknown',
+      'Medium',
+      'Unknown',
+      'High',
+    ]);
+  });
 
-      test('uses custom name for new column', () => {
-        // Call the function directly with TinyFrame
-        const resultFrame = categorizeWithDeps(df.frame, 'age', {
-          bins: [0, 30, 50, 100],
-          labels: ['Young', 'Middle', 'Senior'],
-          columnName: 'age_group',
-        });
+  test('supports inplace modification', () => {
+    // Arrange
+    const df = new DataFrame(testData);
+    const categories = {
+      10: 'Low',
+      20: 'Low',
+      30: 'Medium',
+      40: 'Medium',
+      50: 'High',
+    };
 
-        // Wrap the result in DataFrame for testing
-        const result = new DataFrame(resultFrame);
+    // Act
+    const result = df.categorize('value', categories, { inplace: true });
 
-        // Check that the new column has been added with the specified name
-        expect(result.frame.columns).toHaveProperty('age_group');
+    // Assert
+    expect(result).toBe(df); // Returns the same DataFrame instance
+    expect(df.columns).toContain('value_categorized'); // Original DataFrame modified
+    expect(df.col('value_categorized').toArray()).toEqual([
+      'Low',
+      'Low',
+      'Medium',
+      'Medium',
+      'High',
+    ]);
+  });
 
-        // Check the values of the new column
-        expect(result.frame.columns.age_group).toEqual([
-          'Young',
-          'Young',
-          'Middle',
-          'Middle',
-          'Senior',
-          'Senior',
-        ]);
-      });
+  test('throws an error if column does not exist', () => {
+    // Arrange
+    const df = new DataFrame(testData);
+    const categories = { 10: 'Low', 20: 'Medium', 30: 'High' };
 
-      test('correctly handles boundary values', () => {
-        // Create a DataFrame with boundary values
-        const dfBoundary = DataFrame.create({
-          value: [0, 30, 50, 100],
-        });
+    // Act & Assert
+    expect(() => df.categorize('nonexistent', categories)).toThrow(
+      "Column 'nonexistent' not found",
+    );
+  });
 
-        // Call the function directly with TinyFrame
-        const resultFrame = categorizeWithDeps(dfBoundary.frame, 'value', {
-          bins: [0, 30, 50, 100],
-          labels: ['Low', 'Medium', 'High'],
-        });
+  test('throws an error with invalid arguments', () => {
+    // Arrange
+    const df = new DataFrame(testData);
 
-        // Wrap the result in DataFrame for testing
-        const result = new DataFrame(resultFrame);
+    // Act & Assert
+    expect(() => df.categorize(null, { 10: 'Low' })).toThrow(
+      'Column name must be a string',
+    );
+    expect(() => df.categorize('value', null)).toThrow(
+      'Categories must be an object',
+    );
+    expect(() => df.categorize('value', 'not an object')).toThrow(
+      'Categories must be an object',
+    );
+    expect(() => df.categorize('value', [1, 2, 3])).toThrow(
+      'Categories must be an object',
+    );
+  });
 
-        // Check the values of the new column
-        // Values on the boundaries fall into the left interval (except the last one)
-        expect(result.frame.columns.value_category).toEqual([
-          'Low',
-          null,
-          null,
-          null,
-        ]);
-      });
+  test('direct function call works the same as method call', () => {
+    // Arrange
+    const df = new DataFrame(testData);
+    const categories = {
+      10: 'Low',
+      20: 'Low',
+      30: 'Medium',
+      40: 'Medium',
+      50: 'High',
+    };
 
-      test('handles null, undefined and NaN', () => {
-        // Create a DataFrame with null, undefined and NaN values
-        const dfWithNulls = DataFrame.create({
-          value: [10, null, 40, undefined, NaN, 60],
-        });
+    // Act
+    const result1 = df.categorize('value', categories);
+    const result2 = categorize(df, 'value', categories);
 
-        // Call the function directly with TinyFrame
-        const resultFrame = categorizeWithDeps(dfWithNulls.frame, 'value', {
-          bins: [0, 30, 50, 100],
-          labels: ['Low', 'Medium', 'High'],
-        });
-
-        // Wrap the result in DataFrame for testing
-        const result = new DataFrame(resultFrame);
-
-        // Check the values of the new column
-        expect(result.frame.columns.value_category).toEqual([
-          'Low',
-          null,
-          'Medium',
-          null,
-          null,
-          'High',
-        ]);
-      });
-
-      test('throws error with invalid arguments', () => {
-        // Check that the function throws an error if bins is not an array or has less than 2 elements
-        expect(() =>
-          categorizeWithDeps(df.frame, 'age', {
-            bins: null,
-            labels: ['A', 'B'],
-          }),
-        ).toThrow();
-        expect(() =>
-          categorizeWithDeps(df.frame, 'age', { bins: [30], labels: [] }),
-        ).toThrow();
-
-        // Check that the function throws an error if labels is not an array
-        expect(() =>
-          categorizeWithDeps(df.frame, 'age', {
-            bins: [0, 30, 100],
-            labels: 'not an array',
-          }),
-        ).toThrow();
-
-        // Check that the function throws an error if the number of labels does not match the number of intervals
-        expect(() =>
-          categorizeWithDeps(df.frame, 'age', {
-            bins: [0, 30, 100],
-            labels: ['A'],
-          }),
-        ).toThrow();
-        expect(() =>
-          categorizeWithDeps(df.frame, 'age', {
-            bins: [0, 30, 100],
-            labels: ['A', 'B', 'C'],
-          }),
-        ).toThrow();
-
-        // Check that the function throws an error if the column does not exist
-        expect(() =>
-          categorizeWithDeps(df.frame, 'nonexistent', {
-            bins: [0, 30, 100],
-            labels: ['A', 'B'],
-          }),
-        ).toThrow();
-      });
-    });
+    // Assert
+    expect(result1.col('value_categorized').toArray()).toEqual(
+      result2.col('value_categorized').toArray(),
+    );
   });
 });

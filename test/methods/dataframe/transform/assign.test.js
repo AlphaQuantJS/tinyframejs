@@ -1,156 +1,124 @@
-import { describe, test, expect } from 'vitest';
+import { describe, test, expect, beforeAll } from 'vitest';
 import { DataFrame } from '../../../../src/core/dataframe/DataFrame.js';
+import { register as registerAssign } from '../../../../src/methods/dataframe/transform/assign.js';
 
-import {
-  testWithBothStorageTypes,
-  createDataFrameWithStorage,
-} from '../../../utils/storageTestUtils.js';
+// Register assign method on DataFrame prototype before tests
+beforeAll(() => {
+  registerAssign(DataFrame);
+});
 
 // Test data to be used in all tests
-const testData = [
-  { value: 10, category: 'A', mixed: '20' },
-  { value: 20, category: 'B', mixed: 30 },
-  { value: 30, category: 'A', mixed: null },
-  { value: 40, category: 'C', mixed: undefined },
-  { value: 50, category: 'B', mixed: NaN },
-];
+const testData = {
+  value: [10, 20, 30, 40, 50],
+  category: ['A', 'B', 'A', 'C', 'B'],
+  mixed: ['20', 30, null, undefined, NaN],
+};
 
 describe('DataFrame.assign', () => {
-  // Run tests with both storage types
-  testWithBothStorageTypes((storageType) => {
-    describe(`with ${storageType} storage`, () => {
-      // Create DataFrame with specified storage type
-      const df = createDataFrameWithStorage(DataFrame, testData, storageType);
+  test('adds a new column with a constant value', () => {
+    // Arrange
+    const df = new DataFrame(testData);
 
-      test('adds a new column with a constant value', () => {
-        // Create a test DataFrame
-        // df created above with createDataFrameWithStorage
+    // Act
+    const result = df.assign({ newCol: 100 });
 
-        // Call the assign method with a constant value
-        const result = df.assign({ c: 100 });
+    // Assert
+    expect(result).toBeInstanceOf(DataFrame);
+    expect(result.columns).toContain('newCol');
+    expect(result.col('newCol').toArray()).toEqual(
+      Array(df.rowCount).fill(100),
+    );
+  });
 
-        // Check that the result is a DataFrame instance
-        expect(result).toBeInstanceOf(DataFrame);
+  test('adds a new column with an array', () => {
+    // Arrange
+    const df = new DataFrame(testData);
+    const newValues = [100, 200, 300, 400, 500];
 
-        // Check that the new column has been added
-        expect(result.frame.columns).toHaveProperty('a');
-        expect(result.frame.columns).toHaveProperty('b');
-        expect(result.frame.columns).toHaveProperty('c');
+    // Act
+    const result = df.assign({ newCol: newValues });
 
-        // Check the values of the new column
-        expect(Array.from(result.frame.columns.c)).toEqual([100, 100, 100]);
-      });
+    // Assert
+    expect(result.columns).toContain('newCol');
+    expect(result.col('newCol').toArray()).toEqual(newValues);
+  });
 
-      test('adds a new column based on a function', () => {
-        // Create a test DataFrame
-        // df created above with createDataFrameWithStorage
+  test('adds multiple columns simultaneously', () => {
+    // Arrange
+    const df = new DataFrame(testData);
+    const newValues1 = [100, 200, 300, 400, 500];
+    const newValues2 = [1, 2, 3, 4, 5];
 
-        // Call the assign method with a function
-        const result = df.assign({
-          sum: (row) => row.a + row.b,
-        });
-
-        // Check that the new column has been added
-        expect(result.frame.columns).toHaveProperty('sum');
-
-        // Check the values of the new column
-        expect(Array.from(result.frame.columns.sum)).toEqual([11, 22, 33]);
-      });
-
-      test('adds multiple columns simultaneously', () => {
-        // Create a test DataFrame
-        // df created above with createDataFrameWithStorage
-
-        // Call the assign method with multiple definitions
-        const result = df.assign({
-          c: 100,
-          sum: (row) => row.a + row.b,
-          doubleA: (row) => row.a * 2,
-        });
-
-        // Check that the new columns have been added
-        expect(result.frame.columns).toHaveProperty('c');
-        expect(result.frame.columns).toHaveProperty('sum');
-        expect(result.frame.columns).toHaveProperty('doubleA');
-
-        // Check the values of the new columns
-        expect(Array.from(result.frame.columns.c)).toEqual([100, 100, 100]);
-        expect(Array.from(result.frame.columns.sum)).toEqual([11, 22, 33]);
-        expect(Array.from(result.frame.columns.doubleA)).toEqual([2, 4, 6]);
-      });
-
-      test('handles null and undefined in functions', () => {
-        // Create a test DataFrame
-        // df created above with createDataFrameWithStorage
-
-        // Call the assign method with functions that return null/undefined
-        const result = df.assign({
-          nullable: (row, i) => (i === 0 ? null : row.a),
-          undefinable: (row, i) => (i < 2 ? undefined : row.a),
-        });
-
-        // Check the values of the new columns
-        // NaN is used to represent null/undefined in TypedArray
-        const nullableValues = Array.from(result.frame.columns.nullable);
-        expect(isNaN(nullableValues[0])).toBe(true);
-        expect(nullableValues[1]).toBe(2);
-        expect(nullableValues[2]).toBe(3);
-
-        const undefinableValues = Array.from(result.frame.columns.undefinable);
-        expect(isNaN(undefinableValues[0])).toBe(true);
-        expect(isNaN(undefinableValues[1])).toBe(true);
-        expect(undefinableValues[2]).toBe(3);
-      });
-
-      test('changes the column type if necessary', () => {
-        // Create a test DataFrame
-        // df created above with createDataFrameWithStorage
-
-        // Call the assign method with a function that returns strings
-        const result = df.assign({
-          category: (row) => (row.a < 3 ? 'low' : 'high'),
-        });
-
-        // Check that the new column has been added and has the correct type
-        expect(result.frame.columns).toHaveProperty('category');
-        expect(result.frame.dtypes.category).toBe('str');
-
-        // Check the values of the new column
-        expect(result.frame.columns.category).toEqual(['low', 'low', 'high']);
-      });
-
-      test('throws an error with incorrect arguments', () => {
-        // Create a test DataFrame
-        // df created above with createDataFrameWithStorage
-
-        // Check that the method throws an error if columnDefs is not an object
-        try {
-          df.assign(null);
-          throw new Error(
-            'Expected assign to throw an error for null columnDefs',
-          );
-        } catch (error) {
-          expect(error.message).toContain('object');
-        }
-
-        try {
-          df.assign('not an object');
-          throw new Error(
-            'Expected assign to throw an error for string columnDefs',
-          );
-        } catch (error) {
-          expect(error.message).toContain('object');
-        }
-
-        try {
-          df.assign(123);
-          throw new Error(
-            'Expected assign to throw an error for number columnDefs',
-          );
-        } catch (error) {
-          expect(error.message).toContain('object');
-        }
-      });
+    // Act
+    const result = df.assign({
+      newCol1: newValues1,
+      newCol2: newValues2,
+      constCol: 999,
     });
+
+    // Assert
+    expect(result.columns).toContain('newCol1');
+    expect(result.columns).toContain('newCol2');
+    expect(result.columns).toContain('constCol');
+    expect(result.col('newCol1').toArray()).toEqual(newValues1);
+    expect(result.col('newCol2').toArray()).toEqual(newValues2);
+    expect(result.col('constCol').toArray()).toEqual(
+      Array(df.rowCount).fill(999),
+    );
+  });
+
+  test('preserves original DataFrame', () => {
+    // Arrange
+    const df = new DataFrame(testData);
+    const originalColumns = [...df.columns];
+
+    // Act
+    const result = df.assign({ newCol: 100 });
+
+    // Assert
+    expect(df.columns).toEqual(originalColumns); // Original DataFrame unchanged
+    expect(result.columns).toContain('newCol'); // New DataFrame has the new column
+    expect(df.columns).not.toContain('newCol'); // Original DataFrame doesn't have the new column
+  });
+
+  test('supports inplace modification', () => {
+    // Arrange
+    const df = new DataFrame(testData);
+    const originalColumns = [...df.columns];
+
+    // Act
+    const result = df.assign({ newCol: 100 }, { inplace: true });
+
+    // Assert
+    expect(result).toBe(df); // Returns the same DataFrame instance
+    expect(df.columns).toContain('newCol'); // Original DataFrame modified
+    expect(df.columns.length).toBe(originalColumns.length + 1); // One new column added
+  });
+
+  test('throws an error with incorrect arguments', () => {
+    // Arrange
+    const df = new DataFrame(testData);
+
+    // Act & Assert
+    expect(() => df.assign(null)).toThrow('Columns must be an object');
+    expect(() => df.assign('not an object')).toThrow(
+      'Columns must be an object',
+    );
+    expect(() => df.assign(123)).toThrow('Columns must be an object');
+    expect(() => df.assign([])).toThrow('Columns must be an object');
+  });
+
+  test('updates existing columns', () => {
+    // Arrange
+    const df = new DataFrame(testData);
+    const originalValue = df.col('value').toArray()[0];
+    const newValues = [100, 200, 300, 400, 500];
+
+    // Act
+    const result = df.assign({ value: newValues });
+
+    // Assert
+    expect(result.col('value').toArray()).toEqual(newValues); // New DataFrame has updated values
+    expect(df.col('value').toArray()[0]).toBe(originalValue); // Original DataFrame unchanged
   });
 });

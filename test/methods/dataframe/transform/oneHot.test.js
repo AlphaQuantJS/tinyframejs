@@ -23,10 +23,6 @@ describe('DataFrame.oneHot', () => {
       const df = createDataFrameWithStorage(DataFrame, testData, storageType);
 
       test('creates one-hot encoding for a categorical column', () => {
-        // Create a test DataFrame
-        // df created above with createDataFrameWithStorage
-
-        // Call the oneHot method
         const result = df.oneHot('department');
 
         // Check that the result is a DataFrame instance

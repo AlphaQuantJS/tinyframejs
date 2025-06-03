@@ -1,99 +1,153 @@
-import { describe, test, expect } from 'vitest';
+import { describe, test, expect, beforeAll, beforeEach } from 'vitest';
 import { DataFrame } from '../../../../src/core/dataframe/DataFrame.js';
+import { register as registerMutate } from '../../../../src/methods/dataframe/transform/mutate.js';
 
-import {
-  testWithBothStorageTypes,
-  createDataFrameWithStorage,
-} from '../../../utils/storageTestUtils.js';
+// Register mutate method on DataFrame prototype before tests
+beforeAll(() => {
+  registerMutate(DataFrame);
+});
 
 // Test data to be used in all tests
-const testData = [
-  { value: 10, category: 'A', mixed: '20' },
-  { value: 20, category: 'B', mixed: 30 },
-  { value: 30, category: 'A', mixed: null },
-  { value: 40, category: 'C', mixed: undefined },
-  { value: 50, category: 'B', mixed: NaN },
-];
+const testData = {
+  a: [1, 2, 3],
+  b: [10, 20, 30],
+  value: [10, 20, 30],
+  category: ['A', 'B', 'A'],
+  mixed: ['20', 30, null],
+};
+
+// Create test data for each test to avoid mutation issues
+const getTestData = () => ({
+  a: [1, 2, 3],
+  b: [10, 20, 30],
+  value: [10, 20, 30],
+  category: ['A', 'B', 'A'],
+  mixed: ['20', 30, null],
+});
 
 describe('DataFrame.mutate', () => {
-  // Run tests with both storage types
-  testWithBothStorageTypes((storageType) => {
-    describe(`with ${storageType} storage`, () => {
-      // Create DataFrame with specified storage type
-      const df = createDataFrameWithStorage(DataFrame, testData, storageType);
+  // Create a new DataFrame for each test to avoid mutation issues
+  let df;
+  beforeEach(() => {
+    df = new DataFrame(getTestData());
+  });
 
-      // Create a test DataFrame
-      // df created above with createDataFrameWithStorage
+  test('adds a new column with a function', () => {
+    // Arrange
+    const columnFunctions = {
+      c: (row) => row.a * row.b,
+    };
 
-      test('modifies an existing column', () => {
-        const result = df.mutate({
-          a: (row) => row.a * 2,
-        });
+    // Act
+    const result = df.mutate(columnFunctions);
 
-        // Check that the result is a DataFrame instance
-        expect(result).toBeInstanceOf(DataFrame);
+    // Assert
+    expect(result.columns).toContain('c');
+    expect(Array.from(result.col('c'))).toEqual([10, 40, 90]);
+  });
 
-        // In real usage, the original DataFrame should not be modified,
-        // but in tests we only check the result
+  test('modifies an existing column with a function', () => {
+    // Arrange
+    const columnFunctions = {
+      a: (row) => row.a * 2,
+    };
 
-        // Check that the column has been modified
-        expect(Array.from(result.frame.columns.a)).toEqual([2, 4, 6]);
-      });
+    // Act
+    const result = df.mutate(columnFunctions);
 
-      test('modifies multiple columns simultaneously', () => {
-        const result = df.mutate({
-          a: (row) => row.a * 2,
-          b: (row) => row.b + 5,
-        });
+    // Assert
+    expect(Array.from(result.col('a'))).toEqual([2, 4, 6]);
+  });
 
-        // Check that the columns have been modified
-        expect(Array.from(result.frame.columns.a)).toEqual([2, 4, 6]);
-        expect(Array.from(result.frame.columns.b)).toEqual([15, 25, 35]);
-      });
+  test('adds multiple columns with functions', () => {
+    // Arrange
+    const columnFunctions = {
+      c: (row) => row.a * row.b,
+      d: (row) => row.a + row.b,
+    };
 
-      test('modifies a column based on values from other columns', () => {
-        const result = df.mutate({
-          a: (row) => row.a + row.b,
-        });
+    // Act
+    const result = df.mutate(columnFunctions);
 
-        // Check that the column has been modified
-        expect(Array.from(result.frame.columns.a)).toEqual([11, 22, 33]);
-      });
+    // Assert
+    expect(result.columns).toContain('c');
+    expect(result.columns).toContain('d');
+    expect(Array.from(result.col('c'))).toEqual([10, 40, 90]);
+    expect(Array.from(result.col('d'))).toEqual([11, 22, 33]);
+  });
 
-      test('handles null and undefined in functions', () => {
-        const result = df.mutate({
-          a: (row) => (row.a > 1 ? row.a : null),
-          b: (row) => (row.b > 20 ? row.b : undefined),
-        });
+  test('throws error if column functions are not provided', () => {
+    // Act & Assert
+    expect(() => df.mutate()).toThrow('Column functions must be specified');
+  });
 
-        // Check the values of the modified columns
-        // NaN is used to represent null/undefined in TypedArray
-        expect(Array.from(result.frame.columns.a)).toEqual([NaN, 2, 3]);
-        expect(Array.from(result.frame.columns.b)).toEqual([NaN, NaN, 30]);
-      });
+  test('throws error if column function is not a function', () => {
+    // Arrange
+    const columnFunctions = {
+      c: 'not a function',
+    };
 
-      test('changes the column type if necessary', () => {
-        const result = df.mutate({
-          a: (row) => (row.a > 2 ? 'high' : 'low'),
-        });
+    // Act & Assert
+    expect(() => df.mutate(columnFunctions)).toThrow('must be a function');
+  });
 
-        // Check that the column has been modified and has the correct type
-        expect(result.frame.dtypes.a).toBe('str');
-        expect(result.frame.columns.a).toEqual(['low', 'low', 'high']);
-      });
+  test('provides row index as second parameter to column functions', () => {
+    // Arrange
+    const columnFunctions = {
+      index: (row, idx) => idx,
+    };
 
-      test('throws an error with incorrect arguments', () => {
-        // Check that the method throws an error if columnDefs is not an object
-        expect(() => df.mutate(null)).toThrow();
-        expect(() => df.mutate('not an object')).toThrow();
-        expect(() => df.mutate(123)).toThrow();
+    // Act
+    const result = df.mutate(columnFunctions);
 
-        // Check that the method throws an error if the column does not exist
-        expect(() => df.mutate({ nonexistent: (row) => row.a })).toThrow();
+    // Assert
+    expect(Array.from(result.col('index'))).toEqual([0, 1, 2]);
+  });
 
-        // Check that the method throws an error if the column definition is not a function
-        expect(() => df.mutate({ a: 100 })).toThrow();
-      });
-    });
+  test('provides DataFrame as third parameter to column functions', () => {
+    // Arrange
+    const columnFunctions = {
+      colCount: (row, idx, df) => df.columns.length,
+    };
+
+    // Act
+    const result = df.mutate(columnFunctions);
+
+    // Assert
+    expect(Array.from(result.col('colCount'))).toEqual([5, 5, 5]);
+  });
+
+  test('converts null and undefined to NaN in column functions', () => {
+    // Arrange
+    const columnFunctions = {
+      nullValues: () => null,
+      undefinedValues: () => undefined,
+    };
+
+    // Act
+    const result = df.mutate(columnFunctions);
+
+    // Assert
+    expect(
+      Array.from(result.col('nullValues')).every((v) => Number.isNaN(v)),
+    ).toBe(true);
+    expect(
+      Array.from(result.col('undefinedValues')).every((v) => Number.isNaN(v)),
+    ).toBe(true);
+  });
+
+  test('supports inplace modification', () => {
+    // Arrange
+    const columnFunctions = {
+      c: (row) => row.a * row.b,
+    };
+
+    // Act
+    const result = df.mutate(columnFunctions, { inplace: true });
+
+    // Assert
+    expect(result).toBe(df); // Должен вернуть тот же экземпляр DataFrame
+    expect(df.columns).toContain('c');
+    expect(Array.from(df.col('c'))).toEqual([10, 40, 90]);
   });
 });

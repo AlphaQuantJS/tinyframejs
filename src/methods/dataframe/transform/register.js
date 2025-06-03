@@ -3,12 +3,14 @@
  */
 
 // Import transformation methods
-import { assign } from './assign.js';
-import { apply } from './apply.js';
-import { categorize } from './categorize.js';
-import { cut } from './cut.js';
-import { join } from './join.js';
-import { sort } from './sort.js';
+import { register as registerAssign } from './assign.js';
+import { register as registerApply } from './apply.js';
+import { register as registerCategorize } from './categorize.js';
+import { register as registerCut } from './cut.js';
+import { register as registerJoin } from './join.js';
+import { register as registerSort } from './sort.js';
+import { register as registerStack } from './stack.js';
+import { register as registerOneHot } from './oneHot.js';
 
 /**
  * Registers all transformation methods for DataFrame
@@ -25,20 +27,14 @@ export function registerDataFrameTransform(DataFrame) {
 
   try {
     // Register individual transformation methods
-    DataFrame.prototype.assign = assign();
-    DataFrame.prototype.apply = apply();
-    DataFrame.prototype.categorize = categorize();
-    DataFrame.prototype.cut = cut();
-    DataFrame.prototype.join = join();
-
-    // Sorting methods
-    DataFrame.prototype.sort = sort({
-      validateColumn: (frame, column) => {
-        if (!frame.columns.includes(column)) {
-          throw new Error(`Column '${column}' not found`);
-        }
-      },
-    });
+    registerAssign(DataFrame);
+    registerApply(DataFrame);
+    registerCategorize(DataFrame);
+    registerCut(DataFrame);
+    registerJoin(DataFrame);
+    registerStack(DataFrame);
+    registerOneHot(DataFrame);
+    registerSort(DataFrame);
   } catch (error) {
     console.error('Error registering transformation methods:', error.message);
   }

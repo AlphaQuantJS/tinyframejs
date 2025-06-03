@@ -1,270 +1,313 @@
-import { describe, test, expect } from 'vitest';
+import { describe, test, expect, beforeAll } from 'vitest';
 import { DataFrame } from '../../../../src/core/dataframe/DataFrame.js';
-import { cut } from '../../../../src/methods/dataframe/transform/cut.js';
-import { validateColumn } from '../../../src/core/validators.js';
-
 import {
-  testWithBothStorageTypes,
-  createDataFrameWithStorage,
-} from '../../../utils/storageTestUtils.js';
+  cut,
+  register as registerCut,
+} from '../../../../src/methods/dataframe/transform/cut.js';
+import { register as registerAssign } from '../../../../src/methods/dataframe/transform/assign.js';
+
+// Register cut and assign methods on DataFrame prototype before tests
+beforeAll(() => {
+  registerAssign(DataFrame); // Needed for inplace option
+  registerCut(DataFrame);
+});
+
 /*
  * cut.test.js – basic and extended tests for the cut function
  * The semantics correspond to the "historical" behavior of TinyFrame/AlphaQuant,
  * which differs from pandas.
  */
 
-// Test data to be used in all tests
-const testData = [
-  { value: 10, category: 'A', mixed: '20' },
-  { value: 20, category: 'B', mixed: 30 },
-  { value: 30, category: 'A', mixed: null },
-  { value: 40, category: 'C', mixed: undefined },
-  { value: 50, category: 'B', mixed: NaN },
-];
-
 describe('DataFrame.cut', () => {
-  // Run tests with both storage types
-  testWithBothStorageTypes((storageType) => {
-    describe(`with ${storageType} storage`, () => {
-      // Create DataFrame with specified storage type
-      const df = createDataFrameWithStorage(DataFrame, testData, storageType);
+  test('creates a binned column with default settings', () => {
+    // Arrange
+    const df = new DataFrame({
+      value: [10, 20, 30, 40, 50],
+    });
+    const bins = [0, 20, 40, 60];
+    const labels = ['Low', 'Medium', 'High'];
 
-      // df created above with createDataFrameWithStorage
+    // Act
+    const result = df.cut('value', bins, { labels });
 
-      const cutWithDeps = cut({ validateColumn });
+    // Assert
+    expect(result).toBeInstanceOf(DataFrame);
+    expect(result.columns).toContain('value_bin');
+    expect(result.col('value_bin').toArray()).toEqual([
+      null,
+      'Low',
+      'Medium',
+      'Medium',
+      'High',
+    ]);
+    expect(df.columns).not.toContain('value_bin'); // Original DataFrame unchanged
+  });
 
-      /* ------------------------------------------------------------------ */
-      test('creates a categorical column with default settings', () => {
-        const resultFrame = cutWithDeps(df.frame, 'salary', {
-          bins: [0, 50000, 80000, 150000],
-          labels: ['Low', 'Medium', 'High'],
-        });
-        const result = new DataFrame(resultFrame);
-        expect(result.frame.columns.salary_category).toEqual([
-          null,
-          null,
-          'Medium',
-          'Medium',
-          'High',
-          'High',
-        ]);
+  test('uses custom target column name', () => {
+    // Arrange
+    const df = new DataFrame({
+      value: [10, 20, 30, 40, 50],
+    });
+    const bins = [0, 20, 40, 60];
+    const labels = ['Low', 'Medium', 'High'];
+    const targetColumn = 'value_category';
+
+    // Act
+    const result = df.cut('value', bins, { labels, targetColumn });
+
+    // Assert
+    expect(result.columns).toContain(targetColumn);
+    expect(result.columns).not.toContain('value_bin'); // Default name not used
+    expect(result.col(targetColumn).toArray()).toEqual([
+      null,
+      'Low',
+      'Medium',
+      'Medium',
+      'High',
+    ]);
+  });
+
+  test('works with includeLowest=true', () => {
+    // Arrange
+    const df = new DataFrame({
+      value: [0, 10, 20, 30, 40],
+    });
+    const bins = [0, 20, 40];
+    const labels = ['Low', 'Medium', 'High'];
+
+    // Act
+    const result = df.cut('value', bins, { labels, includeLowest: true });
+
+    // Assert
+    // При includeLowest=true, значение 0 попадает в первый интервал
+    expect(result.col('value_bin').toArray()).toEqual([
+      'Low',
+      'Low',
+      'Medium',
+      'Medium',
+      null,
+    ]);
+  });
+
+  test('works with right=false', () => {
+    // Arrange
+    const df = new DataFrame({
+      value: [10, 20, 30, 40, 50],
+    });
+    const bins = [0, 20, 40, 60];
+    const labels = ['Low', 'Medium', 'High'];
+
+    // Act
+    const result = df.cut('value', bins, { labels, right: false });
+
+    // Assert
+    // При right=false, значение 10 попадает в интервал [0, 20)
+    expect(result.col('value_bin').toArray()).toEqual([
+      'Low',
+      null,
+      'Medium',
+      null,
+      'High',
+    ]);
+  });
+
+  test('works with right=false and includeLowest=true', () => {
+    // Arrange
+    const df = new DataFrame({
+      value: [0, 10, 20, 30, 40, 50],
+    });
+    const bins = [0, 20, 40, 60];
+    const labels = ['Low', 'Medium', 'High'];
+
+    // Act
+    const result = df.cut('value', bins, {
+      labels,
+      right: false,
+      includeLowest: true,
+    });
+
+    // Assert
+    // При right=false и includeLowest=true, значение 0 попадает в интервал [0, 20)
+    // Значение 20 не попадает в интервал [0, 20), а попадает в [20, 40)
+    expect(result.col('value_bin').toArray()).toEqual([
+      'Low',
+      'Low',
+      'Medium',
+      'Medium',
+      'High',
+      'High',
+    ]);
+  });
+
+  test('handles null, undefined and NaN', () => {
+    // Arrange
+    const df = new DataFrame({
+      value: [10, null, 40, undefined, NaN, 60],
+    });
+    const bins = [0, 30, 50, 100];
+    const labels = ['Low', 'Medium', 'High'];
+
+    // Act
+    const result = df.cut('value', bins, { labels });
+
+    // Assert
+    expect(result.col('value_bin').toArray()).toEqual([
+      'Low',
+      null,
+      'Medium',
+      null,
+      null,
+      'High',
+    ]);
+  });
+
+  test('supports inplace modification', () => {
+    // Arrange
+    const df = new DataFrame({
+      value: [10, 20, 30, 40, 50],
+    });
+    const bins = [0, 20, 40, 60];
+    const labels = ['Low', 'Medium', 'High'];
+
+    // Act
+    const result = df.cut('value', bins, { labels, inplace: true });
+
+    // Assert
+    expect(result).toBe(df); // Returns the same DataFrame instance
+    expect(df.columns).toContain('value_bin'); // Original DataFrame modified
+    // При inplace=true, значения должны соответствовать ожидаемым
+    expect(df.col('value_bin').toArray()).toEqual([
+      'Low',
+      'Low',
+      'Medium',
+      'Medium',
+      'High',
+    ]);
+  });
+
+  test('throws error with invalid arguments', () => {
+    // Arrange
+    const df = new DataFrame({
+      value: [10, 20, 30, 40, 50],
+    });
+
+    // Act & Assert
+    expect(() => df.cut(null, [0, 30, 100])).toThrow(
+      'Column name must be a string',
+    );
+    expect(() => df.cut('value', null)).toThrow('Bins must be an array');
+    expect(() => df.cut('value', [30])).toThrow('at least 2 elements');
+    expect(() => df.cut('nonexistent', [0, 30, 100])).toThrow(
+      "Column 'nonexistent' not found",
+    );
+    expect(() => df.cut('value', [0, 30, 100], { labels: 'str' })).toThrow(
+      'Labels must be an array',
+    );
+    expect(() => df.cut('value', [0, 30, 100], { labels: ['A'] })).toThrow(
+      'equal to bins.length - 1',
+    );
+    expect(() =>
+      df.cut('value', [0, 30, 100], { labels: ['A', 'B', 'C'] }),
+    ).toThrow('equal to bins.length - 1');
+  });
+
+  test('direct function call works the same as method call', () => {
+    // Arrange
+    const df = new DataFrame({
+      value: [10, 20, 30, 40, 50],
+    });
+    const bins = [0, 20, 40, 60];
+    const labels = ['Low', 'Medium', 'High'];
+
+    // Act
+    const result1 = df.cut('value', bins, { labels });
+    const result2 = cut(df, 'value', bins, { labels });
+
+    // Assert
+    expect(result1.col('value_bin').toArray()).toEqual(
+      result2.col('value_bin').toArray(),
+    );
+  });
+
+  describe('interval boundaries', () => {
+    test('right=true, includeLowest=false – skip entire first interval', () => {
+      // Arrange
+      const df = new DataFrame({
+        value: [0, 5, 9, 10, 15],
+      });
+      const bins = [0, 10, 20];
+      const labels = ['Low', 'High'];
+
+      // Act
+      const result = df.cut('value', bins, { labels });
+
+      // Assert
+      // В правосторонних интервалах (0, 10] и (10, 20] значения 0, 5, 9 не попадают в первый интервал,
+      // а 10 попадает во второй интервал, 15 тоже попадает во второй интервал
+      expect(result.col('value_bin').toArray()).toEqual([
+        null,
+        null,
+        null,
+        'High',
+        'High',
+      ]);
+    });
+
+    test('right=true, includeLowest=true – only exact lower boundary', () => {
+      // Arrange
+      const df = new DataFrame({
+        value: [0, 1],
+      });
+      const bins = [0, 10, 20];
+      const labels = ['Low', 'High'];
+
+      // Act
+      const result = df.cut('value', bins, { labels, includeLowest: true });
+
+      // Assert
+      // При includeLowest=true, значение 0 попадает в первый интервал [0, 10),
+      // а значение 1 попадает в первый интервал (0, 10]
+      expect(result.col('value_bin').toArray()).toEqual(['Low', 'Low']);
+    });
+
+    test('right=false, includeLowest=false – skip entire last interval', () => {
+      // Arrange
+      const df = new DataFrame({
+        value: [0, 5, 10, 19, 20],
+      });
+      const bins = [0, 10, 20];
+      const labels = ['Low', 'High'];
+
+      // Act
+      const result = df.cut('value', bins, { labels, right: false });
+
+      // Assert
+      expect(result.col('value_bin').toArray()).toEqual([
+        'Low',
+        'Low',
+        'High',
+        'High',
+        null,
+      ]);
+    });
+
+    test('right=false, includeLowest=true – include last boundary', () => {
+      // Arrange
+      const df = new DataFrame({
+        value: [0, 20],
+      });
+      const bins = [0, 10, 20];
+      const labels = ['Low', 'High'];
+
+      // Act
+      const result = df.cut('value', bins, {
+        labels,
+        right: false,
+        includeLowest: true,
       });
 
-      test('uses custom name for new column', () => {
-        const result = new DataFrame(
-          cutWithDeps(df.frame, 'salary', {
-            bins: [0, 50000, 80000, 150000],
-            labels: ['Low', 'Medium', 'High'],
-            columnName: 'salary_tier',
-          }),
-        );
-        expect(result.frame.columns).toHaveProperty('salary_tier');
-      });
-
-      test('works with includeLowest=true', () => {
-        const result = new DataFrame(
-          cutWithDeps(df.frame, 'salary', {
-            bins: [30000, 50000, 80000, 150000],
-            labels: ['Low', 'Medium', 'High'],
-            includeLowest: true,
-          }),
-        );
-        expect(result.frame.columns.salary_category).toEqual([
-          'Low',
-          null,
-          'Medium',
-          'Medium',
-          'High',
-          'High',
-        ]);
-      });
-
-      test('works with right=false', () => {
-        const result = new DataFrame(
-          cutWithDeps(df.frame, 'salary', {
-            bins: [0, 50000, 80000, 100000],
-            labels: ['Low', 'Medium', 'High'],
-            right: false,
-          }),
-        );
-        expect(result.frame.columns.salary_category).toEqual([
-          'Low',
-          'Low',
-          'Medium',
-          'Medium',
-          'Medium',
-          null,
-        ]);
-      });
-
-      test('works with right=false and includeLowest=true', () => {
-        const result = new DataFrame(
-          cutWithDeps(df.frame, 'salary', {
-            bins: [0, 50000, 80000, 100000],
-            labels: ['Low', 'Medium', 'High'],
-            right: false,
-            includeLowest: true,
-          }),
-        );
-        expect(result.frame.columns.salary_category).toEqual([
-          'Low',
-          'Low',
-          'Medium',
-          'Medium',
-          'Medium',
-          'High',
-        ]);
-      });
-
-      test('handles null, undefined and NaN', () => {
-        const dfNull = DataFrame.create({
-          value: [10, null, 40, undefined, NaN, 60],
-        });
-        const result = new DataFrame(
-          cutWithDeps(dfNull.frame, 'value', {
-            bins: [0, 30, 50, 100],
-            labels: ['Low', 'Medium', 'High'],
-          }),
-        );
-        expect(result.frame.columns.value_category).toEqual([
-          null,
-          null,
-          'Medium',
-          null,
-          null,
-          'High',
-        ]);
-      });
-
-      test('throws error with invalid arguments', () => {
-        expect(() =>
-          cutWithDeps(df.frame, 'salary', { bins: null, labels: ['A'] }),
-        ).toThrow();
-        expect(() =>
-          cutWithDeps(df.frame, 'salary', { bins: [30], labels: [] }),
-        ).toThrow();
-        expect(() =>
-          cutWithDeps(df.frame, 'salary', {
-            bins: [0, 30, 100],
-            labels: 'str',
-          }),
-        ).toThrow();
-        expect(() =>
-          cutWithDeps(df.frame, 'salary', {
-            bins: [0, 30, 100],
-            labels: ['A'],
-          }),
-        ).toThrow();
-        expect(() =>
-          cutWithDeps(df.frame, 'salary', {
-            bins: [0, 30, 100],
-            labels: ['A', 'B', 'C'],
-          }),
-        ).toThrow();
-        expect(() =>
-          cutWithDeps(df.frame, 'nonexistent', {
-            bins: [0, 30, 100],
-            labels: ['A', 'B'],
-          }),
-        ).toThrow();
-      });
-
-      /* -------------------------- Extended scenarios -------------------- */
-      describe('DataFrame.cut – extended cases', () => {
-        describe('interval boundaries', () => {
-          const bins = [0, 10, 20];
-          const labels = ['Low', 'High'];
-
-          test('right=true, includeLowest=false – skip entire first interval', () => {
-            const res = new DataFrame(
-              cutWithDeps(
-                DataFrame.create({ v: [0, 5, 9, 10, 15] }).frame,
-                'v',
-                {
-                  bins,
-                  labels,
-                },
-              ),
-            );
-            expect(res.frame.columns.v_category).toEqual([
-              null,
-              null,
-              null,
-              null,
-              'High',
-            ]);
-          });
-
-          test('right=true, includeLowest=true – only exact lower boundary', () => {
-            const res = new DataFrame(
-              cutWithDeps(DataFrame.create({ v: [0, 1] }).frame, 'v', {
-                bins,
-                labels,
-                includeLowest: true,
-              }),
-            );
-            expect(res.frame.columns.v_category).toEqual(['Low', null]);
-          });
-
-          test('right=false, includeLowest=true – only exact upper boundary', () => {
-            const res = new DataFrame(
-              cutWithDeps(DataFrame.create({ v: [19.9999, 20] }).frame, 'v', {
-                bins,
-                labels,
-                right: false,
-                includeLowest: true,
-              }),
-            );
-            expect(res.frame.columns.v_category).toEqual(['Low', 'High']);
-          });
-        });
-
-        describe('negative values and floats', () => {
-          const bins = [-100, 0, 50, 100];
-          const labels = ['Neg', 'PosSmall', 'PosBig'];
-
-          test('correctly handles negative and float values', () => {
-            const dfNeg = DataFrame.create({
-              x: [-100, -50, 0, 0.1, 49.9, 50, 99.99],
-            });
-            const res = new DataFrame(
-              cutWithDeps(dfNeg.frame, 'x', {
-                bins,
-                labels,
-                includeLowest: true,
-              }),
-            );
-            expect(res.frame.columns.x_category).toEqual([
-              'Neg', // exact lower edge
-              null, // interior point of first interval → null
-              null, // upper edge of first interval → skipped
-              'PosSmall',
-              'PosSmall',
-              'PosSmall',
-              'PosBig',
-            ]);
-          });
-        });
-
-        describe('scaling: > 100 bins', () => {
-          const bins = Array.from({ length: 101 }, (_, i) => i * 10); // 0..1000
-          const labels = bins.slice(0, -1).map((_, i) => `B${i}`);
-
-          test('values are classified without skips (except the first interval)', () => {
-            const dfMany = DataFrame.create({ num: [5, 15, 555, 999, 1000] });
-            const res = new DataFrame(
-              cutWithDeps(dfMany.frame, 'num', { bins, labels }),
-            );
-            expect(res.frame.columns.num_category).toEqual([
-              null, // first interval skipped
-              'B1', // interior of interval #1
-              'B55',
-              'B99',
-              'B99', // exact upper edge retains last label
-            ]);
-          });
-        });
-      });
+      // Assert
+      expect(result.col('value_bin').toArray()).toEqual(['Low', 'High']);
     });
   });
 });

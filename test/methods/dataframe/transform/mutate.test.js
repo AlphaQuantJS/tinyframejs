@@ -43,7 +43,7 @@ describe('DataFrame.mutate', () => {
 
     // Assert
     expect(result.columns).toContain('c');
-    expect(Array.from(result.col('c'))).toEqual([10, 40, 90]);
+    expect(result.col('c').toArray()).toEqual([10, 40, 90]);
   });
 
   test('modifies an existing column with a function', () => {
@@ -56,7 +56,7 @@ describe('DataFrame.mutate', () => {
     const result = df.mutate(columnFunctions);
 
     // Assert
-    expect(Array.from(result.col('a'))).toEqual([2, 4, 6]);
+    expect(result.col('a').toArray()).toEqual([2, 4, 6]);
   });
 
   test('adds multiple columns with functions', () => {
@@ -72,8 +72,8 @@ describe('DataFrame.mutate', () => {
     // Assert
     expect(result.columns).toContain('c');
     expect(result.columns).toContain('d');
-    expect(Array.from(result.col('c'))).toEqual([10, 40, 90]);
-    expect(Array.from(result.col('d'))).toEqual([11, 22, 33]);
+    expect(result.col('c').toArray()).toEqual([10, 40, 90]);
+    expect(result.col('d').toArray()).toEqual([11, 22, 33]);
   });
 
   test('throws error if column functions are not provided', () => {
@@ -101,7 +101,7 @@ describe('DataFrame.mutate', () => {
     const result = df.mutate(columnFunctions);
 
     // Assert
-    expect(Array.from(result.col('index'))).toEqual([0, 1, 2]);
+    expect(result.col('index').toArray()).toEqual([0, 1, 2]);
   });
 
   test('provides DataFrame as third parameter to column functions', () => {
@@ -114,7 +114,7 @@ describe('DataFrame.mutate', () => {
     const result = df.mutate(columnFunctions);
 
     // Assert
-    expect(Array.from(result.col('colCount'))).toEqual([5, 5, 5]);
+    expect(result.col('colCount').toArray()).toEqual([5, 5, 5]);
   });
 
   test('converts null and undefined to NaN in column functions', () => {
@@ -129,10 +129,16 @@ describe('DataFrame.mutate', () => {
 
     // Assert
     expect(
-      Array.from(result.col('nullValues')).every((v) => Number.isNaN(v)),
+      result
+        .col('nullValues')
+        .toArray()
+        .every((v) => Number.isNaN(v)),
     ).toBe(true);
     expect(
-      Array.from(result.col('undefinedValues')).every((v) => Number.isNaN(v)),
+      result
+        .col('undefinedValues')
+        .toArray()
+        .every((v) => Number.isNaN(v)),
     ).toBe(true);
   });
 
@@ -148,6 +154,6 @@ describe('DataFrame.mutate', () => {
     // Assert
     expect(result).toBe(df); // Должен вернуть тот же экземпляр DataFrame
     expect(df.columns).toContain('c');
-    expect(Array.from(df.col('c'))).toEqual([10, 40, 90]);
+    expect(df.col('c').toArray()).toEqual([10, 40, 90]);
   });
 });

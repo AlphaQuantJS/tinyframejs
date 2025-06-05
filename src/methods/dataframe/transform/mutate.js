@@ -1,5 +1,4 @@
 import { Series } from '../../../core/dataframe/Series.js';
-import { VectorFactory } from '../../../core/storage/VectorFactory.js';
 
 /**
  * Creates new columns or modifies existing columns in a DataFrame by applying functions to each row
@@ -18,35 +17,50 @@ export function mutate(df, columnFunctions, options = {}) {
     throw new Error('Column functions must be specified as an object');
   }
 
-  // Get row count
+  // Get row count and columns for processing
   const rowCount = df.rowCount;
+  const columns = df.columns;
 
-  // Convert DataFrame to array of row objects for processing
-  const rows = df.toArray();
+  // Process column functions and create new column arrays
+  const newColumns = {};
 
-  // If inplace=true, modify DataFrame directly
+  // For each column function
+  for (const [colName, colFunc] of Object.entries(columnFunctions)) {
+    if (typeof colFunc !== 'function') {
+      throw new Error(`Value for column '${colName}' must be a function`);
+    }
+
+    // Create array for new column values
+    const colValues = new Array(rowCount);
+
+    // Process each row
+    for (let i = 0; i < rowCount; i++) {
+      // Build row object for this index
+      const row = {};
+      for (const col of columns) {
+        row[col] = df.col(col).get(i);
+      }
+
+      // Apply the transformation function with correct parameters
+      let result = colFunc(row, i, df);
+
+      // Convert null/undefined to NaN
+      if (result === null || result === undefined) {
+        result = NaN;
+      }
+
+      colValues[i] = result;
+    }
+
+    // Store the column values
+    newColumns[colName] = colValues;
+  }
+
   if (inplace) {
-    // Apply mutation functions to each column
-    for (const [colName, colFunc] of Object.entries(columnFunctions)) {
-      if (typeof colFunc !== 'function') {
-        throw new Error(`Value for column '${colName}' must be a function`);
-      }
-
-      // Create new column by applying function to each row
-      const values = [];
-
-      // Process each row
-      for (let i = 0; i < rowCount; i++) {
-        // Apply the transformation function with correct parameters
-        const result = colFunc(rows[i], i, df);
-
-        // Convert null/undefined to NaN
-        values.push(result === null || result === undefined ? NaN : result);
-      }
-
-      // Create new Series for this column
-      const vector = VectorFactory.from(values);
-      const series = new Series(vector, { name: colName });
+    // Update existing columns and add new ones
+    for (const [colName, colValues] of Object.entries(newColumns)) {
+      // Create a new Series for this column
+      const series = new Series(colValues, { name: colName });
 
       // Update or add Series to DataFrame
       df._columns[colName] = series;
@@ -62,36 +76,27 @@ export function mutate(df, columnFunctions, options = {}) {
     // Return the original DataFrame
     return df;
   } else {
-    // Create a new object to store all columns
+    // Create a new DataFrame with all columns
     const newData = {};
 
-    // Copy existing columns
-    for (const col of df.columns) {
-      newData[col] = df.col(col).toArray();
-    }
-
-    // Apply mutation functions to each column
-    for (const [colName, colFunc] of Object.entries(columnFunctions)) {
-      if (typeof colFunc !== 'function') {
-        throw new Error(`Value for column '${colName}' must be a function`);
-      }
-
-      // Create new column
-      newData[colName] = [];
-
-      // Process each row
-      for (let i = 0; i < rowCount; i++) {
-        // Apply the transformation function with correct parameters
-        const result = colFunc(rows[i], i, df);
-
-        // Convert null/undefined to NaN
-        newData[colName].push(
-          result === null || result === undefined ? NaN : result,
-        );
+    // Copy existing columns that aren't being modified
+    for (const col of columns) {
+      if (!(col in newColumns)) {
+        newData[col] = df.col(col).toArray();
+      } else {
+        // Use the new values for modified columns
+        newData[col] = newColumns[col];
       }
     }
 
-    // Create a new DataFrame with updated data
+    // Add completely new columns
+    for (const colName of Object.keys(newColumns)) {
+      if (!columns.includes(colName)) {
+        newData[colName] = newColumns[colName];
+      }
+    }
+
+    // Create a new DataFrame with the updated data
     return new df.constructor(newData);
   }
 }

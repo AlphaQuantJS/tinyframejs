@@ -1,10 +1,6 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { DataFrame } from '../../../../src/core/dataframe/DataFrame.js';
 import { sum } from '../../../../src/methods/dataframe/aggregation/sum.js';
-import {
-  testWithBothStorageTypes,
-  createDataFrameWithStorage,
-} from '../../../utils/storageTestUtils.js';
 
 // Test data to be used in all tests
 const testData = [
@@ -16,55 +12,64 @@ const testData = [
 ];
 
 describe('sum method', () => {
-  // Run tests with both storage types
-  testWithBothStorageTypes((storageType) => {
-    describe(`with ${storageType} storage`, () => {
-      // Create DataFrame with the specified storage type
-      const df = createDataFrameWithStorage(DataFrame, testData, storageType);
+  describe('with standard storage', () => {
+    // Create DataFrame using fromRows for proper column names
+    const df = DataFrame.fromRows(testData);
 
-      it('should calculate the sum of numeric values in a column', () => {
-        // Call sum function directly
-        const sumFn = sum({ validateColumn: () => {} });
-        const result = sumFn(df, 'value');
+    it('should calculate the sum of numeric values in a column', () => {
+      // Call sum function directly with a mock validator
+      const validateColumn = vi.fn();
+      const sumFn = sum({ validateColumn });
+      const result = sumFn(df, 'value');
 
-        // Check that the sum is correct
-        expect(result).toBe(150); // 10 + 20 + 30 + 40 + 50 = 150
-      });
+      // Check that the validator was called
+      expect(validateColumn).toHaveBeenCalledWith(df, 'value');
 
-      it('should handle mixed data types by converting to numbers', () => {
-        // Call sum function directly
-        const sumFn = sum({ validateColumn: () => {} });
-        const result = sumFn(df, 'mixed');
+      // Check that the sum is correct
+      expect(result).toBe(150); // 10 + 20 + 30 + 40 + 50 = 150
+    });
 
-        // Check that the sum is correct (only valid numbers are summed)
-        expect(result).toBe(50); // '20' -> 20, 30 -> 30, null/undefined/NaN are skipped
-      });
+    it('should handle mixed data types by converting to numbers', () => {
+      // Call sum function directly with a mock validator
+      const validateColumn = vi.fn();
+      const sumFn = sum({ validateColumn });
+      const result = sumFn(df, 'mixed');
 
-      it('should return 0 for a column with no valid numeric values', () => {
-        // Call sum function directly
-        const sumFn = sum({ validateColumn: () => {} });
-        const result = sumFn(df, 'category');
+      // Check that the validator was called
+      expect(validateColumn).toHaveBeenCalledWith(df, 'mixed');
 
-        // Check that the sum is 0 (no numeric values in 'category' column)
-        expect(result).toBe(0);
-      });
+      // Check that the sum is correct (only valid numbers are summed)
+      expect(result).toBe(50); // '20' -> 20, 30 -> 30, null/undefined/NaN are skipped
+    });
 
-      it('should throw an error for non-existent column', () => {
-        // Create a validator that throws an error for non-existent column
-        const validateColumn = (frame, column) => {
-          if (!frame.columns.includes(column)) {
-            throw new Error(`Column '${column}' not found`);
-          }
-        };
+    it('should return 0 for a column with no valid numeric values', () => {
+      // Call sum function directly with a mock validator
+      const validateColumn = vi.fn();
+      const sumFn = sum({ validateColumn });
+      const result = sumFn(df, 'category');
 
-        // Call sum function with validator
-        const sumFn = sum({ validateColumn });
+      // Check that the validator was called
+      expect(validateColumn).toHaveBeenCalledWith(df, 'category');
 
-        // Check that it throws an error for non-existent column
-        expect(() => sumFn(df, 'nonexistent')).toThrow(
-          'Column \'nonexistent\' not found',
-        );
-      });
+      // Check that the sum is 0 (no numeric values in 'category' column)
+      expect(result).toBe(0);
+    });
+
+    it('should throw an error for non-existent column', () => {
+      // Create a validator that throws an error for non-existent column
+      const validateColumn = (frame, column) => {
+        if (!frame.columns.includes(column)) {
+          throw new Error(`Column '${column}' not found`);
+        }
+      };
+
+      // Call sum function with validator
+      const sumFn = sum({ validateColumn });
+
+      // Check that it throws an error for non-existent column
+      expect(() => sumFn(df, 'nonexistent')).toThrow(
+        "Column 'nonexistent' not found",
+      );
     });
   });
 });

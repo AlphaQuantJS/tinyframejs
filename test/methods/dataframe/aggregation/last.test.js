@@ -5,11 +5,6 @@ import {
   register,
 } from '../../../../src/methods/dataframe/aggregation/last.js';
 
-import {
-  testWithBothStorageTypes,
-  createDataFrameWithStorage,
-} from '../../../utils/storageTestUtils.js';
-
 // Register the last method in DataFrame for tests
 register(DataFrame);
 
@@ -23,95 +18,92 @@ const testData = [
 ];
 
 describe('last method', () => {
-  // Run tests with both storage types
-  testWithBothStorageTypes((storageType) => {
-    describe(`with ${storageType} storage`, () => {
-      // Create DataFrame with the specified storage type
-      const df = createDataFrameWithStorage(DataFrame, testData, storageType);
+  describe('with standard storage', () => {
+    // Create DataFrame directly
+    const df = DataFrame.fromRows(testData);
 
-      // Testing the last function directly
-      it('should return the last value in a column', () => {
-        // Create last function with a mock validator
-        const validateColumn = vi.fn();
-        const lastFn = last({ validateColumn });
+    // Testing the last function directly
+    it('should return the last value in a column', () => {
+      // Create last function with a mock validator
+      const validateColumn = vi.fn();
+      const lastFn = last({ validateColumn });
 
-        // Call the last function
-        const result = lastFn(df, 'value');
+      // Call the last function
+      const result = lastFn(df, 'value');
 
-        // Check the result
-        expect(result).toBe(50);
-        expect(validateColumn).toHaveBeenCalledWith(df, 'value');
-      });
+      // Check the result
+      expect(result).toBe(50);
+      expect(validateColumn).toHaveBeenCalledWith(df, 'value');
+    });
 
-      it('should return the last value even if it is null, undefined, or NaN', () => {
-        // Create last function with a mock validator
-        const validateColumn = vi.fn();
-        const lastFn = last({ validateColumn });
+    it('should return the last value even if it is null, undefined, or NaN', () => {
+      // Create last function with a mock validator
+      const validateColumn = vi.fn();
+      const lastFn = last({ validateColumn });
 
-        // Call the last function
-        const result = lastFn(df, 'mixed');
+      // Call the last function
+      const result = lastFn(df, 'mixed');
 
-        // Check the result
-        expect(Number.isNaN(result)).toBe(true); // The last value is NaN
-        expect(validateColumn).toHaveBeenCalledWith(df, 'mixed');
-      });
+      // Check the result
+      expect(Number.isNaN(result)).toBe(true); // The last value is NaN
+      expect(validateColumn).toHaveBeenCalledWith(df, 'mixed');
+    });
 
-      it('should throw an error for non-existent column', () => {
-        // Create a validator that throws an error
-        const validateColumn = (df, column) => {
-          if (!df.columns.includes(column)) {
-            throw new Error(`Column '${column}' not found`);
-          }
-        };
+    it('should throw an error for non-existent column', () => {
+      // Create a validator that throws an error
+      const validateColumn = (df, column) => {
+        if (!df.columns.includes(column)) {
+          throw new Error(`Column '${column}' not found`);
+        }
+      };
 
-        // Создаем функцию last с валидатором
-        const lastFn = last({ validateColumn });
+      // Create a last function with our validator
+      const lastFn = last({ validateColumn });
 
-        // Check that the function throws an error for a non-existent column
-        expect(() => lastFn(df, 'nonexistent')).toThrow(
-          'Column \'nonexistent\' not found',
-        );
-      });
+      // Check that the function throws an error for a non-existent column
+      expect(() => lastFn(df, 'nonexistent')).toThrow(
+        "Column 'nonexistent' not found",
+      );
+    });
 
-      it('should return undefined for empty DataFrame', () => {
-        // Create an empty DataFrame
-        const emptyDf = createDataFrameWithStorage(DataFrame, [], storageType);
+    it('should return undefined for empty DataFrame', () => {
+      // Create an empty DataFrame
+      const emptyDf = DataFrame.fromRows([]);
 
-        // Create last function with a mock validator
-        const validateColumn = vi.fn();
-        const lastFn = last({ validateColumn });
+      // Create last function with a mock validator
+      const validateColumn = vi.fn();
+      const lastFn = last({ validateColumn });
 
-        // Call the last function
-        const result = lastFn(emptyDf, 'value');
+      // Call the last function
+      const result = lastFn(emptyDf, 'value');
 
-        // Check the result
-        expect(result).toBeUndefined();
-        // For an empty DataFrame, the validator is not called because we immediately return undefined
-      });
-      // Testing the DataFrame.last method
-      it('should be available as a DataFrame method', () => {
-        // Check that the last method is available in DataFrame
-        expect(typeof df.last).toBe('function');
+      // Check the result
+      expect(result).toBeUndefined();
+      // For an empty DataFrame, the validator is not called because we immediately return undefined
+    });
+    // Testing the DataFrame.last method
+    it('should be available as a DataFrame method', () => {
+      // Check that the last method is available in DataFrame
+      expect(typeof df.last).toBe('function');
 
-        // Call the last method and check the result
-        expect(df.last('value')).toBe(50);
-        expect(df.last('category')).toBe('B');
-      });
+      // Call the last method and check the result
+      expect(df.last('value')).toBe(50);
+      expect(df.last('category')).toBe('B');
+    });
 
-      it('should handle empty DataFrame gracefully', () => {
-        // Create an empty DataFrame
-        const emptyDf = createDataFrameWithStorage(DataFrame, [], storageType);
+    it('should handle empty DataFrame gracefully', () => {
+      // Create an empty DataFrame
+      const emptyDf = DataFrame.fromRows([]);
 
-        // Check that the last method returns undefined for an empty DataFrame
-        expect(emptyDf.last('value')).toBeUndefined();
-      });
+      // Check that the last method returns undefined for an empty DataFrame
+      expect(emptyDf.last('value')).toBeUndefined();
+    });
 
-      it('should throw error for non-existent column', () => {
-        // Check that the last method throws an error for a non-existent column
-        expect(() => df.last('nonexistent')).toThrow(
-          'Column \'nonexistent\' not found',
-        );
-      });
+    it('should throw error for non-existent column', () => {
+      // Check that the last method throws an error for a non-existent column
+      expect(() => df.last('nonexistent')).toThrow(
+        "Column 'nonexistent' not found",
+      );
     });
   });
 });

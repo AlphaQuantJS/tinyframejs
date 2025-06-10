@@ -4,145 +4,120 @@
 
 import { describe, test, expect } from 'vitest';
 import { DataFrame } from '../../../../src/core/dataframe/DataFrame.js';
+import registerDataFrameFiltering from '../../../../src/methods/dataframe/filtering/register.js';
 
-import {
-  testWithBothStorageTypes,
-  createDataFrameWithStorage,
-} from '../../../utils/storageTestUtils.js';
-
-// Тестовые данные для использования во всех тестах
-const testData = {
-  name: ['Alice', 'Bob', 'Charlie', 'David', 'Eve'],
-  age: [25, 30, 35, 40, 45],
-  city: ['New York', 'San Francisco', 'Chicago', 'Boston', 'Seattle'],
-  salary: [70000, 85000, 90000, 95000, 100000],
-};
+// Test data for use in all tests
+const testData = [
+  { name: 'Alice', age: 25, city: 'New York', salary: 70000 },
+  { name: 'Bob', age: 30, city: 'San Francisco', salary: 85000 },
+  { name: 'Charlie', age: 35, city: 'Chicago', salary: 90000 },
+  { name: 'David', age: 40, city: 'Boston', salary: 95000 },
+  { name: 'Eve', age: 45, city: 'Seattle', salary: 100000 },
+];
 
 describe('ILoc Method', () => {
-  // Запускаем тесты с обоими типами хранилища
-  testWithBothStorageTypes((storageType) => {
-    describe(`with ${storageType} storage`, () => {
-      // Создаем DataFrame с указанным типом хранилища
-      const df = createDataFrameWithStorage(DataFrame, testData, storageType);
+  // Регистрируем методы фильтрации для DataFrame
+  registerDataFrameFiltering(DataFrame);
 
-      // Создаем DataFrame с типизированными массивами для тестирования сохранения типов
-      const typedData = {
-        name: ['Alice', 'Bob', 'Charlie', 'David', 'Eve'],
-        age: new Int32Array([25, 30, 35, 40, 45]),
-        city: ['New York', 'San Francisco', 'Chicago', 'Boston', 'Seattle'],
-        salary: new Float64Array([70000, 85000, 90000, 95000, 100000]),
-      };
-      const typedDf = createDataFrameWithStorage(
-        DataFrame,
-        typedData,
-        storageType,
-      );
+  describe('with standard storage', () => {
+    // Create DataFrame using fromRows
+    const df = DataFrame.fromRows(testData);
 
-      test('should select rows and columns by integer positions', () => {
-        // df создан выше с помощью createDataFrameWithStorage
-        const result = df.iloc([1, 3], [0, 2]);
+    // Create DataFrame with typed arrays for testing type preservation
+    const typedDf = DataFrame.fromRows(testData, {
+      columns: {
+        age: { type: 'int32' },
+        salary: { type: 'float64' },
+      },
+    });
 
-        // Check that the result has the correct rows and columns
-        expect(result.rowCount).toBe(2);
-        expect(result.columns).toEqual(['name', 'city']);
-        expect(result.toArray()).toEqual([
-          { name: 'Bob', city: 'San Francisco' },
-          { name: 'David', city: 'Boston' },
-        ]);
-      });
+    test('should select rows and columns by integer positions', () => {
+      const result = df.iloc([1, 3], [0, 2]);
 
-      test('should select a single row and multiple columns', () => {
-        // df создан выше с помощью createDataFrameWithStorage
-        const result = df.iloc(2, [0, 1, 2]);
+      // Check that the result has the correct rows and columns
+      expect(result.rowCount).toBe(2);
+      expect(result.columns).toEqual(['name', 'city']);
+      expect(result.toArray()).toEqual([
+        { name: 'Bob', city: 'San Francisco' },
+        { name: 'David', city: 'Boston' },
+      ]);
+    });
 
-        // Check that the result has the correct row and columns
-        expect(result.rowCount).toBe(1);
-        expect(result.columns).toEqual(['name', 'age', 'city']);
-        expect(result.toArray()).toEqual([
-          { name: 'Charlie', age: 35, city: 'Chicago' },
-        ]);
-      });
+    test('should select a single row and multiple columns', () => {
+      const result = df.iloc(2, [0, 1, 2]);
 
-      test('should select multiple rows and a single column', () => {
-        // df создан выше с помощью createDataFrameWithStorage
-        const result = df.iloc([0, 2, 4], 1);
+      // Check that the result has the correct row and columns
+      expect(result.rowCount).toBe(1);
+      expect(result.columns).toEqual(['name', 'age', 'city']);
+      expect(result.toArray()).toEqual([
+        { name: 'Charlie', age: 35, city: 'Chicago' },
+      ]);
+    });
 
-        // Check that the result has the correct rows and column
-        expect(result.rowCount).toBe(3);
-        expect(result.columns).toEqual(['age']);
-        expect(result.toArray()).toEqual([
-          { age: 25 },
-          { age: 35 },
-          { age: 45 },
-        ]);
-      });
+    test('should select multiple rows and a single column', () => {
+      const result = df.iloc([0, 2, 4], 1);
 
-      test('should return a scalar value for a single row and a single column', () => {
-        // df создан выше с помощью createDataFrameWithStorage
-        const result = df.iloc(1, 3);
+      // Check that the result has the correct rows and column
+      expect(result.rowCount).toBe(3);
+      expect(result.columns).toEqual(['age']);
+      expect(result.toArray()).toEqual([{ age: 25 }, { age: 35 }, { age: 45 }]);
+    });
 
-        // Проверяем, что результат - это скалярное значение
-        expect(result).toBe(85000);
-      });
+    test('should return a scalar value for a single row and a single column', () => {
+      const result = df.iloc(1, 3);
 
-      test('should throw error for row index out of bounds', () => {
-        // df создан выше с помощью createDataFrameWithStorage
-        expect(() => df.iloc(5, [0, 1])).toThrow();
-      });
+      // Check that the result is a scalar value
+      expect(result).toBe(85000);
+    });
 
-      test('should throw error for column index out of bounds', () => {
-        // df создан выше с помощью createDataFrameWithStorage
-        expect(() => df.iloc([0, 1], 4)).toThrow();
-      });
+    test('should throw error for row index out of bounds', () => {
+      expect(() => df.iloc(5, [0, 1])).toThrow();
+    });
 
-      test('should support negative row indices for indexing from the end', () => {
-        // df создан выше с помощью createDataFrameWithStorage
-        const result = df.iloc(-1, [0, 1]);
+    test('should throw error for column index out of bounds', () => {
+      expect(() => df.iloc([0, 1], 4)).toThrow();
+    });
 
-        // Проверяем, что выбрана последняя строка
-        expect(result.rowCount).toBe(1);
-        expect(result.columns).toEqual(['name', 'age']);
-        expect(result.toArray()).toEqual([{ name: 'Eve', age: 45 }]);
-      });
+    test('should support negative row indices for indexing from the end', () => {
+      const result = df.iloc(-1, [0, 1]);
 
-      test('should support negative column indices for indexing from the end', () => {
-        // df создан выше с помощью createDataFrameWithStorage
-        const result = df.iloc([0, 1], -1);
+      // Check that the last row is selected
+      expect(result.rowCount).toBe(1);
+      expect(result.columns).toEqual(['name', 'age']);
+      expect(result.toArray()).toEqual([{ name: 'Eve', age: 45 }]);
+    });
 
-        // Проверяем, что выбрана последняя колонка
-        expect(result.rowCount).toBe(2);
-        expect(result.columns).toEqual(['salary']);
-        expect(result.toArray()).toEqual([
-          { salary: 70000 },
-          { salary: 85000 },
-        ]);
-      });
+    test('should support negative column indices for indexing from the end', () => {
+      const result = df.iloc([0, 1], -1);
 
-      test('should return a new DataFrame instance', () => {
-        // df создан выше с помощью createDataFrameWithStorage
-        const result = df.iloc([0, 1], [0, 1]);
-        expect(result).toBeInstanceOf(DataFrame);
-        expect(result).not.toBe(df); // Should be a new instance
-      });
+      // Check that the last column is selected
+      expect(result.rowCount).toBe(2);
+      expect(result.columns).toEqual(['salary']);
+      expect(result.toArray()).toEqual([{ salary: 70000 }, { salary: 85000 }]);
+    });
 
-      test('should preserve data integrity with typed arrays', () => {
-        // Используем DataFrame с типизированными массивами, созданный выше
-        const result = typedDf.iloc([1, 3], [1, 3]);
+    test('should return a new DataFrame instance', () => {
+      const result = df.iloc([0, 1], [0, 1]);
+      expect(result).toBeInstanceOf(DataFrame);
+      expect(result).not.toBe(df); // Should be a new instance
+    });
 
-        // Проверяем, что данные сохранены правильно
-        expect(result.toArray()).toEqual([
-          { age: 30, salary: 85000 },
-          { age: 40, salary: 95000 },
-        ]);
+    test('should preserve data integrity with typed arrays', () => {
+      const result = typedDf.iloc([1, 3], [1, 3]);
 
-        // Проверяем, что данные доступны через API для работы с типизированными массивами
-        expect(result.getVector('age')).toBeDefined();
-        expect(result.getVector('salary')).toBeDefined();
+      // Check that the data is preserved correctly
+      expect(result.toArray()).toEqual([
+        { age: 30, salary: 85000 },
+        { age: 40, salary: 95000 },
+      ]);
 
-        // Проверяем, что данные сохраняют числовой тип
-        expect(typeof result.col('age').get(0)).toBe('number');
-        expect(typeof result.col('salary').get(0)).toBe('number');
-      });
+      // Check that data is accessible via API for working with typed arrays
+      expect(result.getVector('age')).toBeDefined();
+      expect(result.getVector('salary')).toBeDefined();
+
+      // Check that data preserves numeric type
+      expect(typeof result.col('age').get(0)).toBe('number');
+      expect(typeof result.col('salary').get(0)).toBe('number');
     });
   });
 });

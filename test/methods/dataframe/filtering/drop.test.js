@@ -4,75 +4,65 @@
 
 import { describe, test, expect } from 'vitest';
 import { DataFrame } from '../../../../src/core/dataframe/DataFrame.js';
+import registerDataFrameFiltering from '../../../../src/methods/dataframe/filtering/register.js';
 
-import {
-  testWithBothStorageTypes,
-  createDataFrameWithStorage,
-} from '../../../utils/storageTestUtils.js';
-
-// Тестовые данные для использования во всех тестах
-const testData = {
-  name: ['Alice', 'Bob', 'Charlie'],
-  age: [25, 30, 35],
-  city: ['New York', 'San Francisco', 'Chicago'],
-  salary: [70000, 85000, 90000],
-};
+// Test data for use in all tests
+const testData = [
+  { name: 'Alice', age: 25, city: 'New York', salary: 70000 },
+  { name: 'Bob', age: 30, city: 'San Francisco', salary: 85000 },
+  { name: 'Charlie', age: 35, city: 'Chicago', salary: 90000 },
+];
 
 describe('Drop Method', () => {
-  // Запускаем тесты с обоими типами хранилища
-  testWithBothStorageTypes((storageType) => {
-    describe(`with ${storageType} storage`, () => {
-      // Создаем DataFrame с указанным типом хранилища
-      const df = createDataFrameWithStorage(DataFrame, testData, storageType);
+  // Регистрируем методы фильтрации для DataFrame
+  registerDataFrameFiltering(DataFrame);
 
-      test('should drop specified columns', () => {
-        // df создан выше с помощью createDataFrameWithStorage
-        const result = df.drop(['city', 'salary']);
+  describe('with standard storage', () => {
+    // Create DataFrame using fromRows
+    const df = DataFrame.fromRows(testData);
 
-        // Check that dropped columns don't exist
-        expect(result.columns).toEqual(['name', 'age']);
-        expect(result.columns).not.toContain('city');
-        expect(result.columns).not.toContain('salary');
+    test('should drop specified columns', () => {
+      const result = df.drop(['city', 'salary']);
 
-        // Check that the data is correct
-        expect(result.toArray()).toEqual([
-          { name: 'Alice', age: 25 },
-          { name: 'Bob', age: 30 },
-          { name: 'Charlie', age: 35 },
-        ]);
-      });
+      // Check that dropped columns don't exist
+      expect(result.columns).toEqual(['name', 'age']);
+      expect(result.columns).not.toContain('city');
+      expect(result.columns).not.toContain('salary');
 
-      test('should throw error for non-existent columns', () => {
-        // df создан выше с помощью createDataFrameWithStorage
-        expect(() => df.drop(['city', 'nonexistent'])).toThrow();
-      });
+      // Check that the data is correct
+      expect(result.toArray()).toEqual([
+        { name: 'Alice', age: 25 },
+        { name: 'Bob', age: 30 },
+        { name: 'Charlie', age: 35 },
+      ]);
+    });
 
-      test('should support string input for single column', () => {
-        // df создан выше с помощью createDataFrameWithStorage
-        const result = df.drop('city');
+    test('should throw error for non-existent columns', () => {
+      expect(() => df.drop(['city', 'nonexistent'])).toThrow();
+    });
 
-        // Check that dropped column doesn't exist
-        expect(result.columns).not.toContain('city');
-        expect(result.columns.length).toBe(df.columns.length - 1);
-      });
+    test('should support string input for single column', () => {
+      const result = df.drop('city');
 
-      test('should handle empty array input', () => {
-        // df создан выше с помощью createDataFrameWithStorage
-        const result = df.drop([]);
+      // Check that dropped column doesn't exist
+      expect(result.columns).not.toContain('city');
+      expect(result.columns.length).toBe(df.columns.length - 1);
+    });
 
-        // Should keep all columns
-        expect(result.columns.sort()).toEqual(
-          ['age', 'city', 'name', 'salary'].sort(),
-        );
-        expect(result.rowCount).toBe(3);
-      });
+    test('should handle empty array input', () => {
+      const result = df.drop([]);
 
-      test('should return a new DataFrame instance', () => {
-        // df создан выше с помощью createDataFrameWithStorage
-        const result = df.drop(['city', 'salary']);
-        expect(result).toBeInstanceOf(DataFrame);
-        expect(result).not.toBe(df); // Should be a new instance
-      });
+      // Should keep all columns
+      expect(result.columns.sort()).toEqual(
+        ['age', 'city', 'name', 'salary'].sort(),
+      );
+      expect(result.rowCount).toBe(3);
+    });
+
+    test('should return a new DataFrame instance', () => {
+      const result = df.drop(['city', 'salary']);
+      expect(result).toBeInstanceOf(DataFrame);
+      expect(result).not.toBe(df); // Should be a new instance
     });
   });
 });

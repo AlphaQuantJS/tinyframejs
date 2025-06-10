@@ -13,8 +13,6 @@ import { register as registerLast } from './last.js';
 import { register as registerMode } from './mode.js';
 import { register as registerVariance } from './variance.js';
 import { register as registerStd } from './std.js';
-// Файл sort.js не найден, поэтому импорт закомментирован
-// import { register as registerSort } from './sort.js';
 
 /**
  * Registers all aggregation methods on DataFrame prototype
@@ -32,9 +30,6 @@ export const registerDataFrameAggregation = (DataFrame) => {
   registerMode(DataFrame);
   registerVariance(DataFrame);
   registerStd(DataFrame);
-  // registerSort(DataFrame); // Закомментировано, так как файл sort.js отсутствует
-
-  // Add additional aggregation methods here as they are implemented
 };
 
 export default registerDataFrameAggregation;

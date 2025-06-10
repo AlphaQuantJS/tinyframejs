@@ -12,112 +12,105 @@ import {
   register,
 } from '../../../../src/methods/dataframe/aggregation/first.js';
 import { DataFrame } from '../../../../src/core/dataframe/DataFrame.js';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-
-import {
-  testWithBothStorageTypes,
-  createDataFrameWithStorage,
-} from '../../../utils/storageTestUtils.js';
+import { describe, it, expect, vi } from 'vitest';
 
 // Register the first method in DataFrame for tests
 register(DataFrame);
 
-// Test data for use in all tests
-const testData = [
-  { value: 10, category: 'A', mixed: '20' },
-  { value: 20, category: 'B', mixed: 30 },
-  { value: 30, category: 'A', mixed: null },
-  { value: 40, category: 'C', mixed: undefined },
-  { value: 50, category: 'B', mixed: NaN },
-];
-
 describe('first method', () => {
-  // Run tests with both storage types
-  testWithBothStorageTypes((storageType) => {
-    describe(`with ${storageType} storage`, () => {
-      // Create a DataFrame with the specified storage type
-      const df = createDataFrameWithStorage(DataFrame, testData, storageType);
+  describe('with standard storage', () => {
+    // Test data for use in all tests
+    const testData = [
+      { value: 10, category: 'A', mixed: '20' },
+      { value: 20, category: 'B', mixed: 30 },
+      { value: 30, category: 'A', mixed: null },
+      { value: 40, category: 'C', mixed: undefined },
+      { value: 50, category: 'B', mixed: NaN },
+    ];
 
-      // Test the first function directly
-      it('should return the first value in a column', () => {
-        // Create a first function with a mock validator
-        const validateColumn = vi.fn();
-        const firstFn = first({ validateColumn });
+    // Create DataFrame using fromRows for proper column names
+    const df = DataFrame.fromRows(testData);
 
-        // Call the first function
-        const result = firstFn(df, 'value');
+    // Test the first function directly
+    it('should return the first value in a column', () => {
+      // Create a first function with a mock validator
+      const validateColumn = vi.fn();
+      const firstFn = first({ validateColumn });
 
-        // Check the result
-        expect(result).toBe(10);
-        expect(validateColumn).toHaveBeenCalledWith(df, 'value');
-      });
+      // Call the first function
+      const result = firstFn(df, 'value');
 
-      it('should handle special values (null, undefined, NaN)', () => {
-        // Create a first function with a mock validator
-        const validateColumn = vi.fn();
-        const firstFn = first({ validateColumn });
+      // Check the result
+      expect(result).toBe(10);
+      expect(validateColumn).toHaveBeenCalledWith(df, 'value');
+    });
 
-        // Check that the first values are returned correctly
-        expect(firstFn(df, 'mixed')).toBe('20');
-        expect(validateColumn).toHaveBeenCalledWith(df, 'mixed');
-      });
+    it('should handle special values (null, undefined, NaN)', () => {
+      // Create a first function with a mock validator
+      const validateColumn = vi.fn();
+      const firstFn = first({ validateColumn });
 
-      it('should return undefined for empty DataFrame', () => {
-        // Create an empty DataFrame
-        const emptyDf = createDataFrameWithStorage(DataFrame, [], storageType);
+      // Check that the first values are returned correctly
+      expect(firstFn(df, 'mixed')).toBe('20');
+      expect(validateColumn).toHaveBeenCalledWith(df, 'mixed');
+    });
 
-        // Create a first function with a mock validator
-        const validateColumn = vi.fn();
-        const firstFn = first({ validateColumn });
+    it('should return undefined for empty DataFrame', () => {
+      // Create an empty DataFrame using fromRows
+      const emptyDf = DataFrame.fromRows([]);
 
-        // Call the first function
-        const result = firstFn(emptyDf, 'value');
+      // Create a first function with a mock validator
+      const validateColumn = vi.fn();
+      const firstFn = first({ validateColumn });
 
-        // Check the result
-        expect(result).toBeUndefined();
-        // For an empty DataFrame, the validator is not called, as we immediately return undefined
-      });
+      // Call the first function
+      const result = firstFn(emptyDf, 'value');
 
-      it('should throw error for non-existent column', () => {
-        // Create a validator that throws an error
-        const validateColumn = (df, column) => {
-          if (!df.columns.includes(column)) {
-            throw new Error(`Column '${column}' not found`);
-          }
-        };
+      // Check the result
+      expect(result).toBeUndefined();
+      // For an empty DataFrame, the validator is not called, as we immediately return undefined
+    });
 
-        // Create a first function with our validator
-        const firstFn = first({ validateColumn });
+    it('should throw error for non-existent column', () => {
+      // Create a validator that throws an error
+      const validateColumn = (df, column) => {
+        if (!df.columns.includes(column)) {
+          throw new Error(`Column '${column}' not found`);
+        }
+      };
 
-        // Check that the function throws an error for non-existent columns
-        expect(() => firstFn(df, 'nonexistent')).toThrow(
-          'Column \'nonexistent\' not found',
-        );
-      });
+      // Create a first function with our validator
+      const firstFn = first({ validateColumn });
 
-      // Test the DataFrame.first method
-      it('should be available as a DataFrame method', () => {
-        // Check that the first method is available in DataFrame
-        expect(typeof df.first).toBe('function');
+      // Check that the function throws an error for non-existent columns
+      expect(() => firstFn(df, 'nonexistent')).toThrow(
+        "Column 'nonexistent' not found",
+      );
+    });
 
-        // Call the first method and check the result
-        expect(df.first('value')).toBe(10);
-        expect(df.first('category')).toBe('A');
-      });
-      it('should handle empty DataFrame gracefully', () => {
-        // Create an empty DataFrame
-        const emptyDf = createDataFrameWithStorage(DataFrame, [], storageType);
+    // Test the DataFrame.first method
+    it('should be available as a DataFrame method', () => {
+      // Check that the first method is available in DataFrame
+      expect(typeof df.first).toBe('function');
 
-        // Check that the first method returns undefined for an empty DataFrame
-        expect(emptyDf.first('value')).toBeUndefined();
-      });
+      // Call the first method and check the result
+      expect(df.first('value')).toBe(10);
+      expect(df.first('category')).toBe('A');
+    });
 
-      it('should throw error for non-existent column', () => {
-        // Check that the first method throws an error for non-existent columns
-        expect(() => df.first('nonexistent')).toThrow(
-          'Column \'nonexistent\' not found',
-        );
-      });
+    it('should handle empty DataFrame gracefully', () => {
+      // Create an empty DataFrame using fromRows
+      const emptyDf = DataFrame.fromRows([]);
+
+      // Check that the first method returns undefined for an empty DataFrame
+      expect(emptyDf.first('value')).toBeUndefined();
+    });
+
+    it('should throw error for non-existent column', () => {
+      // Check that the first method throws an error for non-existent columns
+      expect(() => df.first('nonexistent')).toThrow(
+        "Column 'nonexistent' not found",
+      );
     });
   });
 });

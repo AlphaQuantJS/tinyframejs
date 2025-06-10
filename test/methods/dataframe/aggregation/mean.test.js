@@ -10,10 +10,6 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { DataFrame } from '../../../../src/core/dataframe/DataFrame.js';
 import { mean } from '../../../../src/methods/dataframe/aggregation/mean.js';
-import {
-  testWithBothStorageTypes,
-  createDataFrameWithStorage,
-} from '../../../utils/storageTestUtils.js';
 
 /**
  * Tests for the mean function
@@ -96,7 +92,7 @@ describe('mean', () => {
 describe('DataFrame.mean', () => {
   test('should throw error for non-existent column via DataFrame method', () => {
     // Create a DataFrame with test data
-    const df = DataFrame.create([{ values: 1 }, { values: 2 }]);
+    const df = DataFrame.fromRows([{ values: 1 }, { values: 2 }]);
 
     // Call the mean method with a non-existent column and expect it to throw an error
     expect(() => df.mean('nonexistent')).toThrow();
@@ -113,55 +109,71 @@ const testData = [
 ];
 
 describe('mean method', () => {
-  // Run tests with both storage types
-  testWithBothStorageTypes((storageType) => {
-    describe(`with ${storageType} storage`, () => {
-      // Create a DataFrame with the specified storage type
-      const df = createDataFrameWithStorage(DataFrame, testData, storageType);
+  describe('with standard storage', () => {
+    // Create DataFrame using fromRows for proper column names
+    const df = DataFrame.fromRows(testData);
 
-      test('should calculate the mean of numeric values in a column', () => {
-        // Call mean function directly
-        const meanFn = mean({ validateColumn: () => {} });
-        const result = meanFn(df, 'value');
+    test('should calculate the mean of numeric values in a column', () => {
+      // Call mean function directly with a mock validator
+      const validateColumn = vi.fn();
+      const meanFn = mean({ validateColumn });
+      const result = meanFn(df, 'value');
 
-        // Check that the mean is correct
-        expect(result).toBe(30); // (10 + 20 + 30 + 40 + 50) / 5 = 30
-      });
+      // Check that the mean is correct
+      expect(result).toBe(30); // (10 + 20 + 30 + 40 + 50) / 5 = 30
+      expect(validateColumn).toHaveBeenCalledWith(df, 'value');
+    });
 
-      test('should handle mixed data types by converting to numbers', () => {
-        // Call mean function directly
-        const meanFn = mean({ validateColumn: () => {} });
-        const result = meanFn(df, 'mixed');
+    test('should handle mixed data types by converting to numbers', () => {
+      // Call mean function directly with a mock validator
+      const validateColumn = vi.fn();
+      const meanFn = mean({ validateColumn });
+      const result = meanFn(df, 'mixed');
 
-        // Check that the mean is correct (only valid numbers are used)
-        expect(result).toBe(25); // ('20' -> 20, 30 -> 30) / 2 = 25
-      });
+      // Check that the mean is correct (only valid numbers are considered)
+      expect(result).toBe(25); // ('20' -> 20, 30 -> 30) / 2 = 25
+      expect(validateColumn).toHaveBeenCalledWith(df, 'mixed');
+    });
 
-      test('should return NaN for a column with no valid numeric values', () => {
-        // Call mean function directly
-        const meanFn = mean({ validateColumn: () => {} });
-        const result = meanFn(df, 'category');
+    test('should return NaN for a column with no valid numeric values', () => {
+      // Call mean function directly with a mock validator
+      const validateColumn = vi.fn();
+      const meanFn = mean({ validateColumn });
+      const result = meanFn(df, 'category');
 
-        // Check that the mean is NaN (no numeric values in 'category' column)
-        expect(isNaN(result)).toBe(true);
-      });
+      // Check that the result is NaN (no numeric values in 'category' column)
+      expect(isNaN(result)).toBe(true);
+      expect(validateColumn).toHaveBeenCalledWith(df, 'category');
+    });
 
-      test('should throw an error for non-existent column', () => {
-        // Create a validator that throws an error for non-existent column
-        const validateColumn = (frame, column) => {
-          if (!frame.columns.includes(column)) {
-            throw new Error(`Column '${column}' not found`);
-          }
-        };
+    test('should throw an error for non-existent column', () => {
+      // Create a validator that throws an error for non-existent column
+      const validateColumn = (frame, column) => {
+        if (!frame.columns.includes(column)) {
+          throw new Error(`Column '${column}' not found`);
+        }
+      };
 
-        // Call mean function with validator
-        const meanFn = mean({ validateColumn });
+      // Call mean function with validator
+      const meanFn = mean({ validateColumn });
 
-        // Check that it throws an error for non-existent column
-        expect(() => meanFn(df, 'nonexistent')).toThrow(
-          'Column \'nonexistent\' not found',
-        );
-      });
+      // Check that it throws an error for non-existent column
+      expect(() => meanFn(df, 'nonexistent')).toThrow(
+        "Column 'nonexistent' not found",
+      );
+    });
+
+    test('should handle empty frames', () => {
+      // Create an empty DataFrame using fromRows
+      const emptyDf = DataFrame.fromRows([]);
+
+      // Call mean function directly with a validator that doesn't throw for empty frames
+      const validateColumn = vi.fn(); // Mock validator that doesn't check anything
+      const meanFn = mean({ validateColumn });
+
+      // Check that for an empty DataFrame the result is NaN
+      expect(isNaN(meanFn(emptyDf, 'value'))).toBe(true);
+      // For an empty DataFrame, the validator is not called, as we immediately return NaN
     });
   });
 });

@@ -2,6 +2,16 @@
  * Registrar for Series transformation methods
  */
 
+// Import all transformation methods
+import { sort } from './sort.js';
+import { unique } from './unique.js';
+import { replace } from './replace.js';
+import { fillna } from './fillna.js';
+import { dropna } from './dropna.js';
+import { clip } from './clip.js';
+import { diff } from './diff.js';
+import { pct_change } from './pct_change.js';
+
 /**
  * Registers all transformation methods for Series
  * @param {Class} Series - Series class to extend
@@ -103,7 +113,38 @@ export function registerSeriesTransform(Series) {
     return this.map(fn);
   };
 
-  // Here you can add other transformation methods
+  // Register new transformation methods
+  if (!Series.prototype.sort) {
+    Series.prototype.sort = sort();
+  }
+
+  if (!Series.prototype.unique) {
+    Series.prototype.unique = unique();
+  }
+
+  if (!Series.prototype.replace) {
+    Series.prototype.replace = replace();
+  }
+
+  if (!Series.prototype.fillna) {
+    Series.prototype.fillna = fillna();
+  }
+
+  if (!Series.prototype.dropna) {
+    Series.prototype.dropna = dropna();
+  }
+
+  if (!Series.prototype.clip) {
+    Series.prototype.clip = clip();
+  }
+
+  if (!Series.prototype.diff) {
+    Series.prototype.diff = diff();
+  }
+
+  if (!Series.prototype.pct_change) {
+    Series.prototype.pct_change = pct_change();
+  }
 }
 
 export default registerSeriesTransform;

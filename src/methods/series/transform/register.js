@@ -10,35 +10,25 @@ import { fillna } from './fillna.js';
 import { dropna } from './dropna.js';
 import { clip } from './clip.js';
 import { diff } from './diff.js';
-import { pct_change } from './pct_change.js';
+import { pctChange } from './pctChange.js';
+import { map } from './map.js';
+import { apply } from './apply.js';
+import { round } from './round.js';
+import { abs } from './abs.js';
 
 /**
  * Registers all transformation methods for Series
  * @param {Class} Series - Series class to extend
  */
 export function registerSeriesTransform(Series) {
-  /**
-   * Maps each element in the Series using the provided function
-   * @param {Function} fn - Function to apply to each element
-   * @returns {Series} - New Series with transformed values
-   */
-  Series.prototype.map = function(fn) {
-    const data = this.values;
-    const result = new Array(data.length);
-
-    for (let i = 0; i < data.length; i++) {
-      result[i] = fn(data[i], i, data);
-    }
-
-    return new Series(result, { name: this.name });
-  };
+  // Map method is imported from map.js
 
   /**
    * Filters Series elements using the provided predicate
    * @param {Function} predicate - Function that returns true for elements to keep
    * @returns {Series} - New Series with filtered values
    */
-  Series.prototype.filter = function(predicate) {
+  Series.prototype.filter = function (predicate) {
     const data = this.values;
     const result = [];
 
@@ -51,29 +41,15 @@ export function registerSeriesTransform(Series) {
     return new Series(result, { name: this.name });
   };
 
-  /**
-   * Returns absolute values of all elements in the Series
-   * @returns {Series} - New Series with absolute values
-   */
-  Series.prototype.abs = function() {
-    return this.map(Math.abs);
-  };
+  // Abs method is imported from abs.js
 
-  /**
-   * Rounds all elements in the Series to specified number of decimals
-   * @param {number} [decimals=0] - Number of decimal places
-   * @returns {Series} - New Series with rounded values
-   */
-  Series.prototype.round = function(decimals = 0) {
-    const factor = Math.pow(10, decimals);
-    return this.map((x) => Math.round(x * factor) / factor);
-  };
+  // Round method is imported from round.js
 
   /**
    * Returns cumulative sum of the Series
    * @returns {Series} - New Series with cumulative sum
    */
-  Series.prototype.cumsum = function() {
+  Series.prototype.cumsum = function () {
     const data = this.values;
     const result = new Array(data.length);
     let sum = 0;
@@ -92,7 +68,7 @@ export function registerSeriesTransform(Series) {
    * Returns Series with values normalized to range [0, 1]
    * @returns {Series} - Normalized Series
    */
-  Series.prototype.normalize = function() {
+  Series.prototype.normalize = function () {
     const min = this.min();
     const max = this.max();
 
@@ -104,16 +80,25 @@ export function registerSeriesTransform(Series) {
     return this.map((x) => (x - min) / range);
   };
 
-  /**
-   * Applies a function to each element and returns a new Series
-   * @param {Function} fn - Function to apply
-   * @returns {Series} - New Series with transformed values
-   */
-  Series.prototype.apply = function(fn) {
-    return this.map(fn);
-  };
+  // Apply method is imported from apply.js
 
   // Register new transformation methods
+  if (!Series.prototype.map) {
+    Series.prototype.map = map();
+  }
+
+  if (!Series.prototype.apply) {
+    Series.prototype.apply = apply();
+  }
+
+  if (!Series.prototype.round) {
+    Series.prototype.round = round();
+  }
+
+  if (!Series.prototype.abs) {
+    Series.prototype.abs = abs();
+  }
+
   if (!Series.prototype.sort) {
     Series.prototype.sort = sort();
   }
@@ -142,8 +127,8 @@ export function registerSeriesTransform(Series) {
     Series.prototype.diff = diff();
   }
 
-  if (!Series.prototype.pct_change) {
-    Series.prototype.pct_change = pct_change();
+  if (!Series.prototype.pctChange) {
+    Series.prototype.pctChange = pctChange();
   }
 }
 

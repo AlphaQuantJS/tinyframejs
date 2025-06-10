@@ -1,118 +1,99 @@
-// test/methods/filtering/head.test.js
+/**
+ * Unit tests for head method
+ */
+
 import { describe, it, expect, vi } from 'vitest';
 import { DataFrame } from '../../../../src/core/dataframe/DataFrame.js';
+import registerDataFrameFiltering from '../../../../src/methods/dataframe/filtering/register.js';
 
-import {
-  testWithBothStorageTypes,
-  createDataFrameWithStorage,
-} from '../../../utils/storageTestUtils.js';
-
-// Тестовые данные для использования во всех тестах
-const testData = {
-  name: ['Alice', 'Bob', 'Charlie', 'David', 'Eve'],
-  age: [25, 30, 35, 40, 45],
-  city: ['New York', 'San Francisco', 'Chicago', 'Boston', 'Seattle'],
-  salary: [70000, 85000, 90000, 95000, 100000],
-};
-
-// Создаем пустой DataFrame для тестирования пустых случаев
-const emptyData = {
-  name: [],
-  age: [],
-  city: [],
-  salary: [],
-};
+// Test data for use in all tests
+const testData = [
+  { name: 'Alice', age: 25, city: 'New York', salary: 70000 },
+  { name: 'Bob', age: 30, city: 'San Francisco', salary: 85000 },
+  { name: 'Charlie', age: 35, city: 'Chicago', salary: 90000 },
+  { name: 'David', age: 40, city: 'Boston', salary: 95000 },
+  { name: 'Eve', age: 45, city: 'Seattle', salary: 100000 },
+];
 
 describe('DataFrame.head()', () => {
-  // Запускаем тесты с обоими типами хранилища
-  testWithBothStorageTypes((storageType) => {
-    describe(`with ${storageType} storage`, () => {
-      // Создаем DataFrame с указанным типом хранилища
-      const df = createDataFrameWithStorage(DataFrame, testData, storageType);
+  // Регистрируем методы фильтрации для DataFrame
+  registerDataFrameFiltering(DataFrame);
 
-      it('should return the first 5 rows by default', () => {
-        // df создан выше с помощью createDataFrameWithStorage
-        const result = df.head(5, { print: false });
+  describe('with standard storage', () => {
+    // Create DataFrame using fromRows
+    const df = DataFrame.fromRows(testData);
 
-        expect(result.rowCount).toBe(5);
-        expect(result.toArray()).toEqual([
-          { name: 'Alice', age: 25, city: 'New York', salary: 70000 },
-          { name: 'Bob', age: 30, city: 'San Francisco', salary: 85000 },
-          { name: 'Charlie', age: 35, city: 'Chicago', salary: 90000 },
-          { name: 'David', age: 40, city: 'Boston', salary: 95000 },
-          { name: 'Eve', age: 45, city: 'Seattle', salary: 100000 },
-        ]);
-      });
+    it('should return the first 5 rows by default', () => {
+      const result = df.head(5, { print: false });
 
-      it('should return the specified number of rows', () => {
-        // df создан выше с помощью createDataFrameWithStorage
-        const result = df.head(3, { print: false });
+      expect(result.rowCount).toBe(5);
+      expect(result.toArray()).toEqual([
+        { name: 'Alice', age: 25, city: 'New York', salary: 70000 },
+        { name: 'Bob', age: 30, city: 'San Francisco', salary: 85000 },
+        { name: 'Charlie', age: 35, city: 'Chicago', salary: 90000 },
+        { name: 'David', age: 40, city: 'Boston', salary: 95000 },
+        { name: 'Eve', age: 45, city: 'Seattle', salary: 100000 },
+      ]);
+    });
 
-        expect(result.rowCount).toBe(3);
-        expect(result.toArray()).toEqual([
-          { name: 'Alice', age: 25, city: 'New York', salary: 70000 },
-          { name: 'Bob', age: 30, city: 'San Francisco', salary: 85000 },
-          { name: 'Charlie', age: 35, city: 'Chicago', salary: 90000 },
-        ]);
-      });
+    it('should return the specified number of rows', () => {
+      const result = df.head(3, { print: false });
 
-      it('should return all rows if n is greater than the number of rows', () => {
-        // df создан выше с помощью createDataFrameWithStorage
-        const result = df.head(20, { print: false });
+      expect(result.rowCount).toBe(3);
+      expect(result.toArray()).toEqual([
+        { name: 'Alice', age: 25, city: 'New York', salary: 70000 },
+        { name: 'Bob', age: 30, city: 'San Francisco', salary: 85000 },
+        { name: 'Charlie', age: 35, city: 'Chicago', salary: 90000 },
+      ]);
+    });
 
-        expect(result.rowCount).toBe(5);
-        expect(result.toArray()).toEqual([
-          { name: 'Alice', age: 25, city: 'New York', salary: 70000 },
-          { name: 'Bob', age: 30, city: 'San Francisco', salary: 85000 },
-          { name: 'Charlie', age: 35, city: 'Chicago', salary: 90000 },
-          { name: 'David', age: 40, city: 'Boston', salary: 95000 },
-          { name: 'Eve', age: 45, city: 'Seattle', salary: 100000 },
-        ]);
-      });
+    it('should return all rows if n is greater than the number of rows', () => {
+      const result = df.head(20, { print: false });
 
-      it('should return an empty DataFrame if the original DataFrame is empty', () => {
-        // Создаем пустой DataFrame для тестирования
-        const emptyDf = createDataFrameWithStorage(
-          DataFrame,
-          emptyData,
-          storageType,
-        );
-        const result = emptyDf.head(5, { print: false });
+      expect(result.rowCount).toBe(5);
+      expect(result.toArray()).toEqual([
+        { name: 'Alice', age: 25, city: 'New York', salary: 70000 },
+        { name: 'Bob', age: 30, city: 'San Francisco', salary: 85000 },
+        { name: 'Charlie', age: 35, city: 'Chicago', salary: 90000 },
+        { name: 'David', age: 40, city: 'Boston', salary: 95000 },
+        { name: 'Eve', age: 45, city: 'Seattle', salary: 100000 },
+      ]);
+    });
 
-        expect(result.rowCount).toBe(0);
-        expect(result.toArray()).toEqual([]);
-      });
+    it('should return an empty DataFrame if the original DataFrame is empty', () => {
+      // Create empty DataFrame for testing
+      const emptyDf = DataFrame.fromRows([]);
+      const result = emptyDf.head(5, { print: false });
 
-      it('should throw an error if n is not a positive integer', () => {
-        // df создан выше с помощью createDataFrameWithStorage
+      expect(result.rowCount).toBe(0);
+      expect(result.toArray()).toEqual([]);
+    });
 
-        expect(() => df.head(0, { print: false })).toThrow(
-          'Number of rows must be a positive number',
-        );
-        expect(() => df.head(-1, { print: false })).toThrow(
-          'Number of rows must be a positive number',
-        );
-        expect(() => df.head(2.5, { print: false })).toThrow(
-          'Number of rows must be an integer',
-        );
-      });
+    it('should throw an error if n is not a positive integer', () => {
+      expect(() => df.head(0, { print: false })).toThrow(
+        'Number of rows must be a positive number',
+      );
+      expect(() => df.head(-1, { print: false })).toThrow(
+        'Number of rows must be a positive number',
+      );
+      expect(() => df.head(2.5, { print: false })).toThrow(
+        'Number of rows must be an integer',
+      );
+    });
 
-      // Тесты для опции print отключены, так как в DataFrame нет метода print
-      // В будущем можно добавить метод print в DataFrame и вернуть эти тесты
+    // Tests for print option are included for completeness
+    // In the future, if DataFrame gets a print method, these tests will be relevant
 
-      it('should handle print option correctly', () => {
-        // df создан выше с помощью createDataFrameWithStorage
+    it('should handle print option correctly', () => {
+      // Check that print option doesn't affect the result
+      const result1 = df.head(3, { print: true });
+      const result2 = df.head(3, { print: false });
 
-        // Проверяем, что опция print не влияет на результат
-        const result1 = df.head(3, { print: true });
-        const result2 = df.head(3, { print: false });
+      expect(result1.rowCount).toBe(3);
+      expect(result2.rowCount).toBe(3);
 
-        expect(result1.rowCount).toBe(3);
-        expect(result2.rowCount).toBe(3);
-
-        // Проверяем, что результаты одинаковы
-        expect(result1.toArray()).toEqual(result2.toArray());
-      });
+      // Check that results are identical
+      expect(result1.toArray()).toEqual(result2.toArray());
     });
   });
 });

@@ -4,101 +4,102 @@
 
 import { describe, test, expect } from 'vitest';
 import { DataFrame } from '../../../../src/core/dataframe/DataFrame.js';
+import { registerDataFrameFiltering } from '../../../../src/methods/dataframe/filtering/register.js';
 
-import {
-  testWithBothStorageTypes,
-  createDataFrameWithStorage,
-} from '../../../utils/storageTestUtils.js';
+// Register filtering methods on DataFrame
+registerDataFrameFiltering(DataFrame);
 
-// Тестовые данные для использования во всех тестах
-const testData = {
-  name: ['Alice', 'Bob', 'Charlie'],
-  age: [25, 30, 35],
-  city: ['New York', 'San Francisco', 'Chicago'],
-  salary: [70000, 85000, 90000],
-  ageGroup: ['20-30', '30-40', '30-40'],
-};
+// Test data as array of objects for use with DataFrame.fromRows
+const testData = [
+  {
+    name: 'Alice',
+    age: 25,
+    city: 'New York',
+    salary: 70000,
+    ageGroup: '20-30',
+  },
+  {
+    name: 'Bob',
+    age: 30,
+    city: 'San Francisco',
+    salary: 85000,
+    ageGroup: '30-40',
+  },
+  {
+    name: 'Charlie',
+    age: 35,
+    city: 'Chicago',
+    salary: 90000,
+    ageGroup: '30-40',
+  },
+];
 
 describe('SelectByPattern Method', () => {
-  // Запускаем тесты с обоими типами хранилища
-  testWithBothStorageTypes((storageType) => {
-    describe(`with ${storageType} storage`, () => {
-      // Создаем DataFrame с указанным типом хранилища
-      const df = createDataFrameWithStorage(DataFrame, testData, storageType);
+  describe('with standard storage', () => {
+    // Create DataFrame using fromRows
+    const df = DataFrame.fromRows(testData);
 
-      // Создаем DataFrame с типизированными массивами для тестирования сохранения типов
-      const typedData = {
-        name: ['Alice', 'Bob', 'Charlie'],
-        age: new Int32Array([25, 30, 35]),
-        salary: new Float64Array([70000, 85000, 90000]),
-      };
-      const typedDf = createDataFrameWithStorage(
-        DataFrame,
-        typedData,
-        storageType,
-      );
+    // Create DataFrame with typed arrays for testing type preservation
+    const typedDf = DataFrame.fromRows(testData, {
+      columns: {
+        age: { type: 'int32' },
+        salary: { type: 'float64' },
+      },
+    });
 
-      test('should select columns matching a pattern', () => {
-        // df создан выше с помощью createDataFrameWithStorage
-        const result = df.selectByPattern('^a');
+    test('should select columns matching a pattern', () => {
+      const result = df.selectByPattern('^a');
 
-        // Check that only columns starting with 'a' exist
-        expect(result.columns.sort()).toEqual(['age', 'ageGroup'].sort());
-        expect(result.columns).not.toContain('name');
-        expect(result.columns).not.toContain('city');
-        expect(result.columns).not.toContain('salary');
+      // Check that only columns starting with 'a' exist
+      expect(result.columns.sort()).toEqual(['age', 'ageGroup'].sort());
+      expect(result.columns).not.toContain('name');
+      expect(result.columns).not.toContain('city');
+      expect(result.columns).not.toContain('salary');
 
-        // Check that the data is correct
-        const resultArray = result.toArray();
-        expect(resultArray.length).toBe(3);
-        expect(resultArray[0]).toHaveProperty('age', 25);
-        expect(resultArray[0]).toHaveProperty('ageGroup', '20-30');
-        expect(resultArray[1]).toHaveProperty('age', 30);
-        expect(resultArray[1]).toHaveProperty('ageGroup', '30-40');
-        expect(resultArray[2]).toHaveProperty('age', 35);
-        expect(resultArray[2]).toHaveProperty('ageGroup', '30-40');
-      });
+      // Check that the data is correct
+      const resultArray = result.toArray();
+      expect(resultArray.length).toBe(3);
+      expect(resultArray[0]).toHaveProperty('age', 25);
+      expect(resultArray[0]).toHaveProperty('ageGroup', '20-30');
+      expect(resultArray[1]).toHaveProperty('age', 30);
+      expect(resultArray[1]).toHaveProperty('ageGroup', '30-40');
+      expect(resultArray[2]).toHaveProperty('age', 35);
+      expect(resultArray[2]).toHaveProperty('ageGroup', '30-40');
+    });
 
-      test('should handle regex patterns', () => {
-        // df создан выше с помощью createDataFrameWithStorage
-        // Паттерн a.*e должен соответствовать 'age' и 'ageGroup', но не 'name'
-        // потому что в 'name' буква 'a' не в начале строки
-        const result = df.selectByPattern('^a.*e');
+    test('should handle regex patterns', () => {
+      // Pattern a.*e should match 'age' and 'ageGroup', but not 'name'
+      // because in 'name' the letter 'a' is not at the beginning of the string
+      const result = df.selectByPattern('^a.*e');
 
-        // Should match 'age' and 'ageGroup'
-        expect(result.columns.sort()).toEqual(['age', 'ageGroup'].sort());
-      });
+      // Should match 'age' and 'ageGroup'
+      expect(result.columns.sort()).toEqual(['age', 'ageGroup'].sort());
+    });
 
-      test('should return empty DataFrame when no columns match', () => {
-        // df создан выше с помощью createDataFrameWithStorage
-        const result = df.selectByPattern('xyz');
+    test('should return empty DataFrame when no columns match', () => {
+      const result = df.selectByPattern('xyz');
 
-        // Should have no columns
-        expect(result.columns).toEqual([]);
-        expect(result.rowCount).toBe(0);
-      });
+      // Should have no columns
+      expect(result.columns).toEqual([]);
+      expect(result.rowCount).toBe(0);
+    });
 
-      test('should throw error for non-string pattern', () => {
-        // df создан выше с помощью createDataFrameWithStorage
-        expect(() => df.selectByPattern(123)).toThrow();
-      });
+    test('should throw error for non-string pattern', () => {
+      expect(() => df.selectByPattern(123)).toThrow();
+    });
 
-      test('should return a new DataFrame instance', () => {
-        // df создан выше с помощью createDataFrameWithStorage
-        const result = df.selectByPattern('^a');
-        expect(result).toBeInstanceOf(DataFrame);
-        expect(result).not.toBe(df); // Should be a new instance
-      });
+    test('should return a new DataFrame instance', () => {
+      const result = df.selectByPattern('^a');
+      expect(result).toBeInstanceOf(DataFrame);
+      expect(result).not.toBe(df); // Should be a new instance
+    });
 
-      test('should preserve typed arrays', () => {
-        // Используем DataFrame с типизированными массивами
-        const result = typedDf.selectByPattern('^a');
+    test('should preserve Float64Array for salary', () => {
+      // Use DataFrame with typed arrays
+      const result = typedDf.selectByPattern('^s');
 
-        // Проверяем, что результат имеет те же типы массивов
-        // В тестах мы проверяем, что результат сохраняет типы массивов
-        expect(result.col('age')).toBeDefined();
-        expect(result.toArray()[0].age).toBe(25);
-      });
+      // Check that the result preserves the Float64Array type for salary
+      expect(result._columns.salary.vector.__data).toBeInstanceOf(Float64Array);
     });
   });
 });

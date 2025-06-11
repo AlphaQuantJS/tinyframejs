@@ -10,6 +10,8 @@ import { formatValue } from '../utils/formatting.js';
  * @param {Object} options - Chart options
  * @param {string} options.x - Column name for labels
  * @param {string} options.y - Column name for values
+ * @param {string} [options.labels] - Alternative name for x column (labels)
+ * @param {string} [options.values] - Alternative name for y column (values)
  * @param {Object} [options.chartOptions] - Additional Chart.js options
  * @returns {Object} Chart configuration object
  */
@@ -26,19 +28,34 @@ export function pieChart(dataFrame, options) {
   // Convert DataFrame to array of objects for easier processing
   const data = dataFrame.toArray();
 
-  if (!options.x) {
-    throw new Error('Label column must be specified');
+  // Support for alternative parameter names
+  const xCol = options.x || options.labels;
+  const yCol = options.y || options.values;
+
+  if (!xCol) {
+    throw new Error('Label column must be specified (x or labels)');
   }
 
-  if (!options.y) {
-    throw new Error('Value column must be specified');
+  if (!yCol) {
+    throw new Error('Value column must be specified (y or values)');
   }
 
   // Create Chart.js configuration
-  return createChartJSConfig(dataFrame, {
+  const config = createChartJSConfig(dataFrame, {
     ...options,
+    x: xCol,
+    y: yCol,
     type: 'pie',
   });
+
+  // Ensure title is properly set in options
+  if (!config.options) config.options = {};
+  config.options.title = {
+    display: true,
+    text: options.chartOptions?.title || 'Pie Chart'
+  };
+
+  return config;
 }
 
 /**

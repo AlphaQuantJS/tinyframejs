@@ -3,6 +3,7 @@
 // import { createChartJSConfig } from '../adapters/chartjs.js';
 import { getColor, categoricalColors } from '../utils/colors.js';
 import { formatValue } from '../utils/formatting.js';
+import { normalizeTitle } from '../utils/normalizeTitle.js';
 
 /**
  * Creates a bar chart configuration
@@ -41,7 +42,7 @@ export function barChart(dataFrame, options = {}) {
   }
 
   // Create Chart.js configuration
-  return {
+  const config = {
     type: 'bar',
     data: {
       labels: data.map((row) => row[xCol]),
@@ -66,12 +67,6 @@ export function barChart(dataFrame, options = {}) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: {
-        title: {
-          display: !!options.chartOptions?.title,
-          text: options.chartOptions?.title || 'Bar Chart',
-        },
-      },
       scales: {
         x: {
           title: {
@@ -92,6 +87,11 @@ export function barChart(dataFrame, options = {}) {
       ...options.chartOptions,
     },
   };
+  
+  // Normalize title configuration
+  normalizeTitle(config.options, options.chartOptions?.title, 'Bar Chart', false);
+  
+  return config;
 }
 
 /**
@@ -306,13 +306,18 @@ export function histogram(dataFrame, options) {
   // Convert DataFrame to array of objects for easier processing
   const data = dataFrame.toArray();
 
-  if (!options.column) {
-    throw new Error('Data column must be specified');
+  const column = options.column || options.values;
+  if (!column) {
+    throw new Error('Data column must be specified (column or values)');
   }
 
   // Extract data
   const values = data
-    .map((row) => row[options.column])
+    .map((row) => {
+      const val = row[column];
+      // Преобразуем строки в числа, если возможно
+      return typeof val === 'string' ? parseFloat(val) : val;
+    })
     .filter((val) => typeof val === 'number' && !isNaN(val));
 
   if (values.length === 0) {
@@ -351,13 +356,13 @@ export function histogram(dataFrame, options) {
   // Create chart configuration
   const color = options.chartOptions?.color || getColor(0);
 
-  return {
+  const config = {
     type: 'bar',
     data: {
       labels: binLabels,
       datasets: [
         {
-          label: options.chartOptions?.label || options.column,
+          label: options.chartOptions?.label || `${column} Distribution`,
           data: histogramData,
           backgroundColor: color,
           borderColor: color,
@@ -370,8 +375,8 @@ export function histogram(dataFrame, options) {
       maintainAspectRatio: false,
       plugins: {
         title: {
-          display: !!options.chartOptions?.title,
-          text: options.chartOptions?.title || `Histogram of ${options.column}`,
+          display: true,
+          text: options.chartOptions?.title || `Histogram of ${column}`,
         },
         tooltip: {
           callbacks: {
@@ -388,7 +393,7 @@ export function histogram(dataFrame, options) {
         x: {
           title: {
             display: true,
-            text: options.chartOptions?.xLabel || options.column,
+            text: options.chartOptions?.xLabel || column,
           },
         },
         y: {
@@ -402,6 +407,11 @@ export function histogram(dataFrame, options) {
       ...options.chartOptions,
     },
   };
+
+  // Normalize title configuration
+  normalizeTitle(config.options, options.chartOptions?.title, `Histogram of ${column}`, true);
+  
+  return config;
 }
 
 /**
@@ -534,4 +544,6 @@ export function paretoChart(dataFrame, options) {
       ...options.chartOptions,
     },
   };
+  
+  return config;
 }

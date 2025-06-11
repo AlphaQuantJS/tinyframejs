@@ -35,10 +35,19 @@ export function lineChart(dataFrame, options) {
   }
 
   // Create Chart.js configuration
-  return createChartJSConfig(dataFrame, {
+  const config = createChartJSConfig(dataFrame, {
     ...options,
     type: 'line',
   });
+
+  // Ensure title is properly set in options
+  if (!config.options) config.options = {};
+  config.options.title = {
+    display: true,
+    text: options.chartOptions?.title || 'Line Chart'
+  };
+
+  return config;
 }
 
 /**

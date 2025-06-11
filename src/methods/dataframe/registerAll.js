@@ -6,9 +6,10 @@
 // Import registrars from different categories
 import { registerDataFrameAggregation } from './aggregation/register.js';
 import { registerDataFrameFiltering } from './filtering/register.js';
+import { registerDataFrameIndexing } from './indexing/register.js';
 import { registerDataFrameTransform } from './transform/register.js';
 import { registerDataFrameDisplay } from './display/register.js';
-import { registerDataFrameTimeSeries } from './timeseries/register.js';
+import { registerDataFrameTimeSeries } from '../timeseries/dataframe/register.js';
 import { registerReshapeMethods } from '../reshape/register.js';
 
 /**
@@ -19,6 +20,7 @@ export function extendDataFrame(DataFrame) {
   // Apply all registrars to the DataFrame class
   registerDataFrameAggregation(DataFrame);
   registerDataFrameFiltering(DataFrame);
+  registerDataFrameIndexing(DataFrame);
   registerDataFrameTransform(DataFrame);
   registerDataFrameDisplay(DataFrame);
   registerDataFrameTimeSeries(DataFrame);
@@ -40,37 +42,37 @@ export function getDataFrameMethodsInfo() {
         signature: 'count(column)',
         description: 'Count non-empty values in the specified column',
         returns: 'number',
-        example: 'df.count(\'age\')',
+        example: "df.count('age')",
       },
       sum: {
         signature: 'sum(column)',
         description: 'Sum of values in the specified column',
         returns: 'number',
-        example: 'df.sum(\'price\')',
+        example: "df.sum('price')",
       },
       mean: {
         signature: 'mean(column)',
         description: 'Mean value in the specified column',
         returns: 'number',
-        example: 'df.mean(\'score\')',
+        example: "df.mean('score')",
       },
       min: {
         signature: 'min(column)',
         description: 'Minimum value in the specified column',
         returns: 'number',
-        example: 'df.min(\'price\')',
+        example: "df.min('price')",
       },
       max: {
         signature: 'max(column)',
         description: 'Maximum value in the specified column',
         returns: 'number',
-        example: 'df.max(\'price\')',
+        example: "df.max('price')",
       },
       median: {
         signature: 'median(column)',
         description: 'Median value in the specified column',
         returns: 'number',
-        example: 'df.median(\'score\')',
+        example: "df.median('score')",
       },
       // Other aggregation methods...
     },
@@ -85,7 +87,7 @@ export function getDataFrameMethodsInfo() {
         signature: 'where(column, operator, value)',
         description: 'Filter rows based on a condition for a specific column',
         returns: 'DataFrame',
-        example: 'df.where(\'age\', \'>\', 30)',
+        example: "df.where('age', '>', 30)",
       },
       expr$: {
         signature: 'expr$`expression`',
@@ -97,14 +99,17 @@ export function getDataFrameMethodsInfo() {
         signature: 'select(columns)',
         description: 'Select specified columns',
         returns: 'DataFrame',
-        example: 'df.select([\'name\', \'age\'])',
+        example: "df.select(['name', 'age'])",
       },
       drop: {
         signature: 'drop(columns)',
         description: 'Remove specified columns',
         returns: 'DataFrame',
-        example: 'df.drop([\'address\', \'phone\'])',
+        example: "df.drop(['address', 'phone'])",
       },
+      // Other filtering methods...
+    },
+    indexing: {
       at: {
         signature: 'at(index)',
         description: 'Select a single row by index',
@@ -117,14 +122,38 @@ export function getDataFrameMethodsInfo() {
         returns: 'DataFrame|Object',
         example: 'df.iloc([0, 1, 2], [0, 2])',
       },
-      // Other filtering methods...
+      head: {
+        signature: 'head(n)',
+        description: 'Get first n rows',
+        returns: 'DataFrame',
+        example: 'df.head(5)',
+      },
+      tail: {
+        signature: 'tail(n)',
+        description: 'Get last n rows',
+        returns: 'DataFrame',
+        example: 'df.tail(5)',
+      },
+      loc: {
+        signature: 'loc(rowLabels, [colLabels])',
+        description: 'Select rows and columns by labels',
+        returns: 'DataFrame|Object',
+        example: 'df.loc(["row1", "row2"], ["col1", "col2"])',
+      },
+      sample: {
+        signature: 'sample(n, [options])',
+        description: 'Get a random sample of rows',
+        returns: 'DataFrame',
+        example: 'df.sample(5, { replace: false })',
+      },
+      // Other indexing methods...
     },
     transform: {
       sort: {
         signature: 'sort(column, [options])',
         description: 'Sort by the specified column',
         returns: 'DataFrame',
-        example: 'df.sort(\'name\', { ascending: true })',
+        example: "df.sort('name', { ascending: true })",
       },
       assign: {
         signature: 'assign(columns)',
@@ -140,13 +169,13 @@ export function getDataFrameMethodsInfo() {
         signature: 'pivot(index, columns, values, [aggFunc])',
         description: 'Pivot DataFrame from long to wide format',
         returns: 'DataFrame',
-        example: 'df.pivot(\'date\', \'category\', \'value\')',
+        example: "df.pivot('date', 'category', 'value')",
       },
       melt: {
         signature: 'melt(idVars, [valueVars], [varName], [valueName])',
         description: 'Unpivot DataFrame from wide to long format',
         returns: 'DataFrame',
-        example: 'df.melt([\'date\'], [\'sales\', \'expenses\'])',
+        example: "df.melt(['date'], ['sales', 'expenses'])",
       },
       // Other reshape methods...
     },
@@ -161,7 +190,7 @@ export function getDataFrameMethodsInfo() {
         signature: 'toHTML([options])',
         description: 'Convert to HTML table',
         returns: 'string',
-        example: 'df.toHTML({ className: \'data-table\' })',
+        example: "df.toHTML({ className: 'data-table' })",
       },
       // Other display methods...
     },

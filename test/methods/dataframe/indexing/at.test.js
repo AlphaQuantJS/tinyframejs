@@ -4,7 +4,7 @@
 
 import { describe, test, expect } from 'vitest';
 import { DataFrame } from '../../../../src/core/dataframe/DataFrame.js';
-import registerDataFrameFiltering from '../../../../src/methods/dataframe/filtering/register.js';
+import { register as registerDataFrameIndexing } from '../../../../src/methods/dataframe/indexing/register.js';
 
 // Test data for use in all tests
 const testData = [
@@ -14,8 +14,8 @@ const testData = [
 ];
 
 describe('At Method', () => {
-  // Регистрируем методы фильтрации для DataFrame
-  registerDataFrameFiltering(DataFrame);
+  // Register indexing methods for DataFrame
+  registerDataFrameIndexing(DataFrame);
 
   describe('with standard storage', () => {
     // Create DataFrame using fromRows

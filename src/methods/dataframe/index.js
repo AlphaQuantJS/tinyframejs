@@ -6,7 +6,8 @@
 // Import all method groups
 import './filtering/index.js';
 import './display/index.js';
-// Импортируйте другие группы методов по мере необходимости
+import './transform/index.js';
+// Import other method groups as needed
 
 // Export nothing as methods are attached to DataFrame prototype
 export {};

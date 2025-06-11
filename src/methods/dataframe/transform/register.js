@@ -17,7 +17,7 @@ import { register as registerOneHot } from './oneHot.js';
  * @param {Class} DataFrame - DataFrame class to extend
  */
 export function registerDataFrameTransform(DataFrame) {
-  // Проверяем, что DataFrame существует
+  // Check that DataFrame exists
   if (!DataFrame) {
     console.warn(
       'DataFrame class is not provided, skipping transformation methods registration',

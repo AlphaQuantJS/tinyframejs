@@ -1,8 +1,8 @@
 /**
  * Filters rows in a DataFrame based on a predicate function
  *
- * @param {DataFrame} df - Экземпляр DataFrame
- * @param {Function} predicate - Функция-предикат для фильтрации строк
+ * @param {DataFrame} df - DataFrame instance
+ * @param {Function} predicate - Function to apply to each row
  * @returns {DataFrame} - New DataFrame with filtered rows
  */
 export const filter = (df, predicate) => {
@@ -16,12 +16,12 @@ export const filter = (df, predicate) => {
   // Apply predicate to each row
   const filteredRows = rows.filter(predicate);
 
-  // Если нет результатов, создаем пустой DataFrame с теми же колонками
+  // If no results, create an empty DataFrame with the same columns
   if (filteredRows.length === 0) {
-    // Создаем пустой объект с теми же колонками, но пустыми массивами
+    // Create an empty object with the same columns, but empty arrays
     const emptyData = {};
     for (const col of df.columns) {
-      // Сохраняем тип массива, если это типизированный массив
+      // Save the array type, if it's a typed array
       const originalArray = df._columns[col].vector.__data;
       if (
         ArrayBuffer.isView(originalArray) &&
@@ -36,13 +36,13 @@ export const filter = (df, predicate) => {
     return new df.constructor(emptyData);
   }
 
-  // Создаем новый DataFrame с сохранением типов массивов
+  // Create a new DataFrame with the same columns and types
   const filteredData = {};
   for (const col of df.columns) {
     const originalArray = df._columns[col].vector.__data;
     const values = filteredRows.map((row) => row[col]);
 
-    // Если оригинальный массив был типизированным, создаем новый типизированный массив
+    // If the original array was typed, create a new typed array
     if (
       ArrayBuffer.isView(originalArray) &&
       !(originalArray instanceof DataView)

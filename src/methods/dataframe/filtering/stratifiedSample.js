@@ -1,12 +1,12 @@
 /**
- * Выбирает стратифицированную выборку из DataFrame, сохраняя пропорции категорий.
+ * Selects stratified sample from DataFrame, preserving category proportions.
  *
- * @param {DataFrame} df - Экземпляр DataFrame
- * @param {string} stratifyColumn - Имя колонки для стратификации
- * @param {number} fraction - Доля строк для выборки (0 < fraction <= 1)
- * @param {Object} [options] - Дополнительные опции
- * @param {number} [options.seed] - Seed для генератора случайных чисел
- * @returns {DataFrame} - Новый DataFrame с выбранными строками
+ * @param {DataFrame} df - DataFrame instance
+ * @param {string} stratifyColumn - Column name for stratification
+ * @param {number} fraction - Fraction of rows to sample (0 < fraction <= 1)
+ * @param {Object} [options] - Additional options
+ * @param {number} [options.seed] - Seed for random number generator
+ * @returns {DataFrame} - New DataFrame with sampled rows
  */
 export const stratifiedSample = (
   df,
@@ -14,23 +14,23 @@ export const stratifiedSample = (
   fraction,
   options = {},
 ) => {
-  // Проверка входных параметров
+  // Validate input parameters
   if (!df.columns.includes(stratifyColumn)) {
-    throw new Error(`Колонка '${stratifyColumn}' не найдена`);
+    throw new Error(`Column '${stratifyColumn}' not found`);
   }
 
   if (fraction <= 0 || fraction > 1) {
-    throw new Error('Доля выборки должна быть в диапазоне (0, 1]');
+    throw new Error('Fraction must be in the range (0, 1]');
   }
 
-  // Получаем данные из DataFrame
+  // Get data from DataFrame
   const rows = df.toArray();
   if (rows.length === 0) {
-    // Возвращаем пустой DataFrame с тем же типом хранилища
+    // Return an empty DataFrame with the same storage type
     return new df.constructor({});
   }
 
-  // Группируем строки по категориям
+  // Group rows by categories
   const categories = {};
   rows.forEach((row) => {
     const category = row[stratifyColumn];
@@ -40,45 +40,45 @@ export const stratifiedSample = (
     categories[category].push(row);
   });
 
-  // Создаем генератор случайных чисел с seed, если указан
+  // Create a random number generator with seed if specified
   const random =
     options.seed !== undefined ? createSeededRandom(options.seed) : Math.random;
 
-  // Выбираем строки из каждой категории, сохраняя пропорции
+  // Select rows from each category, preserving proportions
   const sampledRows = [];
   Object.entries(categories).forEach(([category, categoryRows]) => {
-    // Вычисляем количество строк для выборки из этой категории
+    // Calculate the number of rows to sample from this category
     let sampleSize = Math.round(categoryRows.length * fraction);
 
-    // Гарантируем, что каждая категория имеет хотя бы одну строку
+    // Ensure each category has at least one row
     sampleSize = Math.max(1, sampleSize);
     sampleSize = Math.min(categoryRows.length, sampleSize);
 
-    // Перемешиваем строки и выбираем нужное количество
+    // Shuffle rows and select the required number
     const shuffled = [...categoryRows].sort(() => 0.5 - random());
     sampledRows.push(...shuffled.slice(0, sampleSize));
   });
 
-  // Создаем новый DataFrame из выбранных строк
+  // Create a new DataFrame from sampled rows
   return df.constructor.fromRows(sampledRows);
 };
 
 /**
- * Создает генератор псевдослучайных чисел с заданным seed
- * @param {number} seed - Начальное значение для генератора
- * @returns {Function} - Функция, возвращающая псевдослучайное число в диапазоне [0, 1)
+ * Creates a random number generator with seed
+ * @param {number} seed - Seed for random number generator
+ * @returns {Function} - Function returning pseudorandom number in range [0, 1)
  */
 function createSeededRandom(seed) {
   return function () {
-    // Простой линейный конгруэнтный генератор
+    // Simple linear congruential generator
     seed = (seed * 9301 + 49297) % 233280;
     return seed / 233280;
   };
 }
 
 /**
- * Регистрирует метод stratifiedSample в прототипе DataFrame
- * @param {Class} DataFrame - Класс DataFrame для расширения
+ * Registers the stratifiedSample method on DataFrame prototype
+ * @param {Class} DataFrame - DataFrame class to extend
  */
 export const register = (DataFrame) => {
   DataFrame.prototype.stratifiedSample = function (

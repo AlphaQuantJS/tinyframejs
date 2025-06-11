@@ -14,7 +14,7 @@ const testData = [
 ];
 
 describe('Drop Method', () => {
-  // Регистрируем методы фильтрации для DataFrame
+  // Register filtering methods for DataFrame
   registerDataFrameFiltering(DataFrame);
 
   describe('with standard storage', () => {

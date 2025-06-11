@@ -6,9 +6,9 @@
  * @returns {DataFrame} - New DataFrame with only the selected columns
  */
 export const select = (df, columns) => {
-  // Проверяем, что columns является массивом
+  // Validate that columns is an array
   if (!Array.isArray(columns)) {
-    throw new Error('Columns должен быть массивом');
+    throw new Error('Columns must be an array');
   }
 
   // Validate that all columns exist
@@ -34,7 +34,7 @@ export const select = (df, columns) => {
  */
 export const register = (DataFrame) => {
   DataFrame.prototype.select = function (...args) {
-    // Если передан не массив, а несколько аргументов, преобразуем их в массив
+    // If not an array, convert arguments to an array
     const columnsArray =
       args.length > 1 ? args : Array.isArray(args[0]) ? args[0] : [args[0]];
 

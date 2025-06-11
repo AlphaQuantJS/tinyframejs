@@ -79,7 +79,7 @@ describe('DataFrame.cut', () => {
     const result = df.cut('value', bins, { labels, includeLowest: true });
 
     // Assert
-    // При includeLowest=true, значение 0 попадает в первый интервал
+    // With includeLowest=true, value 0 falls into the first interval
     expect(result.col('value_bin').toArray()).toEqual([
       'Low',
       'Low',
@@ -101,7 +101,7 @@ describe('DataFrame.cut', () => {
     const result = df.cut('value', bins, { labels, right: false });
 
     // Assert
-    // При right=false, значение 10 попадает в интервал [0, 20)
+    // With right=false, value 10 falls into the first interval [0, 20)
     expect(result.col('value_bin').toArray()).toEqual([
       'Low',
       null,
@@ -127,8 +127,8 @@ describe('DataFrame.cut', () => {
     });
 
     // Assert
-    // При right=false и includeLowest=true, значение 0 попадает в интервал [0, 20)
-    // Значение 20 не попадает в интервал [0, 20), а попадает в [20, 40)
+    // With right=false and includeLowest=true, value 0 falls into the first interval [0, 20)
+    // Value 20 does not fall into the first interval [0, 20), but falls into [20, 40)
     expect(result.col('value_bin').toArray()).toEqual([
       'Low',
       'Low',
@@ -175,7 +175,7 @@ describe('DataFrame.cut', () => {
     // Assert
     expect(result).toBe(df); // Returns the same DataFrame instance
     expect(df.columns).toContain('value_bin'); // Original DataFrame modified
-    // При inplace=true, значения должны соответствовать ожидаемым
+    // With inplace=true, values should be as expected
     expect(df.col('value_bin').toArray()).toEqual([
       'Low',
       'Low',
@@ -242,8 +242,8 @@ describe('DataFrame.cut', () => {
       const result = df.cut('value', bins, { labels });
 
       // Assert
-      // В правосторонних интервалах (0, 10] и (10, 20] значения 0, 5, 9 не попадают в первый интервал,
-      // а 10 попадает во второй интервал, 15 тоже попадает во второй интервал
+      // With right=true and includeLowest=false, values 0, 5, 9 do not fall into the first interval (0, 10],
+      // while 10 falls into the second interval (10, 20], and 15 also falls into the second interval
       expect(result.col('value_bin').toArray()).toEqual([
         null,
         null,
@@ -265,8 +265,8 @@ describe('DataFrame.cut', () => {
       const result = df.cut('value', bins, { labels, includeLowest: true });
 
       // Assert
-      // При includeLowest=true, значение 0 попадает в первый интервал [0, 10),
-      // а значение 1 попадает в первый интервал (0, 10]
+      // With includeLowest=true, value 0 falls into the first interval [0, 10),
+      // while value 1 falls into the first interval (0, 10]
       expect(result.col('value_bin').toArray()).toEqual(['Low', 'Low']);
     });
 

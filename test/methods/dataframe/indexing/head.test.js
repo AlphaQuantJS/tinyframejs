@@ -4,7 +4,7 @@
 
 import { describe, it, expect, vi } from 'vitest';
 import { DataFrame } from '../../../../src/core/dataframe/DataFrame.js';
-import { register as registerDataFrameIndexing } from '../../../../src/methods/dataframe/indexing/register.js';
+import { registerDataFrameIndexing } from '../../../../src/methods/dataframe/indexing/register.js';
 
 // Test data for use in all tests
 const testData = [

@@ -6,6 +6,7 @@ import { describe, test, expect } from 'vitest';
 import { DataFrame } from '../../../../src/core/dataframe/DataFrame.js';
 import * as filteringMethods from '../../../../src/methods/dataframe/filtering/index.js';
 import registerDataFrameFiltering from '../../../../src/methods/dataframe/filtering/register.js';
+import { register as registerDataFrameIndexing } from '../../../../src/methods/dataframe/indexing/register.js';
 
 // Test data for use in all tests
 const testData = [
@@ -17,8 +18,9 @@ const testData = [
 ];
 
 describe('Filtering Methods Index', () => {
-  // Регистрируем методы фильтрации для DataFrame
+  // Register filtering and indexing methods for DataFrame
   registerDataFrameFiltering(DataFrame);
+  registerDataFrameIndexing(DataFrame);
 
   describe('with standard storage', () => {
     // Create DataFrame using fromRows
@@ -32,10 +34,6 @@ describe('Filtering Methods Index', () => {
       expect(filteringMethods).toHaveProperty('filter');
       expect(filteringMethods).toHaveProperty('query');
       expect(filteringMethods).toHaveProperty('where');
-      expect(filteringMethods).toHaveProperty('at');
-      expect(filteringMethods).toHaveProperty('iloc');
-      expect(filteringMethods).toHaveProperty('loc');
-      expect(filteringMethods).toHaveProperty('sample');
       expect(filteringMethods).toHaveProperty('stratifiedSample');
     });
 
@@ -47,10 +45,6 @@ describe('Filtering Methods Index', () => {
       expect(typeof df.filter).toBe('function');
       expect(typeof df.query).toBe('function');
       expect(typeof df.where).toBe('function');
-      expect(typeof df.at).toBe('function');
-      expect(typeof df.iloc).toBe('function');
-      expect(typeof df.loc).toBe('function');
-      expect(typeof df.sample).toBe('function');
       expect(typeof df.stratifiedSample).toBe('function');
     });
   });

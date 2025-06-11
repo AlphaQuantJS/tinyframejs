@@ -1,46 +1,44 @@
 /**
- * Выбирает колонки DataFrame, соответствующие регулярному выражению
+ * Selects columns from DataFrame that match a regular expression
  *
- * @param {DataFrame} df - Экземпляр DataFrame
- * @param {RegExp|string} pattern - Регулярное выражение или строка для поиска
- * @returns {DataFrame} - Новый DataFrame только с выбранными колонками
+ * @param {DataFrame} df - DataFrame instance
+ * @param {RegExp|string} pattern - Regular expression or string to search for
+ * @returns {DataFrame} - New DataFrame with only the selected columns
  */
 export const selectByPattern = (df, pattern) => {
-  // Проверка типа паттерна
+  // Validate pattern type
   if (typeof pattern !== 'string' && !(pattern instanceof RegExp)) {
-    throw new TypeError(
-      'Паттерн должен быть строкой или регулярным выражением',
-    );
+    throw new TypeError('Pattern must be a string or regular expression');
   }
 
-  // Преобразуем строку в регулярное выражение, если необходимо
+  // Convert string to regular expression if necessary
   const regex = pattern instanceof RegExp ? pattern : new RegExp(pattern);
 
-  // Находим колонки, соответствующие паттерну
+  // Find columns that match the pattern
   const matchedColumns = df.columns.filter((column) => regex.test(column));
 
-  // Если не найдено ни одной колонки, возвращаем пустой DataFrame
+  // If no columns are found, return an empty DataFrame
   if (matchedColumns.length === 0) {
-    // Создаем пустой DataFrame
+    // Create an empty DataFrame
     return new df.constructor({});
   }
 
-  // Создаем новый объект с данными только для выбранных колонок
+  // Create a new object with only the selected columns
   const selectedData = {};
 
-  // Сохраняем типы массивов
+  // Save array types
   for (const column of matchedColumns) {
-    // Получаем данные из оригинального DataFrame
+    // Get data from original DataFrame
     selectedData[column] = df.col(column).toArray();
   }
 
-  // Создаем новый DataFrame с выбранными колонками, сохраняя тип хранилища
+  // Create a new DataFrame with selected columns, preserving array types
   return new df.constructor(selectedData);
 };
 
 /**
- * Регистрирует метод selectByPattern в прототипе DataFrame
- * @param {Class} DataFrame - Класс DataFrame для расширения
+ * Registers the selectByPattern method on DataFrame prototype
+ * @param {Class} DataFrame - DataFrame class to extend
  */
 export const register = (DataFrame) => {
   DataFrame.prototype.selectByPattern = function (pattern) {

@@ -1,36 +1,36 @@
 /**
- * Фильтрует строки DataFrame с использованием SQL-подобного синтаксиса
+ * Filters DataFrame rows using SQL-like syntax
  *
- * @param {DataFrame} df - Экземпляр DataFrame
- * @param {string} queryString - SQL-подобный запрос
- * @returns {DataFrame} - Новый DataFrame с отфильтрованными строками
+ * @param {DataFrame} df - DataFrame instance
+ * @param {string} queryString - SQL-like query string
+ * @returns {DataFrame} - New DataFrame with filtered rows
  */
 export const query = (df, queryString) => {
   if (typeof queryString !== 'string') {
-    throw new Error('Запрос должен быть строкой');
+    throw new Error('Query must be a string');
   }
 
-  // Получаем данные из DataFrame
+  // Get data from DataFrame
   const rows = df.toArray();
 
-  // Создаем функцию для оценки запроса
+  // Create a function to evaluate the query
   const evaluateQuery = createQueryEvaluator(queryString);
 
-  // Фильтруем строки с помощью функции оценки
+  // Filter rows using the evaluation function
   const filteredRows = rows.filter((row) => {
     try {
       return evaluateQuery(row);
     } catch (e) {
-      throw new Error(`Ошибка при оценке запроса для строки: ${e.message}`);
+      throw new Error(`Error evaluating query for row: ${e.message}`);
     }
   });
 
-  // Если нет отфильтрованных строк, создаем пустой DataFrame с теми же колонками
+  // If no rows are filtered, create an empty DataFrame with the same columns
   if (filteredRows.length === 0) {
-    // Создаем пустой объект с теми же колонками, но пустыми массивами
+    // Create an empty object with the same columns, but empty arrays
     const emptyData = {};
     for (const col of df.columns) {
-      // Сохраняем тип массива, если это типизированный массив
+      // Save the array type if it's a typed array
       const originalArray = df.col(col).toArray();
       if (
         ArrayBuffer.isView(originalArray) &&
@@ -45,13 +45,13 @@ export const query = (df, queryString) => {
     return new df.constructor(emptyData);
   }
 
-  // Создаем новый DataFrame с сохранением типов массивов
+  // Create a new DataFrame preserving typed arrays
   const filteredData = {};
   for (const col of df.columns) {
     const originalArray = df.col(col).toArray();
     const values = filteredRows.map((row) => row[col]);
 
-    // Если оригинальный массив был типизированным, создаем новый типизированный массив
+    // If the original array was typed, create a new typed array
     if (
       ArrayBuffer.isView(originalArray) &&
       !(originalArray instanceof DataView)
@@ -67,12 +67,12 @@ export const query = (df, queryString) => {
 };
 
 /**
- * Создает функцию для оценки SQL-подобного запроса
- * @param {string} queryString - SQL-подобный запрос
- * @returns {Function} - Функция, оценивающая запрос для строки
+ * Creates a function to evaluate an SQL-like query
+ * @param {string} queryString - SQL-like query string
+ * @returns {Function} - Function evaluating the query for a row
  */
 function createQueryEvaluator(queryString) {
-  // Заменяем операторы сравнения на JavaScript-эквиваленты
+  // Replace comparison operators with JavaScript equivalents
   const jsQuery = queryString
     .replace(/(\w+)\s*=\s*([^=\s][^=]*)/g, '$1 == $2') // = -> ==
     .replace(
@@ -87,7 +87,7 @@ function createQueryEvaluator(queryString) {
       '($1 >= $2 && $1 <= $3)',
     ); // BETWEEN -> >= && <=
 
-  // Создаем функцию для оценки запроса
+  // Create a function to evaluate the query
   try {
     return new Function(
       'row',
@@ -102,13 +102,13 @@ function createQueryEvaluator(queryString) {
     `,
     );
   } catch (e) {
-    throw new Error(`Неверный синтаксис запроса: ${e.message}`);
+    throw new Error(`Invalid query syntax: ${e.message}`);
   }
 }
 
 /**
- * Регистрирует метод query в прототипе DataFrame
- * @param {Class} DataFrame - Класс DataFrame для расширения
+ * Registers the query method on DataFrame prototype
+ * @param {Class} DataFrame - DataFrame class to extend
  */
 export const register = (DataFrame) => {
   DataFrame.prototype.query = function (queryString) {

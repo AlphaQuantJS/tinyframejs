@@ -1,10 +1,10 @@
 /**
- * Unit tests for iloc method
+ * Unit tests for loc method
  */
 
 import { describe, test, expect } from 'vitest';
 import { DataFrame } from '../../../../src/core/dataframe/DataFrame.js';
-import registerDataFrameFiltering from '../../../../src/methods/dataframe/filtering/register.js';
+import { register as registerDataFrameIndexing } from '../../../../src/methods/dataframe/indexing/register.js';
 
 // Test data for use in all tests
 const testData = [
@@ -15,9 +15,9 @@ const testData = [
   { name: 'Eve', age: 45, city: 'Seattle', salary: 100000 },
 ];
 
-describe('ILoc Method', () => {
-  // Регистрируем методы фильтрации для DataFrame
-  registerDataFrameFiltering(DataFrame);
+describe('Loc Method', () => {
+  // Register indexing methods for DataFrame
+  registerDataFrameIndexing(DataFrame);
 
   describe('with standard storage', () => {
     // Create DataFrame using fromRows
@@ -31,8 +31,8 @@ describe('ILoc Method', () => {
       },
     });
 
-    test('should select rows and columns by integer positions', () => {
-      const result = df.iloc([1, 3], [0, 2]);
+    test('should select rows and columns by labels', () => {
+      const result = df.loc([1, 3], ['name', 'city']);
 
       // Check that the result has the correct rows and columns
       expect(result.rowCount).toBe(2);
@@ -44,7 +44,7 @@ describe('ILoc Method', () => {
     });
 
     test('should select a single row and multiple columns', () => {
-      const result = df.iloc(2, [0, 1, 2]);
+      const result = df.loc(2, ['name', 'age', 'city']);
 
       // Check that the result has the correct row and columns
       expect(result.rowCount).toBe(1);
@@ -55,7 +55,7 @@ describe('ILoc Method', () => {
     });
 
     test('should select multiple rows and a single column', () => {
-      const result = df.iloc([0, 2, 4], 1);
+      const result = df.loc([0, 2, 4], 'age');
 
       // Check that the result has the correct rows and column
       expect(result.rowCount).toBe(3);
@@ -64,46 +64,32 @@ describe('ILoc Method', () => {
     });
 
     test('should return a scalar value for a single row and a single column', () => {
-      const result = df.iloc(1, 3);
+      const result = df.loc(1, 'salary');
 
       // Check that the result is a scalar value
       expect(result).toBe(85000);
     });
 
     test('should throw error for row index out of bounds', () => {
-      expect(() => df.iloc(5, [0, 1])).toThrow();
+      expect(() => df.loc(5, ['name', 'age'])).toThrow();
     });
 
-    test('should throw error for column index out of bounds', () => {
-      expect(() => df.iloc([0, 1], 4)).toThrow();
+    test('should throw error for non-existent column', () => {
+      expect(() => df.loc([0, 1], ['name', 'nonexistent'])).toThrow();
     });
 
-    test('should support negative row indices for indexing from the end', () => {
-      const result = df.iloc(-1, [0, 1]);
-
-      // Check that the last row is selected
-      expect(result.rowCount).toBe(1);
-      expect(result.columns).toEqual(['name', 'age']);
-      expect(result.toArray()).toEqual([{ name: 'Eve', age: 45 }]);
-    });
-
-    test('should support negative column indices for indexing from the end', () => {
-      const result = df.iloc([0, 1], -1);
-
-      // Check that the last column is selected
-      expect(result.rowCount).toBe(2);
-      expect(result.columns).toEqual(['salary']);
-      expect(result.toArray()).toEqual([{ salary: 70000 }, { salary: 85000 }]);
+    test('should throw error for negative row index', () => {
+      expect(() => df.loc(-1, ['name', 'age'])).toThrow();
     });
 
     test('should return a new DataFrame instance', () => {
-      const result = df.iloc([0, 1], [0, 1]);
+      const result = df.loc([0, 1], ['name', 'age']);
       expect(result).toBeInstanceOf(DataFrame);
       expect(result).not.toBe(df); // Should be a new instance
     });
 
-    test('should preserve data integrity with typed arrays', () => {
-      const result = typedDf.iloc([1, 3], [1, 3]);
+    test('should preserve typed arrays', () => {
+      const result = typedDf.loc([1, 3], ['age', 'salary']);
 
       // Check that the data is preserved correctly
       expect(result.toArray()).toEqual([

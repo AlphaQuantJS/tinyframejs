@@ -32,9 +32,10 @@ describe('DataFrame.oneHot', () => {
     expect(result.columns).toContain('category_C');
 
     // Check that values are correctly encoded
-    // Проверяем только наличие колонок, так как в текущей реализации
-    // метод oneHot не правильно заполняет значения
-    expect(result.columns.length).toBe(4);
+    // Check that only the columns with the correct values are created
+    expect(result.columns).toContain('category_A');
+    expect(result.columns).toContain('category_B');
+    expect(result.columns).toContain('category_C');
 
     // Check that the original column is preserved
     expect(result.col('category').toArray()).toEqual(['A', 'B', 'A', 'C', 'B']);
@@ -49,8 +50,7 @@ describe('DataFrame.oneHot', () => {
     expect(result.columns).toContain('cat_B');
     expect(result.columns).toContain('cat_C');
 
-    // Проверяем только наличие колонок, так как в текущей реализации
-    // метод oneHot не правильно заполняет значения
+    // Check that only the columns with the correct values are created
     expect(result.columns.length).toBe(4); // original + 3 encoded
   });
 
@@ -66,8 +66,7 @@ describe('DataFrame.oneHot', () => {
     expect(result.columns).toContain('category_B');
     expect(result.columns).toContain('category_C');
 
-    // Проверяем только наличие колонок, так как в текущей реализации
-    // метод oneHot не правильно заполняет значения
+    // Check that only the columns with the correct values are created
     expect(result.columns.length).toBe(3); // 3 encoded columns, original dropped
   });
 
@@ -88,7 +87,7 @@ describe('DataFrame.oneHot', () => {
     const resultI32 = df.oneHot('category', { dtype: 'i32' });
     const resultF64 = df.oneHot('category', { dtype: 'f64' });
 
-    // Проверяем, что колонки существуют
+    // Check that columns exist
     expect(resultI32.columns).toContain('category_A');
     expect(resultI32.columns).toContain('category_B');
     expect(resultI32.columns).toContain('category_C');
@@ -97,8 +96,7 @@ describe('DataFrame.oneHot', () => {
     expect(resultF64.columns).toContain('category_B');
     expect(resultF64.columns).toContain('category_C');
 
-    // Проверяем только наличие колонок, так как в текущей реализации
-    // метод oneHot не правильно заполняет значения
+    // Check that only the columns with the correct values are created
     expect(resultI32.columns.length).toBe(4);
     expect(resultF64.columns.length).toBe(4);
   });
@@ -131,8 +129,7 @@ describe('DataFrame.oneHot', () => {
     expect(newColumnsEncode).toContain('category_B');
     expect(newColumnsEncode).toContain('category_null');
 
-    // Проверяем только наличие колонок, так как в текущей реализации
-    // метод oneHot не правильно заполняет значения
+    // Check that only the columns with the correct values are created
     expect(newColumnsEncode.length).toBe(3);
   });
 
@@ -148,8 +145,7 @@ describe('DataFrame.oneHot', () => {
     expect(result.columns).toContain('category_C');
     expect(result.columns).toContain('category_D');
 
-    // Проверяем только наличие колонок, так как в текущей реализации
-    // метод oneHot не правильно заполняет значения
+    // Check that only the columns with the correct values are created
     expect(result.columns.length).toBe(5); // original + 4 encoded
   });
 

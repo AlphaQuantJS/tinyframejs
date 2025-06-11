@@ -4,10 +4,10 @@
 
 import { describe, test, expect } from 'vitest';
 import { DataFrame } from '../../../../src/core/dataframe/DataFrame.js';
-import { registerDataFrameFiltering } from '../../../../src/methods/dataframe/filtering/register.js';
+import { register as registerDataFrameIndexing } from '../../../../src/methods/dataframe/indexing/register.js';
 
-// Register filtering methods on DataFrame
-registerDataFrameFiltering(DataFrame);
+// Register indexing methods on DataFrame
+registerDataFrameIndexing(DataFrame);
 
 // Test data as array of objects for use with DataFrame.fromRows
 const testData = [

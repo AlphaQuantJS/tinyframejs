@@ -61,13 +61,13 @@ export function stack(
   // Stack the data using public API
   const rows = df.toArray();
 
-  // Если valueVars не указан явно, используем только столбцы North, South, East, West
-  // для совместимости с тестами, или status* для нечисловых значений
+  // If valueVars is not specified, use only columns North, South, East, West
+  // for compatibility with tests, or status* for non-numeric values
   if (!valueVars) {
     const regionColumns = ['North', 'South', 'East', 'West'];
     const statusColumns = df.columns.filter((col) => col.startsWith('status'));
 
-    // Если есть столбцы status*, используем их, иначе используем region столбцы
+    // If there are status* columns, use them, otherwise use region columns
     if (statusColumns.length > 0) {
       valueColumns = statusColumns;
     } else {

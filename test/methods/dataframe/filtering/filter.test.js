@@ -14,7 +14,7 @@ const testData = [
 ];
 
 describe('Filter Method', () => {
-  // Регистрируем методы фильтрации для DataFrame
+  // Register filtering methods for DataFrame
   registerDataFrameFiltering(DataFrame);
 
   describe('with standard storage', () => {
@@ -91,8 +91,8 @@ describe('Filter Method', () => {
       // Filter the data
       const result = typedDf.filter((row) => row.age > 25);
 
-      // Проверяем, что результат содержит Float64Array для salary
-      // Примечание: age может быть преобразован в Float64Array в процессе фильтрации
+      // Check that the result contains Float64Array for salary
+      // Note: age may be converted to Float64Array during filtering
       expect(result._columns.salary.vector.__data).toBeInstanceOf(Float64Array);
     });
   });

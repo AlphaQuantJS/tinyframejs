@@ -6,7 +6,7 @@ import { describe, test, expect } from 'vitest';
 import { DataFrame } from '../../../../src/core/dataframe/DataFrame.js';
 import registerDataFrameFiltering from '../../../../src/methods/dataframe/filtering/register.js';
 
-// Тестовые данные для использования во всех тестах
+// Test data for use in all tests
 const testData = [
   { name: 'Alice', age: 25, city: 'New York', salary: 70000 },
   { name: 'Bob', age: 30, city: 'San Francisco', salary: 85000 },
@@ -14,11 +14,11 @@ const testData = [
 ];
 
 describe('Where Method', () => {
-  // Регистрируем методы фильтрации для DataFrame
+  // Register filtering methods for DataFrame
   registerDataFrameFiltering(DataFrame);
 
   describe('with standard storage', () => {
-    // Создаем DataFrame используя fromRows
+    // Create DataFrame using fromRows
     const df = DataFrame.fromRows(testData);
 
     test('should filter rows using column condition with > operator', () => {
@@ -179,11 +179,11 @@ describe('Where Method', () => {
         },
       });
 
-      // Фильтруем данные
+      // Filter data
       const result = typedDf.where('age', '>', 25);
 
-      // Проверяем, что результат содержит Float64Array для salary
-      // Примечание: age может быть преобразован в Float64Array в процессе фильтрации
+      // Check that the result contains Float64Array for salary
+      // Note: age may be converted to Float64Array during filtering
       expect(result._columns.salary.vector.__data).toBeInstanceOf(Float64Array);
     });
   });

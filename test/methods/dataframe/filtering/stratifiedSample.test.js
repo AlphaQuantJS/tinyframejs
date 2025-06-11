@@ -6,7 +6,7 @@ import { describe, test, expect } from 'vitest';
 import { DataFrame } from '../../../../src/core/dataframe/DataFrame.js';
 import registerDataFrameFiltering from '../../../../src/methods/dataframe/filtering/register.js';
 
-// Тестовые данные для использования во всех тестах
+// Test data for use in all tests
 const testData = [
   { name: 'Alice', age: 25, city: 'New York', category: 'A', salary: 70000 },
   { name: 'Bob', age: 30, city: 'San Francisco', category: 'B', salary: 85000 },
@@ -27,14 +27,14 @@ const testData = [
 ];
 
 describe('StratifiedSample Method', () => {
-  // Регистрируем методы фильтрации для DataFrame
+  // Register filtering methods for DataFrame
   registerDataFrameFiltering(DataFrame);
 
   describe('with standard storage', () => {
-    // Создаем DataFrame используя fromRows
+    // Create DataFrame using fromRows
     const df = DataFrame.fromRows(testData);
 
-    // Создаем DataFrame с типизированными массивами для тестирования сохранения типов
+    // Create DataFrame with typed arrays for testing type preservation
     const typedDf = DataFrame.fromRows(testData, {
       columns: {
         age: { type: 'int32' },
@@ -123,14 +123,14 @@ describe('StratifiedSample Method', () => {
     });
 
     test('should preserve typed arrays', () => {
-      // Используем DataFrame с типизированными массивами
+      // Use DataFrame with typed arrays
       const result = typedDf.stratifiedSample('category', 0.5, { seed: 42 });
 
-      // Проверяем, что результат сохраняет данные и структуру
+      // Check that the result preserves data and structure
       expect(result.col('age')).toBeDefined();
       expect(result.col('salary')).toBeDefined();
 
-      // Проверяем, что данные сохранены корректно
+      // Check that data is preserved correctly
       const resultArray = result.toArray();
       expect(resultArray.length).toBeGreaterThan(0);
       expect(typeof resultArray[0].age).toBe('number');
@@ -138,7 +138,7 @@ describe('StratifiedSample Method', () => {
     });
 
     test('should handle the case where a category has only one item', () => {
-      // Создаем DataFrame с одним элементом в каждой категории
+      // Create DataFrame with one item in each category
       const singleItemData = [
         { name: 'Alice', category: 'A' },
         { name: 'Bob', category: 'B' },
@@ -146,7 +146,7 @@ describe('StratifiedSample Method', () => {
       ];
       const singleItemDf = DataFrame.fromRows(singleItemData);
 
-      // Вызываем метод stratifiedSample на DataFrame с одним элементом в каждой категории
+      // Call stratifiedSample on DataFrame with one item in each category
       const result = singleItemDf.stratifiedSample('category', 0.5);
 
       // Each category should still have at least one item
@@ -154,7 +154,7 @@ describe('StratifiedSample Method', () => {
       expect(categories).toContain('A');
       expect(categories).toContain('B');
       expect(categories).toContain('C');
-      expect(result.rowCount).toBe(3); // Все элементы должны быть включены
+      expect(result.rowCount).toBe(3); // All elements should be included
     });
   });
 });

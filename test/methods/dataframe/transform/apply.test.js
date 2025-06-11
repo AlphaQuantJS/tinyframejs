@@ -14,7 +14,7 @@ const testData = {
   mixed: ['20', 30, null, undefined, NaN],
 };
 
-// Вспомогательная функция для получения значений из колонки
+// Helper function to get column values
 const getColValues = (df, colName) => Array.from(df.col(colName).toArray());
 
 describe('DataFrame.apply', () => {
@@ -39,7 +39,7 @@ describe('DataFrame.apply', () => {
 
     // Act
     const result = df.apply(['value', 'mixed'], (value) =>
-      // Удваиваем значение, если это число
+      // Double the value if it's a number
       typeof value === 'number' ? value * 2 : value,
     );
 
@@ -54,7 +54,7 @@ describe('DataFrame.apply', () => {
     expect(isNaN(mixedValues[3])).toBe(true); // undefined converted to NaN
     expect(isNaN(mixedValues[4])).toBe(true); // NaN still NaN
 
-    // Проверяем, что другие колонки не изменились
+    // Check that other columns remain unchanged
     expect(getColValues(result, 'category')).toEqual(['A', 'B', 'A', 'C', 'B']);
   });
 

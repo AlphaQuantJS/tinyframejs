@@ -13,7 +13,7 @@ import { register as registerSample } from './sample.js';
  * Register all indexing methods on DataFrame prototype
  * @param {object} DataFrame - DataFrame constructor
  */
-export function register(DataFrame) {
+export function registerDataFrameIndexing(DataFrame) {
   registerAt(DataFrame);
   registerHead(DataFrame);
   registerTail(DataFrame);

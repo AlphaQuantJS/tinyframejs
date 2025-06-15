@@ -8,7 +8,7 @@
 class MockArrowVector {
   constructor(data) {
     this._data = Array.isArray(data) ? [...data] : data;
-    // Важный маркер, который ловит ArrowVector-обёртка
+    // Important marker that catches ArrowVector-wrapper
     this.isArrow = true;
   }
 
@@ -99,7 +99,7 @@ export function recordBatchStreamWriter() {
   };
 }
 
-// Сообщаем, что мок активен
+// Notify that the mock is active
 console.log('Mock Arrow adapter active');
 
 // Export mock classes and functions
@@ -114,7 +114,7 @@ export default {
   Float64,
   Bool,
   DateMillisecond,
-  // Добавляем другие необходимые экспорты
+  // Add other necessary exports
   makeData: (data) => data,
   Codec: {
     ZSTD: 'zstd-codec',

@@ -32,5 +32,5 @@ export function createDataFrameWithStorage(DataFrame, data, storageType) {
     options.preferArrow = true;
   }
 
-  return DataFrame.fromRows(data, options);
+  return DataFrame.fromRecords(data, options);
 }

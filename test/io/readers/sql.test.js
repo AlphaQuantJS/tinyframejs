@@ -215,7 +215,7 @@ describe('SQL Reader', () => {
     const connection = createConnectionMock(mockResults);
     const query = 'SELECT id, name, value FROM users';
 
-    // Проверяем, что функция readSql успешно обрабатывает null значения
+    // Check that the function readSql successfully handles null values
     const df = await readSql(connection, query);
 
     // Check that the DataFrame was created successfully

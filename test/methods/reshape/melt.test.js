@@ -56,7 +56,7 @@ describe('DataFrame.melt', () => {
         { product: 'Product A', North: 10, South: 20, East: 30, West: 40 },
         { product: 'Product B', North: 15, South: 25, East: 35, West: 45 },
       ];
-      const dfMelt = DataFrame.fromRows(testMeltData);
+      const dfMelt = DataFrame.fromRecords(testMeltData);
 
       // Call the melt method
       const result = dfMelt.melt(['product']);
@@ -106,7 +106,7 @@ describe('DataFrame.melt', () => {
         { product: 'Product A', North: 10, South: 20 },
         { product: 'Product B', North: 15, South: 25 },
       ];
-      const dfMelt = DataFrame.fromRows(testMeltData);
+      const dfMelt = DataFrame.fromRecords(testMeltData);
 
       // Call the melt method with custom variable and value names
       const result = dfMelt.melt(['product'], null, 'region', 'sales');
@@ -152,7 +152,7 @@ describe('DataFrame.melt', () => {
           West: 45,
         },
       ];
-      const dfMelt = DataFrame.fromRows(testMeltData);
+      const dfMelt = DataFrame.fromRecords(testMeltData);
 
       // Call the melt method with specific value variables
       const result = dfMelt.melt(['product', 'id'], ['North', 'South']);
@@ -192,7 +192,7 @@ describe('DataFrame.melt', () => {
         },
         { product: 'Product B', category1: 'Furniture', category2: 'Large' },
       ];
-      const dfMelt = DataFrame.fromRows(testMeltData);
+      const dfMelt = DataFrame.fromRecords(testMeltData);
 
       // Call the melt method
       const result = dfMelt.melt(['product']);
@@ -227,7 +227,7 @@ describe('DataFrame.melt', () => {
     test('throws an error with invalid arguments', () => {
       // Create a simple DataFrame for error testing
       const testMeltData = [{ product: 'Product A', value: 10 }];
-      const dfMelt = DataFrame.fromRows(testMeltData);
+      const dfMelt = DataFrame.fromRecords(testMeltData);
 
       // Check that the method throws an error if idVars is not an array
       expect(() => dfMelt.melt('product')).toThrow();

@@ -13,8 +13,8 @@ describe('min method', () => {
       { value: 50, category: 'B', mixed: NaN },
     ];
 
-    // Create DataFrame using fromRows for proper column names
-    const df = DataFrame.fromRows(testData);
+    // Create DataFrame using fromRecords for proper column names
+    const df = DataFrame.fromRecords(testData);
 
     it('should find the minimum value in a numeric column', () => {
       // Call min function directly with a mock validator
@@ -67,8 +67,8 @@ describe('min method', () => {
     });
 
     it('should handle empty frames', () => {
-      // Create an empty DataFrame using fromRows
-      const emptyDf = DataFrame.fromRows([]);
+      // Create an empty DataFrame using fromRecords
+      const emptyDf = DataFrame.fromRecords([]);
 
       // Call min function directly with a validator that doesn't throw for empty frames
       const validateColumn = vi.fn(); // Mock validator that doesn't check anything

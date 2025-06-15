@@ -2,33 +2,84 @@
  * Tests for the mean method in Series
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import { Series } from '../../../../src/core/dataframe/Series.js';
-import { mean } from '../../../../src/methods/series/aggregation/mean.js';
+import {
+  mean,
+  register,
+} from '../../../../src/methods/series/aggregation/mean.js';
 
 describe('Series mean', () => {
-  it('should calculate the mean of values in a Series', () => {
-    const series = new Series([1, 2, 3, 4, 5]);
-    expect(mean(series)).toBe(3);
+  // Register the method before running tests
+  beforeAll(() => {
+    register(Series);
   });
 
-  it('should return NaN for an empty Series', () => {
+  it('should calculate the mean of values in a Series', () => {
+    // Arrange
+    const series = new Series([1, 2, 3, 4, 5]);
+
+    // Act
+    const result = series.mean();
+
+    // Assert
+    expect(result).toBe(3);
+    expect(typeof result).toBe('number');
+  });
+
+  it('should return null for an empty Series', () => {
+    // Arrange
     const series = new Series([]);
-    expect(isNaN(mean(series))).toBe(true);
+
+    // Act
+    const result = series.mean();
+
+    // Assert
+    expect(result).toBeNull();
   });
 
   it('should handle null and undefined values', () => {
+    // Arrange
     const series = new Series([1, null, 3, undefined, 5]);
-    expect(mean(series)).toBe(3); // (1 + 3 + 5) / 3 = 3
+
+    // Act
+    const result = series.mean();
+
+    // Assert
+    expect(result).toBe(3); // (1 + 3 + 5) / 3 = 3
   });
 
   it('should convert string values to numbers when possible', () => {
+    // Arrange
     const series = new Series(['1', '2', '3']);
-    expect(mean(series)).toBe(2);
+
+    // Act
+    const result = series.mean();
+
+    // Assert
+    expect(result).toBe(2);
   });
 
-  it('should return NaN when Series contains only non-numeric strings', () => {
+  it('should return null when Series contains only non-numeric strings', () => {
+    // Arrange
     const series = new Series(['a', 'b', 'c']);
-    expect(isNaN(mean(series))).toBe(true);
+
+    // Act
+    const result = series.mean();
+
+    // Assert
+    expect(result).toBeNull();
+  });
+
+  // Test the direct function as well
+  it('should work when called as a function', () => {
+    // Arrange
+    const series = new Series([1, 2, 3]);
+
+    // Act
+    const result = mean(series);
+
+    // Assert
+    expect(result).toBe(2);
   });
 });

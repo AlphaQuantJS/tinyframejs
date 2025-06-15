@@ -9,7 +9,7 @@ import { registerDataFrameIndexing } from '../../../../src/methods/dataframe/ind
 // Register indexing methods on DataFrame
 registerDataFrameIndexing(DataFrame);
 
-// Test data as array of objects for use with DataFrame.fromRows
+// Test data as array of objects for use with DataFrame.fromRecords
 const testData = [
   { name: 'Alice', age: 25, city: 'New York', salary: 70000 },
   { name: 'Bob', age: 30, city: 'San Francisco', salary: 85000 },
@@ -25,11 +25,11 @@ const testData = [
 
 describe('Sample Method', () => {
   describe('with standard storage', () => {
-    // Create DataFrame using fromRows
-    const df = DataFrame.fromRows(testData);
+    // Create DataFrame using fromRecords
+    const df = DataFrame.fromRecords(testData);
 
     // Create DataFrame with typed arrays for testing type preservation
-    const typedDf = DataFrame.fromRows(testData.slice(0, 5), {
+    const typedDf = DataFrame.fromRecords(testData.slice(0, 5), {
       columns: {
         age: { type: 'int32' },
         salary: { type: 'float64' },

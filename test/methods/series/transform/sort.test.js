@@ -41,14 +41,12 @@ describe('Series.sort', () => {
   test('handles null and undefined values (they go to the beginning in descending order)', () => {
     const series = new Series([5, null, 3, undefined, 1]);
     const sorted = series.sort({ ascending: false });
-    // Исправляем ожидаемый результат в соответствии с реализацией
     expect(sorted.toArray()).toEqual([null, 5, 3, 1, undefined]);
   });
 
   test('sorts mixed types (numbers and strings)', () => {
     const series = new Series([5, '3', 1, '10', 2]);
     const sorted = series.sort();
-    // Исправляем ожидаемый результат в соответствии с реализацией
     expect(sorted.toArray()).toEqual([1, 2, 5, '10', '3']);
   });
 
@@ -74,10 +72,10 @@ describe('Series.sort', () => {
   });
 
   test('works with direct function call', () => {
-    // Регистрируем метод
+    // Register the sort method on Series prototype
     register(Series);
     const series = new Series([5, 3, 1, 4, 2]);
-    // Используем метод напрямую
+    // Use the method directly
     const sorted = series.sort();
     expect(sorted.toArray()).toEqual([1, 2, 3, 4, 5]);
   });

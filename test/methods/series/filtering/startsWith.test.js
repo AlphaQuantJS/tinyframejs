@@ -1,6 +1,9 @@
 import { describe, test, expect, beforeAll } from 'vitest';
 import { Series } from '../../../../src/core/dataframe/Series.js';
-import { startsWith, register } from '../../../../src/methods/series/filtering/startsWith.js';
+import {
+  startsWith,
+  register,
+} from '../../../../src/methods/series/filtering/startsWith.js';
 
 describe('Series.startsWith', () => {
   // Register the method before running tests

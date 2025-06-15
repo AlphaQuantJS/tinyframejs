@@ -4,13 +4,13 @@
  */
 
 // Import registrars from different categories
-import { registerDataFrameAggregation } from './aggregation/register.js';
-import { registerDataFrameFiltering } from './filtering/register.js';
-import { registerDataFrameIndexing } from './indexing/register.js';
-import { registerDataFrameTransform } from './transform/register.js';
-import { registerDataFrameDisplay } from './display/register.js';
-import { registerDataFrameTimeSeries } from '../timeseries/dataframe/register.js';
-import { registerReshapeMethods } from '../reshape/register.js';
+import { register as registerDataFrameAggregation } from './aggregation/index.js';
+import { register as registerDataFrameFiltering } from './filtering/index.js';
+import { register as registerDataFrameIndexing } from './indexing/index.js';
+import { register as registerDataFrameTransform } from './transform/index.js';
+import { register as registerDataFrameDisplay } from './display/index.js';
+import { register as registerDataFrameTimeSeries } from '../timeseries/dataframe/index.js';
+import { register as registerReshapeMethods } from '../reshape/index.js';
 
 /**
  * Extends the DataFrame class with all available methods

@@ -21,23 +21,23 @@ export function jsonToFrame(jsonData, options = {}) {
 
   // Handle different JSON data formats
   if (Array.isArray(jsonData)) {
-    // Array of objects (rows) - преобразуем в формат столбцов
+    // Array of objects (rows) - convert to column format
     if (jsonData.length === 0) {
       return new DataFrame({});
     }
 
-    // Извлекаем имена столбцов из первого объекта
+    // Extract column names from the first object
     const columns = {};
     const keys = Object.keys(jsonData[0]);
 
-    // Создаем массивы для каждого столбца
+    // Create arrays for each column
     for (const key of keys) {
       columns[key] = jsonData.map((row) => row[key]);
     }
 
     return new DataFrame(columns, { useTypedArrays, copy, saveRawData });
   } else if (jsonData && typeof jsonData === 'object') {
-    // Object with arrays as columns - уже в правильном формате
+    // Object with arrays as columns - already in the correct format
     return new DataFrame(jsonData, { useTypedArrays, copy, saveRawData });
   }
 

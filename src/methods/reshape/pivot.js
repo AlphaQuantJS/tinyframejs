@@ -128,7 +128,7 @@ export const pivot = (
   });
 
   // Create new DataFrame from pivoted rows
-  return df.constructor.fromRows(pivotedRows);
+  return df.constructor.fromRecords(pivotedRows);
 };
 
 /**

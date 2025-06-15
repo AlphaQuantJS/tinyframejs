@@ -6,14 +6,16 @@ import { describe, test, expect } from 'vitest';
 import { DataFrame } from '../../../../src/core/dataframe/DataFrame.js';
 import * as filteringMethods from '../../../../src/methods/dataframe/filtering/index.js';
 import { registerDataFrameIndexing } from '../../../../src/methods/dataframe/indexing/register.js';
+import { registerDataFrameFiltering } from '../../../../src/methods/dataframe/filtering/register.js';
 
 import {
   testWithBothStorageTypes,
   createDataFrameWithStorage,
 } from '../../../utils/storageTestUtils.js';
 
-// Регистрируем методы индексирования на DataFrame
+// Register indexing and filtering methods on DataFrame
 registerDataFrameIndexing(DataFrame);
+registerDataFrameFiltering(DataFrame);
 
 // Test data for use in all tests
 const testData = [
@@ -55,7 +57,7 @@ describe('Filtering Methods Index', () => {
         expect(typeof df.where).toBe('function');
         expect(typeof df.stratifiedSample).toBe('function');
 
-        // Проверяем, что методы индексирования также доступны (они регистрируются отдельно)
+        // Check that indexing methods are available on the DataFrame instance
         expect(typeof df.at).toBe('function');
         expect(typeof df.iloc).toBe('function');
         expect(typeof df.loc).toBe('function');

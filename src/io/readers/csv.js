@@ -448,19 +448,19 @@ function tryParseWithCsvParse(content, options) {
     const require = createRequire(import.meta.url);
     const csvParseModule = require('csv-parse/sync');
 
-    // Если используем csv-parse с опцией columns, то он уже возвращает массив объектов
-    // Если header=true, используем первую строку как заголовки
+    // If using csv-parse with columns option, it already returns an array of objects
+    // If header=true, use the first row as headers
     const parseOptions = {
       delimiter,
-      columns: header, // Если true, то первая строка будет использована как заголовки
+      columns: header, // If true, the first row will be used as headers
       skipEmptyLines,
       cast: dynamicTyping,
     };
 
-    // Парсим CSV-данные
+    // Parse CSV data
     const records = csvParseModule.parse(content, parseOptions);
 
-    // Валидация заголовков - проверяем, что все заголовки валидны
+    // Validate headers - check that all headers are valid
     if (header && records.length > 0) {
       const headerKeys = Object.keys(records[0]);
       if (headerKeys.some((key) => key.trim() === '')) {
@@ -484,7 +484,10 @@ function tryParseWithCsvParse(content, options) {
       }
     }
 
-    return { result: DataFrame.fromRows(records, frameOptions), error: null };
+    return {
+      result: DataFrame.fromRecords(records, frameOptions),
+      error: null,
+    };
   } catch (error) {
     return { result: null, error };
   }
@@ -651,17 +654,17 @@ export function parseWithBuiltIn(content, options) {
     : lines;
 
   if (filteredLines.length === 0) {
-    return DataFrame.fromRows([], frameOptions);
+    return DataFrame.fromRecords([], frameOptions);
   }
 
   // Prepare array for rows
   const rows = [];
 
   if (header && filteredLines.length > 0) {
-    // Используем первую строку как заголовки
+    // Use the first row as headers
     const headers = parseRow(filteredLines[0], delimiter);
 
-    // Валидация заголовков
+    // Validate headers
     if (
       !Array.isArray(headers) ||
       headers.some((h) => typeof h !== 'string' || h.trim() === '')
@@ -671,33 +674,34 @@ export function parseWithBuiltIn(content, options) {
       );
     }
 
-    // Обрабатываем остальные строки, начиная со второй
+    // Process other rows, starting from the second
     for (let i = 1; i < filteredLines.length; i++) {
       const line = filteredLines[i];
 
-      // Пропускаем пустые строки
+      // Skip empty lines
       if (line.trim() === '' && skipEmptyLines) {
         continue;
       }
 
-      // Парсим строку
+      // Parse row
       const values = parseRow(line, delimiter);
 
-      // Валидация: проверяем, что количество значений соответствует количеству заголовков
+      // Validation: check that the number of values matches the number of headers
       if (values.length !== headers.length) {
         console.warn(
           `Warning: Row at line ${i + 1} has ${values.length} values, but header has ${headers.length} columns. Data may be misaligned.`,
         );
       }
 
-      // Создаем объект для текущей строки
+      // Create object for current row
       const obj = {};
 
-      // Заполняем объект значениями
+      // Fill object with values
       for (let j = 0; j < headers.length; j++) {
+        // Get value from the values array
         let value = values[j];
 
-        // Преобразуем значения, если нужно
+        // Convert values if needed
         if (dynamicTyping) {
           value = convertType(value, emptyValue);
         }
@@ -708,25 +712,25 @@ export function parseWithBuiltIn(content, options) {
       rows.push(obj);
     }
   } else {
-    // Без заголовков - используем числовые индексы
+    // Without headers - use numeric indices
     for (let i = 0; i < filteredLines.length; i++) {
       const line = filteredLines[i];
 
-      // Пропускаем пустые строки
+      // Skip empty lines
       if (line.trim() === '' && skipEmptyLines) {
         continue;
       }
 
-      // Парсим строку
+      // Parse row
       const values = parseRow(line, delimiter);
 
-      // Создаем объект с числовыми индексами
+      // Create object with numeric indices
       const obj = {};
 
       for (let j = 0; j < values.length; j++) {
         let value = values[j];
 
-        // Преобразуем значения, если нужно
+        // Convert values if needed
         if (dynamicTyping) {
           value = convertType(value, emptyValue);
         }
@@ -738,7 +742,7 @@ export function parseWithBuiltIn(content, options) {
     }
   }
 
-  return DataFrame.fromRows(rows, frameOptions);
+  return DataFrame.fromRecords(rows, frameOptions);
 }
 
 /**
@@ -925,14 +929,14 @@ async function* readCsvInBatches(source, options = {}) {
 
       // When batch is full, yield a DataFrame
       if (batch.length >= options.batchSize) {
-        yield DataFrame.fromRows(batch, options.frameOptions);
+        yield DataFrame.fromRecords(batch, options.frameOptions);
         batch = [];
       }
     }
 
     // Yield remaining rows if any
     if (batch.length > 0) {
-      yield DataFrame.fromRows(batch, options.frameOptions);
+      yield DataFrame.fromRecords(batch, options.frameOptions);
     }
   } else {
     // For other sources, get all content and process in batches
@@ -976,14 +980,14 @@ async function* readCsvInBatches(source, options = {}) {
 
       // When batch is full, yield a DataFrame
       if (batch.length >= options.batchSize) {
-        yield DataFrame.fromRows(batch, options.frameOptions);
+        yield DataFrame.fromRecords(batch, options.frameOptions);
         batch = [];
       }
     }
 
     // Yield remaining rows if any
     if (batch.length > 0) {
-      yield DataFrame.fromRows(batch, options.frameOptions);
+      yield DataFrame.fromRecords(batch, options.frameOptions);
     }
   }
 }
@@ -1017,7 +1021,7 @@ export async function readCsv(source, options = {}) {
     options.emptyValue !== undefined ? options.emptyValue : undefined;
   options.frameOptions = options.frameOptions || {};
 
-  // Дополнительные опции для приведения типов (для будущих версий)
+  // Additional options for type conversion (for future versions)
   options.parseNumbers =
     options.parseNumbers !== undefined
       ? options.parseNumbers
@@ -1050,7 +1054,7 @@ export async function readCsv(source, options = {}) {
         for await (const batchDf of batchGenerator) {
           allData.push(...batchDf.toArray());
         }
-        return DataFrame.fromRows(allData, options.frameOptions);
+        return DataFrame.fromRecords(allData, options.frameOptions);
       },
     };
   }

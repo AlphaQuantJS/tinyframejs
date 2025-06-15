@@ -14,16 +14,16 @@ export function unique() {
    * @param {boolean} [options.keepNull=true] - Whether to keep null/undefined values
    * @returns {Series} - New Series with unique values
    */
-  return function(options = {}) {
+  return function (options = {}) {
     const { keepNull = true } = options;
-    
+
     const values = this.toArray();
     const uniqueValues = [];
     const seen = new Set();
-    
+
     for (let i = 0; i < values.length; i++) {
       const value = values[i];
-      
+
       // Handle null/undefined values separately
       if (value === null) {
         if (keepNull && !seen.has('__NULL__')) {
@@ -39,15 +39,16 @@ export function unique() {
         }
         continue;
       }
-      
+
       // For regular values
-      const valueKey = typeof value === 'object' ? JSON.stringify(value) : value;
+      const valueKey =
+        typeof value === 'object' ? JSON.stringify(value) : value;
       if (!seen.has(valueKey)) {
         uniqueValues.push(value);
         seen.add(valueKey);
       }
     }
-    
+
     return new this.constructor(uniqueValues, { name: this.name });
   };
 }

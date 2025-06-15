@@ -58,3 +58,16 @@ UI.md
 
 # Examples
 examples/
+
+# Test fixtures
+test/fixtures
+
+# Documentation
+docs/  
+
+# Test and demo files
+arrow-demo.cjs
+arrow-test.cjs
+test-arrow.js
+test-output/
+tinyframejs-*.tgz

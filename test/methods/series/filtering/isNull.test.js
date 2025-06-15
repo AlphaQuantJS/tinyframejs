@@ -1,6 +1,9 @@
 import { describe, test, expect, beforeAll } from 'vitest';
 import { Series } from '../../../../src/core/dataframe/Series.js';
-import { isNull, register } from '../../../../src/methods/series/filtering/isNull.js';
+import {
+  isNull,
+  register,
+} from '../../../../src/methods/series/filtering/isNull.js';
 
 describe('Series.isNull', () => {
   // Register the method before running tests

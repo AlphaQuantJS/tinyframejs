@@ -48,13 +48,13 @@ export function arrayToFrame(arrayData, options = {}) {
       } else {
         // Use provided column names or generate them
         colNames =
-          columns.length > 0 ?
-            columns :
-            Array.from({ length: firstItem.length }, (_, i) => `column${i}`);
+          columns.length > 0
+            ? columns
+            : Array.from({ length: firstItem.length }, (_, i) => `column${i}`);
         data = arrayData;
       }
 
-      // Преобразуем массив массивов в формат строк для DataFrame.fromRows
+      // Convert array of arrays to object format for DataFrame.fromRecords
       const rows = data.map((row) => {
         const obj = {};
         for (let i = 0; i < colNames.length; i++) {
@@ -63,10 +63,10 @@ export function arrayToFrame(arrayData, options = {}) {
         return obj;
       });
 
-      return DataFrame.fromRows(rows);
+      return DataFrame.fromRecords(rows);
     } else if (typeof firstItem === 'object' && firstItem !== null) {
-      // Массив объектов - используем напрямую DataFrame.fromRows
-      return DataFrame.fromRows(arrayData);
+      // Array of objects - use directly DataFrame.fromRecords
+      return DataFrame.fromRecords(arrayData);
     }
 
     // Array of primitives (single column)
@@ -74,7 +74,7 @@ export function arrayToFrame(arrayData, options = {}) {
     const rows = arrayData.map((value) => ({ [colName]: value }));
 
     // Create a DataFrame from rows
-    return DataFrame.fromRows(rows);
+    return DataFrame.fromRecords(rows);
   } catch (error) {
     console.error('Error creating DataFrame:', error);
     throw error;

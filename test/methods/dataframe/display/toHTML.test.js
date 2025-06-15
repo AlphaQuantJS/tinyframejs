@@ -11,8 +11,8 @@ describe('DataFrame toHTML method', () => {
       { name: 'Charlie', age: 35, city: 'Chicago' },
     ];
 
-    // Create DataFrame using fromRows
-    const df = DataFrame.fromRows(testData);
+    // Create DataFrame using fromRecords
+    const df = DataFrame.fromRecords(testData);
 
     it('should convert DataFrame to HTML string', () => {
       // Call toHTML function directly
@@ -47,7 +47,7 @@ describe('DataFrame toHTML method', () => {
 
     it('should handle empty DataFrame', () => {
       // Create empty DataFrame
-      const emptyDf = DataFrame.fromRows([]);
+      const emptyDf = DataFrame.fromRecords([]);
 
       // Call toHTML function
       const toHTMLFn = toHTML();

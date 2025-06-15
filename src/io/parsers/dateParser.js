@@ -36,10 +36,10 @@ export function parseDate(dateString, options = {}) {
     const parsedMonth = parseInt(month) - 1;
     const parsedDay = parseInt(day);
 
-    // Создаем дату
+    // Create date
     const date = new Date(parsedYear, parsedMonth, parsedDay);
 
-    // Проверяем, что дата валидна (день и месяц не были скорректированы)
+    // Check that the date is valid (day and month were not corrected)
     if (
       date.getFullYear() === parsedYear &&
       date.getMonth() === parsedMonth &&
@@ -59,10 +59,10 @@ export function parseDate(dateString, options = {}) {
     const parsedMonth = parseInt(month) - 1;
     const parsedYear = parseInt(year);
 
-    // Создаем дату
+    // Create date
     const date = new Date(parsedYear, parsedMonth, parsedDay);
 
-    // Проверяем, что дата валидна (день и месяц не были скорректированы)
+    // Check that the date is valid (day and month were not corrected)
     if (
       date.getFullYear() === parsedYear &&
       date.getMonth() === parsedMonth &&
@@ -82,10 +82,10 @@ export function parseDate(dateString, options = {}) {
     const parsedDay = parseInt(day);
     const parsedYear = parseInt(year);
 
-    // Создаем дату
+    // Create date
     const date = new Date(parsedYear, parsedMonth, parsedDay);
 
-    // Проверяем, что дата валидна (день и месяц не были скорректированы)
+    // Check that the date is valid (day and month were not corrected)
     if (
       date.getFullYear() === parsedYear &&
       date.getMonth() === parsedMonth &&

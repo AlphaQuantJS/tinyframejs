@@ -1,8 +1,8 @@
 import { describe, test, expect, beforeAll } from 'vitest';
 import { DataFrame } from '../../../../src/core/dataframe/DataFrame.js';
 
-// Import the stack method register function directly
-import { register as registerStack } from '../../../../src/methods/dataframe/transform/stack.js';
+// Import the stack method register function from reshape directory
+import { register as registerStack } from '../../../../src/methods/reshape/stack.js';
 
 // Register stack method on DataFrame prototype before tests
 beforeAll(() => {

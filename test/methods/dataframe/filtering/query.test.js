@@ -9,7 +9,7 @@ import { registerDataFrameFiltering } from '../../../../src/methods/dataframe/fi
 // Register filtering methods on DataFrame
 registerDataFrameFiltering(DataFrame);
 
-// Test data as array of objects for use with DataFrame.fromRows
+// Test data as array of objects for use with DataFrame.fromRecords
 const testData = [
   { name: 'Alice', age: 25, city: 'New York', salary: 70000 },
   { name: 'Bob', age: 30, city: 'San Francisco', salary: 85000 },
@@ -18,11 +18,11 @@ const testData = [
 
 describe('Query Method', () => {
   describe('with standard storage', () => {
-    // Create DataFrame using fromRows
-    const df = DataFrame.fromRows(testData);
+    // Create DataFrame using fromRecords
+    const df = DataFrame.fromRecords(testData);
 
     // Create DataFrame with typed arrays for testing type preservation
-    const typedDf = DataFrame.fromRows(testData, {
+    const typedDf = DataFrame.fromRecords(testData, {
       columns: {
         age: { type: 'int32' },
         salary: { type: 'float64' },

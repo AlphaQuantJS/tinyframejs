@@ -9,6 +9,7 @@
  * @returns {DataFrame} - New DataFrame with filtered rows
  */
 export const where = (df, column, operator, value) => {
+  // Check if column exists
   if (!df.columns.includes(column)) {
     throw new Error(`Column '${column}' not found`);
   }

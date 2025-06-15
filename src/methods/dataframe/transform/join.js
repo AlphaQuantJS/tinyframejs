@@ -224,7 +224,7 @@ export const join =
     }
 
     // Create a new DataFrame from joined rows
-    return df.constructor.fromRows(joinedRows);
+    return df.constructor.fromRecords(joinedRows);
   };
 
 export default { join };

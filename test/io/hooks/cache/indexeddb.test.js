@@ -5,20 +5,20 @@ import {
 } from '../../../../src/io/hooks/cache/indexeddb.js';
 import { isNodeJs } from '../../../../src/io/utils/environment.js';
 
-// Проверяем, в каком окружении мы находимся
+// Check if we are running in Node.js
 const isRunningInNode = isNodeJs();
 
-// Если мы в Node.js, пропускаем все тесты
+// If we are in Node.js, skip all tests
 if (isRunningInNode) {
   describe('IndexedDB Cache (skipped in Node.js)', () => {
     it('skips IndexedDB tests in Node.js environment', () => {
-      // Этот тест всегда проходит
+      // This test always passes
       expect(true).toBe(true);
     });
   });
 } else {
-  // Если мы в браузере, запускаем полные тесты
-  // Этот блок не будет выполнен в Node.js
+  // If we are in a browser, run full tests
+  // This block won't be executed in Node.js
   describe('IndexedDB Cache', () => {
     it('should create an IndexedDBCache instance', () => {
       const cache = createIndexedDBCache({

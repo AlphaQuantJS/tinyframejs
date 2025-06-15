@@ -24,8 +24,8 @@ describe('DataFrame renderTo method', () => {
       { name: 'Charlie', age: 35, city: 'Chicago' },
     ];
 
-    // Create DataFrame using fromRows
-    const df = DataFrame.fromRows(testData);
+    // Create DataFrame using fromRecords
+    const df = DataFrame.fromRecords(testData);
 
     // Mock DOM element
     const mockElement = { id: 'test-element' };

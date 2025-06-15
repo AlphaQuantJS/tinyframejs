@@ -6,7 +6,7 @@ import registerDataFrameTimeSeries from '../../../../src/methods/timeseries/data
 
 describe('rolling', () => {
   beforeAll(() => {
-    // Регистрируем методы временных рядов для DataFrame
+    // Register timeseries methods before tests
     registerDataFrameTimeSeries(DataFrame);
   });
   test('should calculate rolling window with default options', () => {
@@ -126,10 +126,10 @@ describe('rolling', () => {
 
     const result = df.rolling({
       window: 3,
-      minPeriods: 1, // Требуем минимум 1 значение в окне вместо 3 (по умолчанию)
+      minPeriods: 1, // Require minimum 1 value in window instead of 3 (default)
       aggregations: {
         value: (values) => {
-          // Правильная обработка NaN значений в агрегационной функции
+          // Proper handling of NaN values in the aggregation function
           if (values.length === 0) return null;
           return values.reduce((sum, val) => sum + val, 0) / values.length;
         },
@@ -138,20 +138,20 @@ describe('rolling', () => {
 
     const rollingValues = result.col('value_rolling').toArray();
 
-    // С minPeriods=1 первые значения будут содержать среднее из доступных значений
-    expect(rollingValues[0]).toBe(1); // Только одно значение [1]
-    expect(rollingValues[1]).toBe(1); // Только одно значение [1] (NaN отфильтровывается)
+    // With minPeriods=1, first values will contain average of available values
+    expect(rollingValues[0]).toBe(1); // Only one value [1]
+    expect(rollingValues[1]).toBe(1); // Only one value [1] (NaN is filtered out)
 
-    // Window [1, NaN, 3] должно фильтровать NaN и вычислять среднее из [1, 3]
+    // Window [1, NaN, 3] should filter NaN and calculate average of [1, 3]
     expect(rollingValues[2]).toBeCloseTo((1 + 3) / 2);
 
-    // Window [NaN, 3, 4] должно фильтровать NaN и вычислять среднее из [3, 4]
+    // Window [NaN, 3, 4] should filter NaN and calculate average of [3, 4]
     expect(rollingValues[3]).toBeCloseTo((3 + 4) / 2);
 
-    // Window [3, 4, NaN] должно фильтровать NaN и вычислять среднее из [3, 4]
+    // Window [3, 4, NaN] should filter NaN and calculate average of [3, 4]
     expect(rollingValues[4]).toBeCloseTo((3 + 4) / 2);
 
-    // Window [4, NaN, 6] должно фильтровать NaN и вычислять среднее из [4, 6]
+    // Window [4, NaN, 6] should filter NaN and calculate average of [4, 6]
     expect(rollingValues[5]).toBeCloseTo((4 + 6) / 2);
   });
 

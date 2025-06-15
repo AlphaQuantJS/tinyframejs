@@ -148,7 +148,7 @@ describe('DataFrame.join', () => {
     expect(nameValues[idx1]).toBe('Alice');
     expect(nameValues[idx2]).toBe('Bob');
     expect(nameValues[idx3]).toBe('Charlie');
-    expect(nameValues[idx5]).toBe(null); // name for id=5 should be null (строковые значения)
+    expect(nameValues[idx5]).toBe(null); // name for id=5 should be null (string values)
 
     // Check age values
     expect(ageValues[idx1]).toBe(25);
@@ -207,7 +207,7 @@ describe('DataFrame.join', () => {
     expect(nameValues[idx2]).toBe('Bob');
     expect(nameValues[idx3]).toBe('Charlie');
     expect(nameValues[idx4]).toBe('Dave');
-    expect(nameValues[idx5]).toBe(null); // name for id=5 should be null (строковые значения)
+    expect(nameValues[idx5]).toBe(null); // name for id=5 should be null (string values)
 
     // Check age values
     expect(ageValues[idx1]).toBe(25);

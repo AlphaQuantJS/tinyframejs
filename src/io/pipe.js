@@ -113,7 +113,7 @@ export function applySchema(schema) {
 export function filter(predicate) {
   return (data) => {
     if (data instanceof DataFrame) {
-      // Используем функцию dfFilter из модуля methods
+      // Use dfFilter function from methods
       return dfFilter(data, predicate);
     }
 
@@ -134,10 +134,10 @@ export function filter(predicate) {
 export function map(transform) {
   return (data) => {
     if (data instanceof DataFrame) {
-      // Преобразуем DataFrame в массив, применяем трансформацию и создаем новый DataFrame
+      // Convert DataFrame to array, apply transformation, and create new DataFrame
       const rows = data.toArray();
       const transformed = rows.map(transform);
-      return DataFrame.fromRows(transformed);
+      return DataFrame.fromRecords(transformed);
     }
 
     if (Array.isArray(data)) {
@@ -158,14 +158,14 @@ export function map(transform) {
 export function sort(keyOrComparator, ascending = true) {
   return (data) => {
     if (data instanceof DataFrame) {
-      // Если ключ - функция, преобразуем в сортировку по столбцу
+      // If key is a function, convert to column sorting
       if (typeof keyOrComparator === 'function') {
-        // Для функции-компаратора используем преобразование в массив
+        // For comparator function, use array conversion
         const rows = data.toArray();
         const sorted = [...rows].sort(keyOrComparator);
-        return DataFrame.fromRows(sorted);
+        return DataFrame.fromRecords(sorted);
       } else {
-        // Для строкового ключа используем сортировку по столбцу
+        // For string key, use column sorting
         const rows = data.toArray();
         const sorted = [...rows].sort((a, b) => {
           const aVal = a[keyOrComparator];
@@ -175,7 +175,7 @@ export function sort(keyOrComparator, ascending = true) {
           if (aVal > bVal) return ascending ? 1 : -1;
           return 0;
         });
-        return DataFrame.fromRows(sorted);
+        return DataFrame.fromRecords(sorted);
       }
     }
 
@@ -211,9 +211,9 @@ export function sort(keyOrComparator, ascending = true) {
 export function limit(count) {
   return (data) => {
     if (data instanceof DataFrame) {
-      // Преобразуем DataFrame в массив, берем первые count элементов и создаем новый DataFrame
+      // Convert DataFrame to array, take first count elements, and create new DataFrame
       const rows = data.toArray().slice(0, count);
-      return DataFrame.fromRows(rows);
+      return DataFrame.fromRecords(rows);
     }
 
     if (Array.isArray(data)) {
@@ -237,7 +237,7 @@ export function toDataFrame(options = {}) {
     }
 
     if (Array.isArray(data)) {
-      return DataFrame.fromRows(data, options);
+      return DataFrame.fromRecords(data, options);
     }
 
     if (typeof data === 'object' && data !== null) {
@@ -248,7 +248,7 @@ export function toDataFrame(options = {}) {
       }
 
       // Single row object
-      return DataFrame.fromRows([data], options);
+      return DataFrame.fromRecords([data], options);
     }
 
     throw new Error('Cannot convert data to DataFrame');
@@ -270,7 +270,7 @@ export function log(message = 'Data:', detailed = false) {
         console.log(`Rows: ${data.rowCount}, Columns: ${data.columns.length}`);
         console.log('Columns:', data.columns);
         console.log('Sample:');
-        // Используем toArray для получения первых 5 строк
+        // Use toArray for getting first 5 rows
         console.table(data.toArray().slice(0, 5));
       } else {
         console.table(data.toArray().slice(0, 5));

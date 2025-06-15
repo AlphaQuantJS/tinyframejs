@@ -8,8 +8,56 @@ import path from 'path';
 import { createReadStream } from 'fs';
 import { once } from 'events';
 import { createInterface } from 'readline';
-import { parseCSVLine } from '../csv.js';
 import { DataFrame } from '../../../core/dataframe/DataFrame.js';
+
+/**
+ * Parses a CSV row into an array of values, handling quoted fields properly.
+ * Supports fields containing delimiters when enclosed in quotes and escaped quotes ("")
+ *
+ * @param {string} row - The CSV row to parse
+ * @param {string} delimiter - The delimiter character (e.g., comma, tab)
+ * @returns {string[]} Array of parsed values from the row
+ */
+function parseCSVLine(row, delimiter) {
+  const values = [];
+  let inQuotes = false;
+  let currentValue = '';
+  let i = 0;
+
+  // Iterate through each character in the row
+  while (i < row.length) {
+    const char = row[i];
+    const isQuote = char === '"';
+    const isDelimiter = char === delimiter && !inQuotes;
+
+    // Check for escaped quotes ("")
+    if (isQuote && i + 1 < row.length && row[i + 1] === '"' && inQuotes) {
+      // This is an escaped quote inside a quoted field
+      currentValue += '"'; // Add a single quote to the value
+      i += 2; // Skip both quote characters
+      continue;
+    }
+
+    switch (true) {
+      case isQuote:
+        inQuotes = !inQuotes;
+        break;
+      case isDelimiter:
+        values.push(currentValue);
+        currentValue = '';
+        break;
+      default:
+        currentValue += char;
+    }
+
+    i++;
+  }
+
+  // Add the last value
+  values.push(currentValue);
+
+  return values;
+}
 
 /**
  * Creates a readable stream for a CSV file and processes it in chunks
@@ -59,7 +107,7 @@ export async function readCSVStream(filePath, options = {}) {
     }
 
     // Parse the CSV line
-    const parsedLine = parseCSVLine(line, delimiter);
+    const parsedLine = parseRow(line, delimiter);
 
     // Handle header line
     if (lineCount === 0 && header) {
@@ -184,7 +232,7 @@ export async function* csvRowGenerator(filePath, options = {}) {
     }
 
     // Parse the CSV line
-    const parsedLine = parseCSVLine(line, delimiter);
+    const parsedLine = parseRow(line, delimiter);
 
     // Handle header line
     if (lineCount === 0 && header) {

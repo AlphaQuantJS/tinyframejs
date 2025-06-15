@@ -2,12 +2,13 @@
  * Finds the minimum value in a Series.
  *
  * @param {Series} series - Series instance
- * @returns {number} - Minimum value
+ * @returns {number|null} - Minimum value or null for empty series
  */
-export const min = (series) => {
+export function min(series) {
   const values = series.toArray();
 
-  if (values.length === 0) return NaN;
+  // Return null for empty series (not NaN) according to guidelines
+  if (values.length === 0) return null;
 
   let minValue = Number.POSITIVE_INFINITY;
   for (let i = 0; i < values.length; i++) {
@@ -20,17 +21,20 @@ export const min = (series) => {
     }
   }
 
-  return minValue === Number.POSITIVE_INFINITY ? NaN : minValue;
-};
+  // Return null if no valid numeric values were found
+  return minValue === Number.POSITIVE_INFINITY ? null : minValue;
+}
 
 /**
  * Registers the min method on Series prototype
  * @param {Class} Series - Series class to extend
  */
-export const register = (Series) => {
-  Series.prototype.min = function() {
-    return min(this);
-  };
-};
+export function register(Series) {
+  if (!Series.prototype.min) {
+    Series.prototype.min = function () {
+      return min(this);
+    };
+  }
+}
 
 export default { min, register };

@@ -16,45 +16,45 @@ export function clip() {
    * @param {boolean} [options.inplace=false] - Modify the Series in place
    * @returns {Series} - New Series with clipped values
    */
-  return function(options = {}) {
+  return function (options = {}) {
     const { min = undefined, max = undefined, inplace = false } = options;
-    
+
     if (min === undefined && max === undefined) {
       throw new Error('At least one of min or max must be provided');
     }
-    
+
     const values = this.toArray();
     const result = new Array(values.length);
-    
+
     for (let i = 0; i < values.length; i++) {
       const value = values[i];
-      
+
       if (value === null || value === undefined) {
         result[i] = value;
         continue;
       }
-      
+
       if (typeof value !== 'number' || Number.isNaN(value)) {
         result[i] = value;
         continue;
       }
-      
+
       let clippedValue = value;
-      
+
       if (min !== undefined && value < min) {
         clippedValue = min;
       }
-      
+
       if (max !== undefined && value > max) {
         clippedValue = max;
       }
-      
+
       result[i] = clippedValue;
     }
-    
+
     if (inplace) {
       // Replace the values in the current Series
-      // Поскольку метода set нет, создаем новый объект Series и заменяем внутренние свойства
+      // Since there is no set method, create a new Series object and replace its internal properties
       const newSeries = new this.constructor(result, { name: this.name });
       Object.assign(this, newSeries);
       return this;

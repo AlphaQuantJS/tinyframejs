@@ -314,7 +314,7 @@ async function getBitcoinPrices() {
   const standardized = applySchema(data, binanceOHLCV);
   
   // Преобразование в DataFrame
-  return DataFrame.fromRows(standardized);
+  return DataFrame.fromRecords(standardized);
 }
 
 // Использование

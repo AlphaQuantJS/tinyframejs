@@ -20,8 +20,8 @@ describe('DataFrame.tail()', () => {
   registerDataFrameIndexing(DataFrame);
 
   describe('with standard storage', () => {
-    // Create DataFrame using fromRows
-    const df = DataFrame.fromRows(testData);
+    // Create DataFrame using fromRecords
+    const df = DataFrame.fromRecords(testData);
 
     it('should return the last rows by default', () => {
       const result = df.tail(5, { print: false });
@@ -62,7 +62,7 @@ describe('DataFrame.tail()', () => {
 
     it('should return an empty DataFrame if the original DataFrame is empty', () => {
       // Create empty DataFrame for testing
-      const emptyDf = DataFrame.fromRows(emptyData);
+      const emptyDf = DataFrame.fromRecords(emptyData);
       const result = emptyDf.tail(5, { print: false });
 
       expect(result.rowCount).toBe(0);

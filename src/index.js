@@ -8,7 +8,7 @@
 // Export core components
 export { DataFrame } from './core/dataframe/DataFrame.js';
 export { Series } from './core/dataframe/Series.js';
-export { createFrame, cloneFrame } from './core/createFrame.js';
+// Removed reference to non-existent createFrame.js
 export * from './core/types.js';
 export * from './core/utils/validators.js';
 
@@ -19,7 +19,7 @@ import './methods/index.js';
 // Export IO functions
 export * from './io/index.js';
 
-// Export aggregation and transformation methods
-export * from './methods/raw.js';
+// Methods for aggregation and transformation are now registered automatically
+// through registerAll.js and are not exported directly
 
 // Note: Utility and display functions will be added in future versions

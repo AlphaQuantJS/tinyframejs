@@ -30,7 +30,8 @@ export class DataFrame {
       value: {
         /**
          * low-level vector getter (internal)
-         * @param n
+         * @param {string} n - Column name
+         * @returns {import('../storage/ColumnVector.js').ColumnVector|undefined} - Column vector or undefined if not found
          */
         getColumn: (n) => this._columns[n]?.vector,
       },
@@ -44,7 +45,7 @@ export class DataFrame {
   static create = (cols, opts = {}) => new DataFrame(cols, opts);
   static fromColumns = (cols, opts = {}) => new DataFrame(cols, opts);
 
-  static fromRows(rows = [], opts = {}) {
+  static fromRecords(rows = [], opts = {}) {
     if (!rows.length) return new DataFrame({}, opts);
     const cols = {};
     for (const k of Object.keys(rows[0])) cols[k] = rows.map((r) => r[k]);
@@ -90,10 +91,12 @@ export class DataFrame {
   }
 
   col = (n) => this._columns[n];
+  get = (n) => this._columns[n];
   sum = (n) => this.col(n).sum();
   /**
    * low-level vector getter
-   * @param n
+   * @param {string} n - Column name
+   * @returns {import('../storage/ColumnVector.js').ColumnVector|undefined} - Column vector or undefined if not found
    */
   getVector = (n) => this._columns[n]?.vector;
 

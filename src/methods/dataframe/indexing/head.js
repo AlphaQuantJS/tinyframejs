@@ -23,7 +23,7 @@ export const head = (df, n = 5, options = { print: false }) => {
   const selectedRows = rows.slice(0, n);
 
   // Create a new DataFrame from the selected rows
-  const result = df.constructor.fromRows(selectedRows);
+  const result = df.constructor.fromRecords(selectedRows);
 
   // Note: the print option is preserved for API compatibility, but is not used in the current version
   // In the future, we can add a print method to DataFrame

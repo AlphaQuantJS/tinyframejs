@@ -216,7 +216,7 @@ describe('ApiClient', () => {
       // Mock CSV module
       vi.mock('../../../../src/io/readers/csv.js', () => ({
         readCSV: vi.fn(() =>
-          DataFrame.fromRows([
+          DataFrame.fromRecords([
             { column1: 'test', column2: 'data' },
             { column1: '1', column2: '2' },
           ]),

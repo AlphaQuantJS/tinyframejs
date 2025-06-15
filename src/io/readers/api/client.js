@@ -231,7 +231,7 @@ export class ApiClient {
 
     // Handle array or object data
     if (Array.isArray(data)) {
-      return DataFrame.fromRows(data, dfOptions);
+      return DataFrame.fromRecords(data, dfOptions);
     } else if (typeof data === 'object' && data !== null) {
       // Check if it's a columns object
       const firstValue = Object.values(data)[0];
@@ -240,7 +240,7 @@ export class ApiClient {
       }
 
       // Single row object
-      return DataFrame.fromRows([data], dfOptions);
+      return DataFrame.fromRecords([data], dfOptions);
     }
 
     throw new Error('Cannot convert API response to DataFrame');

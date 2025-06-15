@@ -24,7 +24,7 @@ const schemaRegistry = {
  * @returns {void}
  */
 export function clearSchemas() {
-  // Удаляем все ключи из реестра схем, кроме встроенных схем
+  // Remove all keys from the schema registry except built-in schemas
   Object.keys(schemaRegistry).forEach((key) => {
     if (!cryptoSchemas[key] && !financeSchemas[key] && !weatherSchemas[key]) {
       delete schemaRegistry[key];

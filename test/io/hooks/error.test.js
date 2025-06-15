@@ -74,29 +74,29 @@ describe('Error Hooks', () => {
     });
 
     it('should handle errors without retries', async () => {
-      // Создаем хук с отключенными повторами
+      // Create a hook with disabled retries
       const errorHook = createErrorHook({
-        maxRetries: 0, // Отключаем повторы для этого теста
+        maxRetries: 0, // Disable retries for this test
       });
 
       const mockContext = { request: { url: 'https://api.example.com' } };
       const mockError = new Error('Test error');
       const mockNext = vi.fn().mockRejectedValue(mockError);
 
-      // Проверяем, что ошибка проходит через хук без изменений
+      // Check that the error passes through the hook without changes
       await expect(errorHook(mockContext, mockNext)).rejects.toThrow(
         'Test error',
       );
 
-      // Проверяем, что запрос был выполнен только один раз
+      // Check that the request was executed only once
       expect(mockNext).toHaveBeenCalledTimes(1);
     });
 
     it('should retry failed requests', async () => {
-      // Создаем хук с одним повтором
+      // Create a hook with one retry
       const errorHook = createErrorHook({
         maxRetries: 1,
-        backoffStrategy: () => 0, // Мгновенный повтор для упрощения теста
+        backoffStrategy: () => 0, // Instant retry for simplicity
       });
 
       const mockContext = { request: { url: 'https://api.example.com' } };
@@ -106,13 +106,13 @@ describe('Error Hooks', () => {
         .mockRejectedValueOnce(mockError)
         .mockResolvedValueOnce({ status: 200, data: 'success' });
 
-      // Выполняем запрос через хук
+      // Execute the request through the hook
       const result = await errorHook(mockContext, mockNext);
 
-      // Проверяем, что запрос был выполнен дважды (первый раз с ошибкой, второй - успешно)
+      // Check that the request was executed twice (first time with error, second - successfully)
       expect(mockNext).toHaveBeenCalledTimes(2);
 
-      // Проверяем, что результат соответствует ожидаемому
+      // Check that the result matches the expected value
       expect(result).toEqual({ status: 200, data: 'success' });
     });
   });

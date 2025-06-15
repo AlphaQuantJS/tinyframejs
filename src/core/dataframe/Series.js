@@ -24,6 +24,12 @@ export class Series {
    *  Factories (static methods)                                        *
    * ------------------------------------------------------------------ */
 
+  /**
+   * Creates a new Series instance
+   * @param {Array|TypedArray|Vector} data - Source data array
+   * @param {object} [opts] - Options: { name?: string, preferArrow?: boolean }
+   * @returns {Series} - New Series instance
+   */
   static create(data, opts = {}) {
     return new Series(data, opts);
   }
@@ -32,14 +38,27 @@ export class Series {
    *  Getters and quick accessors                                       *
    * ------------------------------------------------------------------ */
 
+  /**
+   * Gets the length of the Series
+   * @returns {number} - Number of elements in the Series
+   */
   get length() {
     return this.vector.length;
   }
 
+  /**
+   * Gets the values of the Series as an array
+   * @returns {Array} - Array of Series values
+   */
   get values() {
     return this.vector.toArray();
   }
 
+  /**
+   * Gets the value at the specified index
+   * @param {number} index - Index to retrieve
+   * @returns {*} - Value at the specified index
+   */
   get(index) {
     return this.vector.get(index);
   }
@@ -48,6 +67,10 @@ export class Series {
    *  Data export                                                       *
    * ------------------------------------------------------------------ */
 
+  /**
+   * Converts the Series to an array
+   * @returns {Array} - Array representation of the Series
+   */
   toArray() {
     return this.vector.toArray();
   }

@@ -57,13 +57,13 @@ describe('Visualization Types', () => {
     it('should generate bar chart configuration', () => {
       // Check data before calling the function
       console.log('Test data for barChart:', JSON.stringify(df.toArray()));
-      
+
       const config = barChart(df, {
         x: 'category',
         y: 'value',
         chartOptions: { title: 'Bar Chart Test' },
       });
-      
+
       // Debug information
       console.log('barChart config:', JSON.stringify(config?.options?.title));
 
@@ -125,17 +125,17 @@ describe('Visualization Types', () => {
     it('should generate histogram configuration', () => {
       // Check data before calling the function
       console.log('Test data for histogram:', JSON.stringify(df.toArray()));
-      
+
       // Create test data with guaranteed numeric values
       const numericData = [
         { value: 10 },
         { value: 15 },
         { value: 20 },
         { value: 25 },
-        { value: 30 }
+        { value: 30 },
       ];
-      const numericDf = DataFrame.fromRows(numericData);
-      
+      const numericDf = DataFrame.fromRecords(numericData);
+
       const config = histogram(numericDf, {
         values: 'value',
         bins: 5,
@@ -151,7 +151,10 @@ describe('Visualization Types', () => {
       expect(config.data).toHaveProperty('labels');
       expect(config.data).toHaveProperty('datasets');
       expect(config.options.plugins).toHaveProperty('title');
-      expect(config.options.plugins.title).toHaveProperty('text', 'Histogram Test');
+      expect(config.options.plugins.title).toHaveProperty(
+        'text',
+        'Histogram Test',
+      );
     });
   });
 });

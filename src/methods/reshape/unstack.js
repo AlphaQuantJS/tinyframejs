@@ -127,7 +127,7 @@ export function register(DataFrame) {
     }
 
     // Create new DataFrame with resulting data
-    return this.constructor.fromRows(resultRows);
+    return this.constructor.fromRecords(resultRows);
   };
 }
 

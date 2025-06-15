@@ -24,7 +24,7 @@ registerReshapeMethods(DataFrame);
 describe('DataFrame.unstack', () => {
   describe('with standard storage', () => {
     // Create DataFrame with test data
-    const df = DataFrame.fromRows(testData);
+    const df = DataFrame.fromRecords(testData);
 
     test('unstacks rows into columns', () => {
       // Create a test DataFrame in long format
@@ -113,7 +113,7 @@ describe('DataFrame.unstack', () => {
           sales: 45,
         },
       ];
-      const dfWithCategory = DataFrame.fromRows(dataWithCategory);
+      const dfWithCategory = DataFrame.fromRecords(dataWithCategory);
 
       // Call the unstack method with multiple index columns
       const result = dfWithCategory.unstack(
@@ -159,7 +159,7 @@ describe('DataFrame.unstack', () => {
         { product: 'Product B', region: 'North', sales: 15 },
         { product: 'Product B', region: 'South', sales: 25 },
       ];
-      const dfWithDuplicates = DataFrame.fromRows(dataWithDuplicates);
+      const dfWithDuplicates = DataFrame.fromRecords(dataWithDuplicates);
 
       // Call the unstack method
       const result = dfWithDuplicates.unstack('region', 'product', 'sales');
@@ -191,7 +191,7 @@ describe('DataFrame.unstack', () => {
         { product: 'Product B', year: '2020', category: 'Furniture' },
         { product: 'Product B', year: '2021', category: 'Large' },
       ];
-      const dfWithNonNumeric = DataFrame.fromRows(dataWithNonNumeric);
+      const dfWithNonNumeric = DataFrame.fromRecords(dataWithNonNumeric);
 
       // Call the unstack method
       const result = dfWithNonNumeric.unstack('year', 'product', 'category');

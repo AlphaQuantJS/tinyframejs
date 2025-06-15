@@ -62,7 +62,7 @@ export const melt = (
   }
 
   // Create new DataFrame from melted rows
-  return df.constructor.fromRows(meltedRows);
+  return df.constructor.fromRecords(meltedRows);
 };
 
 /**
@@ -70,7 +70,7 @@ export const melt = (
  * @param {Class} DataFrame - DataFrame class to extend
  */
 export const register = (DataFrame) => {
-  DataFrame.prototype.melt = function(idVars, valueVars, varName, valueName) {
+  DataFrame.prototype.melt = function (idVars, valueVars, varName, valueName) {
     return melt(this, idVars, valueVars, varName, valueName);
   };
 };

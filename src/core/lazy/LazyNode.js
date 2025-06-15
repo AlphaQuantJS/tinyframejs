@@ -22,7 +22,10 @@ export class LazyNode {
     this.args = payload; // arbitrary arguments
   }
 
-  /** Human-readable output */
+  /**
+   * Human-readable output
+   * @returns {string} String representation of the LazyNode
+   */
   toString() {
     return `LazyNode(${this.op})`;
   }

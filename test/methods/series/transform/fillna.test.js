@@ -55,7 +55,9 @@ describe('Series.fillna', () => {
 
   test('throws error when value is not provided', () => {
     const series = new Series([1, null, 3]);
-    expect(() => series.fillna(undefined)).toThrow('Fill value must be provided');
+    expect(() => series.fillna(undefined)).toThrow(
+      'Fill value must be provided',
+    );
   });
 
   test('works with empty Series', () => {
@@ -71,10 +73,10 @@ describe('Series.fillna', () => {
   });
 
   test('works with direct function call', () => {
-    // Регистрируем метод
+    // Register the fillna method on Series prototype
     register(Series);
     const series = new Series([1, null, 3, undefined]);
-    // Используем метод напрямую
+    // Use the method directly
     const filled = series.fillna(0);
     expect(filled.toArray()).toEqual([1, 0, 3, 0]);
   });

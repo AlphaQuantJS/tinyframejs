@@ -46,23 +46,23 @@ export function barChart(dataFrame, options = {}) {
     type: 'bar',
     data: {
       labels: data.map((row) => row[xCol]),
-      datasets: Array.isArray(yCol) ?
-        yCol.map((col, index) => ({
-          label: col,
-          data: data.map((row) => row[col]),
-          backgroundColor: getColor(index),
-          borderColor: getColor(index),
-          borderWidth: 1,
-        })) :
-        [
-          {
-            label: yCol,
-            data: data.map((row) => row[yCol]),
-            backgroundColor: getColor(0),
-            borderColor: getColor(0),
+      datasets: Array.isArray(yCol)
+        ? yCol.map((col, index) => ({
+            label: col,
+            data: data.map((row) => row[col]),
+            backgroundColor: getColor(index),
+            borderColor: getColor(index),
             borderWidth: 1,
-          },
-        ],
+          }))
+        : [
+            {
+              label: yCol,
+              data: data.map((row) => row[yCol]),
+              backgroundColor: getColor(0),
+              borderColor: getColor(0),
+              borderWidth: 1,
+            },
+          ],
     },
     options: {
       responsive: true,
@@ -87,10 +87,15 @@ export function barChart(dataFrame, options = {}) {
       ...options.chartOptions,
     },
   };
-  
+
   // Normalize title configuration
-  normalizeTitle(config.options, options.chartOptions?.title, 'Bar Chart', false);
-  
+  normalizeTitle(
+    config.options,
+    options.chartOptions?.title,
+    'Bar Chart',
+    false,
+  );
+
   return config;
 }
 
@@ -315,7 +320,7 @@ export function histogram(dataFrame, options) {
   const values = data
     .map((row) => {
       const val = row[column];
-      // Преобразуем строки в числа, если возможно
+      // Convert strings to numbers if possible
       return typeof val === 'string' ? parseFloat(val) : val;
     })
     .filter((val) => typeof val === 'number' && !isNaN(val));
@@ -409,8 +414,13 @@ export function histogram(dataFrame, options) {
   };
 
   // Normalize title configuration
-  normalizeTitle(config.options, options.chartOptions?.title, `Histogram of ${column}`, true);
-  
+  normalizeTitle(
+    config.options,
+    options.chartOptions?.title,
+    `Histogram of ${column}`,
+    true,
+  );
+
   return config;
 }
 
@@ -464,7 +474,7 @@ export function paretoChart(dataFrame, options) {
   const barColor = options.chartOptions?.barColor || getColor(0);
   const lineColor = options.chartOptions?.lineColor || getColor(1);
 
-  return {
+  const config = {
     type: 'bar',
     data: {
       labels: categories,
@@ -544,6 +554,14 @@ export function paretoChart(dataFrame, options) {
       ...options.chartOptions,
     },
   };
-  
+
+  // Normalize title configuration
+  normalizeTitle(
+    config.options,
+    options.chartOptions?.title,
+    'Pareto Chart',
+    true,
+  );
+
   return config;
 }

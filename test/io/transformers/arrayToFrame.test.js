@@ -188,8 +188,8 @@ describe('arrayToFrame Transformer', () => {
 
     const df = arrayToFrame(data, { useTypedArrays: true });
 
-    // В текущей реализации DataFrame мы не можем напрямую проверить использование TypedArrays
-    // Поэтому просто проверяем, что DataFrame создан корректно
+    // In the current implementation of DataFrame, we cannot directly check the use of TypedArrays
+    // So we simply check that the DataFrame was created correctly
     expect(df).toBeInstanceOf(DataFrame);
     expect(df.rowCount).toBe(3);
     expect(df.columns).toContain('a');
@@ -209,8 +209,8 @@ describe('arrayToFrame Transformer', () => {
 
     const df = arrayToFrame(data, { useTypedArrays: false });
 
-    // В текущей реализации DataFrame мы не можем напрямую проверить использование TypedArrays
-    // Поэтому просто проверяем, что DataFrame создан корректно
+    // In the current implementation of DataFrame we cannot directly check the use of TypedArrays
+    // So we simply check that the DataFrame was created correctly
     expect(df).toBeInstanceOf(DataFrame);
     expect(df.rowCount).toBe(3);
     expect(df.columns).toContain('a');

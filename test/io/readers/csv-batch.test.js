@@ -34,7 +34,7 @@ vi.mock('../../../src/io/readers/csv.js', () => {
           }, {});
         }
 
-        // Создаем DataFrame с правильной структурой для совместимости с реальной реализацией
+        // Create a DataFrame with the correct structure for compatibility with the real implementation
         const columns = {};
         if (batch.length > 0) {
           const keys = Object.keys(batch[0]);
@@ -66,7 +66,7 @@ vi.mock('../../../src/io/readers/csv.js', () => {
             allData.push(...batchDf.toArray());
           }
 
-          // Создаем DataFrame с правильной структурой для совместимости с реальной реализацией
+          // Create a DataFrame with the correct structure for compatibility with the real implementation
           const columns = {};
           if (allData.length > 0) {
             const keys = Object.keys(allData[0]);
@@ -95,7 +95,7 @@ vi.mock('../../../src/io/readers/csv.js', () => {
       return row;
     });
 
-    // Создаем DataFrame с правильной структурой для совместимости с реальной реализацией
+    // Create a DataFrame with the correct structure for compatibility with the real implementation
     const columns = {};
     if (data.length > 0) {
       const keys = Object.keys(data[0]);
@@ -138,9 +138,9 @@ import {
 // Initialize DataFrame with CSV methods
 addCsvBatchMethods(DataFrame);
 
-// Добавляем метод toArray для тестов
+// Add toArray method for tests
 DataFrame.prototype.toArray = vi.fn().mockImplementation(function () {
-  // Реализация, совместимая с настоящим DataFrame
+  // Implementation compatible with the real DataFrame
   const result = [];
   const order = this._order || Object.keys(this._columns || {});
 

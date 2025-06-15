@@ -318,9 +318,9 @@ describe('API Hooks', () => {
     });
 
     it('should rotate keys on authentication error', async () => {
-      // В реализации KeyRotator используется round-robin стратегия по умолчанию
-      // При этом первый вызов getNextKey() вернет ключ с индексом (currentKeyIndex + 1) % availableKeys.length
-      // Поэтому мы создаем KeyRotator с нужными параметрами для теста
+      // In the KeyRotator implementation, the round-robin strategy is used by default
+      // In this case, the first call to getNextKey() will return the key with index (currentKeyIndex + 1) % availableKeys.length
+      // So we create KeyRotator with the necessary parameters for the test
       const keyRotator = new KeyRotator(
         [
           { id: 'key1', key: 'api-key-1' },
@@ -329,8 +329,8 @@ describe('API Hooks', () => {
         { maxErrorsBeforeDisable: 1 },
       );
 
-      // Установим индекс так, чтобы первый вызов getNextKey вернул первый ключ
-      // При currentKeyIndex = -1, первый вызов вернет ключ с индексом 0
+      // Set the index so that the first call to getNextKey returns the first key
+      // When currentKeyIndex = -1, the first call will return the key with index 0
       keyRotator.currentKeyIndex = -1;
 
       // Get the first key
@@ -347,8 +347,8 @@ describe('API Hooks', () => {
 
     it('should use auth hook with key rotation', async () => {
       // Create a custom isAuthError function that will mark any error as auth error
-      // В createAuthHook создается KeyRotator с currentKeyIndex = 0
-      // Поэтому первый вызов getNextKey вернет второй ключ (api-key-2)
+      // In createAuthHook, a KeyRotator is created with currentKeyIndex = 0
+      // So the first call to getNextKey will return the second key (api-key-2)
       const testAuthHook = createAuthHook({
         keys: [
           { id: 'key1', key: 'api-key-1' },

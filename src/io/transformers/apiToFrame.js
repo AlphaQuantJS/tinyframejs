@@ -221,7 +221,7 @@ function _cleanDataFrame(df, options = {}) {
   }
 
   // Create new DataFrame from cleaned data
-  // Преобразуем массив объектов в формат столбцов для DataFrame
+  // Convert array of objects to column format for DataFrame
   if (Array.isArray(rows) && rows.length > 0) {
     const columns = {};
     const keys = Object.keys(rows[0]);
@@ -232,7 +232,7 @@ function _cleanDataFrame(df, options = {}) {
 
     return new DataFrame(columns);
   } else {
-    // Пустой DataFrame
+    // Empty DataFrame
     return new DataFrame({});
   }
 }
@@ -339,7 +339,7 @@ export function apiToFrame(apiData, options = {}) {
   }
 
   // Create DataFrame from the transformed data
-  // Преобразуем массив объектов в формат столбцов для DataFrame
+  // Convert array of objects to column format for DataFrame
   let result;
   if (Array.isArray(transformedData) && transformedData.length > 0) {
     const columns = {};
@@ -355,7 +355,7 @@ export function apiToFrame(apiData, options = {}) {
       types: options.types,
     });
   } else {
-    // Пустой DataFrame или объект с массивами
+    // Empty DataFrame or object with arrays
     result = new DataFrame(transformedData || {}, {
       index: options.index,
       columns: options.columns,
@@ -373,7 +373,7 @@ export function apiToFrame(apiData, options = {}) {
     const rows = result.toArray();
     const cleanedRows = _cleanApiData(rows, clean);
 
-    // Преобразуем массив объектов в формат столбцов для DataFrame
+    // Convert array of objects to column format for DataFrame
     if (Array.isArray(cleanedRows) && cleanedRows.length > 0) {
       const columns = {};
       const keys = Object.keys(cleanedRows[0]);
@@ -389,7 +389,7 @@ export function apiToFrame(apiData, options = {}) {
       });
       result = newResult;
     } else {
-      // Пустой DataFrame или объект с массивами
+      // Empty DataFrame or object with arrays
       const newResult = new DataFrame(cleanedRows || {}, {
         index: options.index,
         columns: options.columns,

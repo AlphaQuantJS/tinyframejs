@@ -5,19 +5,19 @@ import { ColumnVector } from './ColumnVector.js';
 import { shouldUseArrow } from '../strategy/shouldUseArrow.js';
 import { SimpleVector } from './SimpleVector.js';
 
-// Импортируем адаптер Apache Arrow
+// Import Arrow adapter
 import {
   vectorFromArray as arrowVectorFromArray,
   isArrowAvailable,
   Arrow,
 } from './ArrowAdapter.js';
 
-// Переменная для хранения доступности Arrow
+// Variable to store Arrow availability
 let arrowAvailable = false;
 
-// Инициализация интеграции с Apache Arrow
+// Initialize integration with Apache Arrow
 try {
-  // Проверяем доступность Arrow через адаптер
+  // Check Arrow availability through adapter
   arrowAvailable = isArrowAvailable();
 
   if (arrowAvailable) {
@@ -53,7 +53,7 @@ export const VectorFactory = {
 
     if (useArrow && arrowAvailable) {
       try {
-        // Используем синхронный вызов arrowVectorFromArray из адаптера
+        // Use synchronous arrowVectorFromArray call from adapter
         return new ArrowVector(arrowVectorFromArray(data));
       } catch (error) {
         console.warn(

@@ -22,8 +22,8 @@ describe('DataFrame print method', () => {
       { name: 'Eve', age: 45, city: 'El Paso' },
     ];
 
-    // Create DataFrame using fromRows
-    const df = DataFrame.fromRows(testData);
+    // Create DataFrame using fromRecords
+    const df = DataFrame.fromRecords(testData);
 
     it('should format data as a table string', () => {
       // Mock console.log to check output
@@ -75,7 +75,7 @@ describe('DataFrame print method', () => {
         value: i * 10,
       }));
 
-      const largeDf = DataFrame.fromRows(largeData);
+      const largeDf = DataFrame.fromRecords(largeData);
 
       // Mock console.log
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -104,7 +104,7 @@ describe('DataFrame print method', () => {
         col5: [13, 14, 15],
       };
 
-      const wideDf = DataFrame.fromRows([
+      const wideDf = DataFrame.fromRecords([
         { col1: 1, col2: 4, col3: 7, col4: 10, col5: 13 },
         { col1: 2, col2: 5, col3: 8, col4: 11, col5: 14 },
         { col1: 3, col2: 6, col3: 9, col4: 12, col5: 15 },

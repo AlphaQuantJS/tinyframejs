@@ -196,7 +196,7 @@ describe('Pipeline Config Runner', () => {
         ],
       };
 
-      // Ожидаем, что ошибка будет выброшена при создании pipeline
+      // Expect an error to be thrown when creating the pipeline
       expect(() => createPipelineFromConfig(config)).toThrow(
         'Unknown transformer type',
       );
@@ -214,7 +214,7 @@ describe('Pipeline Config Runner', () => {
         },
       };
 
-      // Ожидаем, что ошибка будет выброшена при создании pipeline
+      // Expect an error to be thrown when creating the pipeline
       expect(() => createPipelineFromConfig(config)).toThrow(
         'Unknown writer type',
       );

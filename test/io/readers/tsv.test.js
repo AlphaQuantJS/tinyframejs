@@ -17,7 +17,7 @@ const tsvContent =
   '2023-01-05\t112.25\t115.5\t111.0\t115.0\t1600000';
 
 describe('TSV Reader', () => {
-  // Мокируем fs.promises.readFile
+  // Mock fs.promises.readFile
   vi.mock('fs', () => ({
     promises: {
       readFile: vi.fn().mockResolvedValue(tsvContent),
@@ -155,10 +155,10 @@ describe('TSV Reader', () => {
     const contentWithEmptyCells =
       'id\tname\tvalue\n1\tJohn\t100\n2\t\t200\n3\tAlice\t\n4\t\t';
 
-    // Проверяем, что функция readTsv успешно обрабатывает пустые ячейки
+    // Check that the function readTsv successfully handles empty cells with default emptyValue
     const df = await readTsv(contentWithEmptyCells);
 
-    // Проверяем, что DataFrame был создан успешно
+    // Check that the DataFrame was created successfully
     expect(df).toBeInstanceOf(DataFrame);
     expect(df.rowCount).toBe(4);
   });

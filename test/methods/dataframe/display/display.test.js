@@ -24,8 +24,8 @@ describe('DataFrame display method', () => {
       { name: 'Charlie', age: 35, city: 'Chicago' },
     ];
 
-    // Create DataFrame using fromRows
-    const df = DataFrame.fromRows(testData);
+    // Create DataFrame using fromRecords
+    const df = DataFrame.fromRecords(testData);
 
     it('should call the web display function with the frame', () => {
       // Call display function directly

@@ -44,7 +44,7 @@ export function lineChart(dataFrame, options) {
   if (!config.options) config.options = {};
   config.options.title = {
     display: true,
-    text: options.chartOptions?.title || 'Line Chart'
+    text: options.chartOptions?.title || 'Line Chart',
   };
 
   return config;
@@ -55,7 +55,7 @@ export function lineChart(dataFrame, options) {
  * @param {Object} dataFrame - TinyFrameJS DataFrame
  * @param {Object} options - Chart options
  * @param {string} options.x - Column name for X axis
- * @param {Array<{column: string, axis: string, color: string}>} options.series - Series configuration
+ * @param {Array<{column: string, axis: string, color: string}>} options.series - Series config
  * @param {Object} [options.chartOptions] - Additional Chart.js options
  * @returns {Object} Chart configuration object
  */
@@ -234,7 +234,7 @@ export function areaChart(dataFrame, options) {
  * @param {Object} options - Chart options
  * @param {string} options.x - Column name for X axis (should contain date/time values)
  * @param {string|string[]} options.y - Column name(s) for Y axis
- * @param {string} [options.timeUnit='day'] - Time unit ('hour', 'day', 'week', 'month', 'quarter', 'year')
+ * @param {string} [options.timeUnit='day'] - Time unit ('hour', 'day', 'week', 'month', etc)
  * @param {Object} [options.chartOptions] - Additional Chart.js options
  * @returns {Object} Chart configuration object
  */

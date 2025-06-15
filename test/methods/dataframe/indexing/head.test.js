@@ -20,8 +20,8 @@ describe('DataFrame.head()', () => {
   registerDataFrameIndexing(DataFrame);
 
   describe('with standard storage', () => {
-    // Create DataFrame using fromRows
-    const df = DataFrame.fromRows(testData);
+    // Create DataFrame using fromRecords
+    const df = DataFrame.fromRecords(testData);
 
     it('should return the first 5 rows by default', () => {
       const result = df.head(5, { print: false });
@@ -62,7 +62,7 @@ describe('DataFrame.head()', () => {
 
     it('should return an empty DataFrame if the original DataFrame is empty', () => {
       // Create empty DataFrame for testing
-      const emptyDf = DataFrame.fromRows([]);
+      const emptyDf = DataFrame.fromRecords([]);
       const result = emptyDf.head(5, { print: false });
 
       expect(result.rowCount).toBe(0);

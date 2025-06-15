@@ -2,9 +2,9 @@
  * Calculates the median value in a Series.
  *
  * @param {Series} series - Series instance
- * @returns {number} - Median value
+ * @returns {number|null} - Median value or null for empty series
  */
-export const median = (series) => {
+export function median(series) {
   const values = series
     .toArray()
     .filter((v) => v !== null && v !== undefined && !Number.isNaN(v))
@@ -12,7 +12,8 @@ export const median = (series) => {
     .filter((v) => !Number.isNaN(v))
     .sort((a, b) => a - b);
 
-  if (values.length === 0) return NaN;
+  // Return null for empty series (not NaN) according to guidelines
+  if (values.length === 0) return null;
 
   const mid = Math.floor(values.length / 2);
 
@@ -23,16 +24,18 @@ export const median = (series) => {
     // Odd number of elements - return the middle one
     return values[mid];
   }
-};
+}
 
 /**
  * Registers the median method on Series prototype
  * @param {Class} Series - Series class to extend
  */
-export const register = (Series) => {
-  Series.prototype.median = function() {
-    return median(this);
-  };
-};
+export function register(Series) {
+  if (!Series.prototype.median) {
+    Series.prototype.median = function () {
+      return median(this);
+    };
+  }
+}
 
 export default { median, register };

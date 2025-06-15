@@ -1,5 +1,3 @@
-import { isBrowser } from '../../io/utils/environment.js';
-
 /**
  * Converts DataFrame to an HTML table representation.
  *
@@ -152,7 +150,10 @@ export function toHTML(frame, options = {}) {
  */
 export function display(frame, options = {}) {
   // Check if we're in a browser environment
-  if (isBrowser()) {
+  const isBrowser =
+    typeof window !== 'undefined' && typeof document !== 'undefined';
+
+  if (isBrowser) {
     // We're in a browser, render HTML
     const html = toHTML(frame, options);
     const { container } = options;
@@ -206,7 +207,10 @@ export function display(frame, options = {}) {
  */
 export function renderTo(frame, element, options = {}) {
   // Check if we're in a browser environment
-  if (!isBrowser()) {
+  const isBrowser =
+    typeof window !== 'undefined' && typeof document !== 'undefined';
+
+  if (!isBrowser) {
     console.warn('renderTo() is only available in browser environments');
     return frame;
   }

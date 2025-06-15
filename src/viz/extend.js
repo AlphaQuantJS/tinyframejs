@@ -16,6 +16,7 @@ import {
 } from './types/bar.js';
 import { scatterPlot, bubbleChart, regressionPlot } from './types/scatter.js';
 import { pieChart, doughnutChart } from './types/pie.js';
+import { isBrowser } from '../io/utils/environment.js';
 
 // Import new chart types
 import { areaChart } from './types/area.js';
@@ -42,10 +43,6 @@ import { detectChartType } from './utils/autoDetect.js';
  * @returns {void} - This function doesn't return a value, it modifies the DataFrame class
  */
 export function extendDataFrame(DataFrame) {
-  // Check if we're in a browser or Node.js environment
-  const isBrowser =
-    typeof window !== 'undefined' && typeof document !== 'undefined';
-
   /**
    * Creates a line chart from DataFrame data
    * @param {Object} options - Chart options
@@ -57,7 +54,7 @@ export function extendDataFrame(DataFrame) {
   DataFrame.prototype.plotLine = async function (options) {
     const config = lineChart(this, options);
 
-    if (isBrowser && options.render !== false) {
+    if (isBrowser() && options.render !== false) {
       return await renderChart(config, options);
     }
 
@@ -75,7 +72,7 @@ export function extendDataFrame(DataFrame) {
   DataFrame.prototype.plotBar = async function (options) {
     const config = barChart(this, options);
 
-    if (isBrowser && options.render !== false) {
+    if (isBrowser() && options.render !== false) {
       return await renderChart(config, options);
     }
 
@@ -93,7 +90,7 @@ export function extendDataFrame(DataFrame) {
   DataFrame.prototype.plotScatter = async function (options) {
     const config = scatterPlot(this, options);
 
-    if (isBrowser && options.render !== false) {
+    if (isBrowser() && options.render !== false) {
       return await renderChart(config, options);
     }
 
@@ -111,7 +108,7 @@ export function extendDataFrame(DataFrame) {
   DataFrame.prototype.plotPie = async function (options) {
     const config = pieChart(this, options);
 
-    if (isBrowser && options.render !== false) {
+    if (isBrowser() && options.render !== false) {
       return await renderChart(config, options);
     }
 
@@ -129,7 +126,7 @@ export function extendDataFrame(DataFrame) {
   DataFrame.prototype.plotHistogram = async function (options) {
     const config = histogram(this, options);
 
-    if (isBrowser && options.render !== false) {
+    if (isBrowser() && options.render !== false) {
       return await renderChart(config, options);
     }
 
@@ -149,7 +146,7 @@ export function extendDataFrame(DataFrame) {
   DataFrame.prototype.plotTimeSeries = async function (options) {
     const config = timeSeriesChart(this, options);
 
-    if (isBrowser && options.render !== false) {
+    if (isBrowser() && options.render !== false) {
       return await renderChart(config, options);
     }
 
@@ -169,7 +166,7 @@ export function extendDataFrame(DataFrame) {
   DataFrame.prototype.plotBubble = async function (options) {
     const config = bubbleChart(this, options);
 
-    if (isBrowser && options.render !== false) {
+    if (isBrowser() && options.render !== false) {
       return await renderChart(config, options);
     }
 
@@ -333,7 +330,7 @@ export function extendDataFrame(DataFrame) {
     config.detection = detection;
 
     // Render the chart if in browser
-    if (isBrowser && options.render !== false) {
+    if (isBrowser() && options.render !== false) {
       return await renderChart(config, options);
     }
 

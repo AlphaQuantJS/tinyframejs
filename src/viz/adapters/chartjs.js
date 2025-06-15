@@ -48,16 +48,16 @@ export function createChartJSConfig(dataFrame, options) {
 
   // Process data based on chart type
   switch (type.toLowerCase()) {
-  case 'line':
-    return createLineChartConfig(dataFrame, options);
-  case 'bar':
-    return createBarChartConfig(dataFrame, options);
-  case 'scatter':
-    return createScatterChartConfig(dataFrame, options);
-  case 'pie':
-    return createPieChartConfig(dataFrame, options);
-  default:
-    throw new Error(`Unsupported chart type: ${type}`);
+    case 'line':
+      return createLineChartConfig(dataFrame, options);
+    case 'bar':
+      return createBarChartConfig(dataFrame, options);
+    case 'scatter':
+      return createScatterChartConfig(dataFrame, options);
+    case 'pie':
+      return createPieChartConfig(dataFrame, options);
+    default:
+      throw new Error(`Unsupported chart type: ${type}`);
   }
 }
 
@@ -433,14 +433,16 @@ function createScales(xValues, yValues, xAxisType, chartOptions = {}) {
  * Loads Chart.js dynamically if not already available
  * @returns {Promise<Object>} Chart.js library
  */
+import { isBrowser } from '../../io/utils/environment.js';
+
 export async function loadChartJS() {
   // Check if Chart is already available
-  if (typeof window !== 'undefined' && window.Chart) {
+  if (isBrowser() && window.Chart) {
     return window.Chart;
   }
 
   // In browser environment, load from CDN
-  if (typeof window !== 'undefined') {
+  if (isBrowser()) {
     return new Promise((resolve, reject) => {
       const script = document.createElement('script');
       script.src = 'https://cdn.jsdelivr.net/npm/chart.js';

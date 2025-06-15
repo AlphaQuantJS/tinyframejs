@@ -144,9 +144,24 @@ export class DataFrame {
   lazy = () =>
     import('../lazy/LazyFrame.js').then((m) => m.LazyFrame.fromDataFrame(this));
 
+  /**
+   * Set metadata for the DataFrame
+   * @param {any} m - Metadata to set
+   * @returns {DataFrame} - This DataFrame for chaining
+   */
   setMeta = (m) => ((this._meta = m), this);
+
+  /**
+   * Get metadata for the DataFrame
+   * @returns {any} - DataFrame metadata or empty object if not set
+   */
   getMeta = () => this._meta ?? {};
 
+  /**
+   * Optimize storage for operation
+   * @param {string} op - Operation to optimize for
+   * @returns {Promise<DataFrame>} - Optimized DataFrame
+   */
   async optimizeFor(op) {
     const { switchStorage } = await import('../strategy/storageStrategy.js');
     return switchStorage(this, op);
@@ -176,31 +191,5 @@ export class DataFrame {
       (r) => '| ' + this.columns.map((n) => r[n]).join(' | ') + ' |',
     );
     return [header, divider, ...rows].join('\n');
-  }
-  /* ------------------------------------------------------------------ *
-   *  Meta & storage helpers                                            *
-   * ------------------------------------------------------------------ */
-
-  /**
-   * Set metadata for the DataFrame
-   * @param {any} m - Metadata to set
-   * @returns {DataFrame} - This DataFrame for chaining
-   */
-  setMeta = (m) => ((this._meta = m), this);
-
-  /**
-   * Get metadata for the DataFrame
-   * @returns {any} - DataFrame metadata or empty object if not set
-   */
-  getMeta = () => this._meta ?? {};
-
-  /**
-   * Optimize storage for operation
-   * @param {string} op - Operation to optimize for
-   * @returns {Promise<DataFrame>} - Optimized DataFrame
-   */
-  async optimizeFor(op) {
-    const { switchStorage } = await import('../strategy/storageStrategy.js');
-    return switchStorage(this, op);
   }
 }

@@ -4,9 +4,10 @@
  * @param {Series} series - Series instance
  * @returns {number} - Sum of values
  */
-export const sum = (series) => {
+export function sum(series) {
   const values = series.toArray();
 
+  // For empty series, return 0 (consistent with mathematical sum of empty set)
   if (values.length === 0) return 0;
 
   let total = 0;
@@ -25,16 +26,18 @@ export const sum = (series) => {
   }
 
   return total;
-};
+}
 
 /**
  * Registers the sum method on Series prototype
  * @param {Class} Series - Series class to extend
  */
-export const register = (Series) => {
-  Series.prototype.sum = function() {
-    return sum(this);
-  };
-};
+export function register(Series) {
+  if (!Series.prototype.sum) {
+    Series.prototype.sum = function () {
+      return sum(this);
+    };
+  }
+}
 
 export default { sum, register };

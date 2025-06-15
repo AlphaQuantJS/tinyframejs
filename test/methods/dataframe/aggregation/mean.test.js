@@ -92,7 +92,7 @@ describe('mean', () => {
 describe('DataFrame.mean', () => {
   test('should throw error for non-existent column via DataFrame method', () => {
     // Create a DataFrame with test data
-    const df = DataFrame.fromRows([{ values: 1 }, { values: 2 }]);
+    const df = DataFrame.fromRecords([{ values: 1 }, { values: 2 }]);
 
     // Call the mean method with a non-existent column and expect it to throw an error
     expect(() => df.mean('nonexistent')).toThrow();
@@ -110,8 +110,8 @@ const testData = [
 
 describe('mean method', () => {
   describe('with standard storage', () => {
-    // Create DataFrame using fromRows for proper column names
-    const df = DataFrame.fromRows(testData);
+    // Create DataFrame using fromRecords for proper column names
+    const df = DataFrame.fromRecords(testData);
 
     test('should calculate the mean of numeric values in a column', () => {
       // Call mean function directly with a mock validator
@@ -164,8 +164,8 @@ describe('mean method', () => {
     });
 
     test('should handle empty frames', () => {
-      // Create an empty DataFrame using fromRows
-      const emptyDf = DataFrame.fromRows([]);
+      // Create an empty DataFrame using fromRecords
+      const emptyDf = DataFrame.fromRecords([]);
 
       // Call mean function directly with a validator that doesn't throw for empty frames
       const validateColumn = vi.fn(); // Mock validator that doesn't check anything

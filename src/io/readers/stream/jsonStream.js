@@ -52,7 +52,7 @@ export async function readJSONLStream(filePath, options = {}) {
 
       // Process batch when it reaches the specified size
       if (currentBatch.length >= batchSize) {
-        const batchData = DataFrame.fromRows(currentBatch);
+        const batchData = DataFrame.fromRecords(currentBatch);
 
         // If onBatch callback is provided, call it with the current batch
         if (onBatch) {
@@ -76,7 +76,7 @@ export async function readJSONLStream(filePath, options = {}) {
 
   // Process any remaining rows in the last batch
   if (currentBatch.length > 0) {
-    const batchData = DataFrame.fromRows(currentBatch);
+    const batchData = DataFrame.fromRecords(currentBatch);
 
     if (onBatch) {
       await onBatch(batchData);
@@ -183,7 +183,7 @@ export async function readJSONArrayStream(filePath, options = {}) {
     const end = Math.min(start + batchSize, totalObjects);
     const batchData = jsonData.slice(start, end);
 
-    const batchDF = DataFrame.fromRows(batchData);
+    const batchDF = DataFrame.fromRecords(batchData);
 
     if (onBatch) {
       await onBatch(batchDF);
@@ -233,5 +233,5 @@ export async function filterJSONLStream(filePath, predicateFn, options = {}) {
     }
   }
 
-  return DataFrame.fromRows(filteredRows);
+  return DataFrame.fromRecords(filteredRows);
 }

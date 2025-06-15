@@ -5,13 +5,13 @@ import { TypedArrayVector } from '../../../src/core/storage/TypedArrayVector.js'
 import { SimpleVector } from '../../../src/core/storage/SimpleVector.js';
 import { isArrowAvailable } from '../../../src/core/storage/ArrowAdapter.js';
 
-// Импортируем регистратор методов DataFrame
+// Import DataFrame method registerer
 import { extendDataFrame } from '../../../src/methods/dataframe/registerAll.js';
 
-// Регистрируем методы DataFrame перед запуском тестов
+// Register DataFrame methods before running tests
 extendDataFrame(DataFrame);
 
-// Используем глобальную ссылку на ArrowVector для корректной проверки типов
+// Use global reference to ArrowVector for correct type checking
 const ArrowVector = globalThis.__TinyFrameArrowVector;
 
 /**
@@ -105,7 +105,7 @@ describe('Apache Arrow Integration', () => {
           { name: 'Charlie', city: 'Chicago' },
         ];
 
-        const df = DataFrame.fromRows(data);
+        const df = DataFrame.fromRecords(data);
 
         // Check that the name column uses Arrow storage
         const nameCol = df.getVector('name');
@@ -135,7 +135,7 @@ describe('Apache Arrow Integration', () => {
           { name: 'Dave', age: 40, city: 'Denver' },
         ];
 
-        const df = DataFrame.fromRows(data);
+        const df = DataFrame.fromRecords(data);
 
         // Filter the DataFrame
         const filtered = df.where('age', '>', 30);

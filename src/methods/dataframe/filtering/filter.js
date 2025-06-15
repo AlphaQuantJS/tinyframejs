@@ -1,14 +1,53 @@
 /**
- * Filters rows in a DataFrame based on a predicate function
+ * Filters rows in a DataFrame based on a predicate function or expression string
  *
  * @param {DataFrame} df - DataFrame instance
- * @param {Function} predicate - Function to apply to each row
+ * @param {Function|string} predicateOrExpression - Function or expression string to apply to each row
  * @returns {DataFrame} - New DataFrame with filtered rows
  */
-export const filter = (df, predicate) => {
-  if (typeof predicate !== 'function') {
-    throw new Error('Predicate must be a function');
+export const filter = (df, predicateOrExpression) => {
+  // If a string expression is provided, create a predicate function
+  if (typeof predicateOrExpression === 'string') {
+    try {
+      // Create a function that evaluates the expression for each row
+
+      const predicate = new Function(
+        'row',
+        `
+        try {
+          return ${predicateOrExpression};
+        } catch (err) {
+          throw new Error('Error evaluating expression: ' + err.message);
+        }
+      `,
+      );
+
+      // Check the expression on the first row if it exists
+      if (df.rowCount > 0) {
+        const firstRow = df.toArray()[0];
+        try {
+          predicate(firstRow);
+        } catch (error) {
+          throw new Error(
+            `Invalid filter expression: ${predicateOrExpression}. ${error.message}`,
+          );
+        }
+      }
+
+      return filter(df, predicate);
+    } catch (error) {
+      throw new Error(
+        `Invalid filter expression: ${predicateOrExpression}. ${error.message}`,
+      );
+    }
   }
+
+  // Check that the argument is a function
+  if (typeof predicateOrExpression !== 'function') {
+    throw new Error('Predicate must be a function or a string expression');
+  }
+
+  const predicate = predicateOrExpression;
 
   // Convert DataFrame to array of rows
   const rows = df.toArray();
@@ -62,8 +101,8 @@ export const filter = (df, predicate) => {
  * @param {Class} DataFrame - DataFrame class to extend
  */
 export const register = (DataFrame) => {
-  DataFrame.prototype.filter = function (predicate) {
-    return filter(this, predicate);
+  DataFrame.prototype.filter = function (predicateOrExpression) {
+    return filter(this, predicateOrExpression);
   };
 };
 

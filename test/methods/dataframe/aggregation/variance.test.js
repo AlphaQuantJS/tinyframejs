@@ -19,8 +19,8 @@ const testData = [
 
 describe('variance method', () => {
   describe('with standard storage', () => {
-    // Create DataFrame using fromRows for proper column names
-    const df = DataFrame.fromRows(testData);
+    // Create DataFrame using fromRecords for proper column names
+    const df = DataFrame.fromRecords(testData);
 
     // Testing the variance function directly
     it('should calculate the variance correctly', () => {
@@ -95,7 +95,7 @@ describe('variance method', () => {
 
     it('should return null for empty DataFrame', () => {
       // Create an empty DataFrame
-      const emptyDf = DataFrame.fromRows([]);
+      const emptyDf = DataFrame.fromRecords([]);
 
       // Create the variance function with a mock validator
       const validateColumn = vi.fn();
@@ -111,7 +111,7 @@ describe('variance method', () => {
 
     it('should return 0 for a DataFrame with a single value', () => {
       // Create a DataFrame with a single value
-      const singleValueDf = DataFrame.fromRows([{ value: 42 }]);
+      const singleValueDf = DataFrame.fromRecords([{ value: 42 }]);
 
       // Create the variance function with a mock validator
       const validateColumn = vi.fn();
@@ -137,7 +137,7 @@ describe('variance method', () => {
 
     it('should handle empty DataFrame gracefully', () => {
       // Create an empty DataFrame
-      const emptyDf = DataFrame.fromRows([]);
+      const emptyDf = DataFrame.fromRecords([]);
 
       // Check that the variance method returns null for an empty DataFrame
       expect(emptyDf.variance('value')).toBe(null);

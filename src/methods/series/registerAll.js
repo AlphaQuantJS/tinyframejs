@@ -4,10 +4,10 @@
  */
 
 // Import registrars from different categories
-import { registerSeriesAggregation } from './aggregation/register.js';
-import { registerSeriesTransform } from './transform/register.js';
-import { registerSeriesFiltering } from './filtering/register.js';
-import { registerSeriesTimeSeries } from './timeseries/register.js';
+import { register as registerSeriesAggregation } from './aggregation/index.js';
+import { register as registerSeriesTransform } from './transform/index.js';
+import { register as registerSeriesFiltering } from './filtering/index.js';
+import { register as registerSeriesTimeSeries } from '../timeseries/series/index.js';
 
 /**
  * Extends the Series class with all available methods

@@ -36,7 +36,7 @@ export function apply(df, func, options = {}) {
       const values = df.col(col).toArray();
       const transformedValues = values.map((value, index) => {
         const result = func(value, index, col);
-        // Преобразуем null и undefined в NaN для соответствия тестам
+        // Convert null and undefined to NaN for test compatibility
         return result === null || result === undefined ? NaN : result;
       });
 
@@ -63,7 +63,7 @@ export function apply(df, func, options = {}) {
       const values = result[col];
       result[col] = values.map((value, index) => {
         const result = func(value, index, col);
-        // Преобразуем null и undefined в NaN для соответствия тестам
+        // Convert null and undefined to NaN for test compatibility
         return result === null || result === undefined ? NaN : result;
       });
     }

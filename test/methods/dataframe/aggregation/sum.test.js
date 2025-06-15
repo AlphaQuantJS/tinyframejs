@@ -13,8 +13,8 @@ const testData = [
 
 describe('sum method', () => {
   describe('with standard storage', () => {
-    // Create DataFrame using fromRows for proper column names
-    const df = DataFrame.fromRows(testData);
+    // Create DataFrame using fromRecords for proper column names
+    const df = DataFrame.fromRecords(testData);
 
     it('should calculate the sum of numeric values in a column', () => {
       // Call sum function directly with a mock validator

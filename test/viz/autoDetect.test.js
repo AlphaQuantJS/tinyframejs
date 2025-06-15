@@ -37,7 +37,7 @@ describe('Auto-detection of chart types', () => {
   ];
 
   test('detectChartType function should detect time series data', () => {
-    const df = DataFrame.create(timeSeriesData);
+    const df = DataFrame.fromRecords(timeSeriesData);
     const detection = detectChartType(df);
 
     expect(detection.type).toBe('line');
@@ -46,7 +46,7 @@ describe('Auto-detection of chart types', () => {
   });
 
   test('detectChartType function should detect categorical data', () => {
-    const df = DataFrame.create(categoricalData);
+    const df = DataFrame.fromRecords(categoricalData);
     const detection = detectChartType(df);
 
     expect(detection.type).toBe('pie');
@@ -54,7 +54,7 @@ describe('Auto-detection of chart types', () => {
   });
 
   test('detectChartType function should detect numeric data for bubble chart', () => {
-    const df = DataFrame.create(numericData);
+    const df = DataFrame.fromRecords(numericData);
     const detection = detectChartType(df);
 
     expect(detection.type).toBe('bubble');
@@ -66,7 +66,7 @@ describe('Auto-detection of chart types', () => {
   test('detectChartType function should respect preferred columns', () => {
     // For this test, we use a basic check that the function returns an object
     // with the correct structure when preferredColumns are passed
-    const df = DataFrame.create(numericData);
+    const df = DataFrame.fromRecords(numericData);
     const detection = detectChartType(df, { preferredColumns: ['z', 'y'] });
 
     // We only check the presence of the object and its structure
@@ -78,7 +78,7 @@ describe('Auto-detection of chart types', () => {
   });
 
   test('detectChartType function should respect preferred chart type', () => {
-    const df = DataFrame.create(timeSeriesData);
+    const df = DataFrame.fromRecords(timeSeriesData);
     const detection = detectChartType(df, { preferredType: 'scatter' });
 
     expect(detection.type).toBe('scatter');
@@ -87,7 +87,7 @@ describe('Auto-detection of chart types', () => {
   });
 
   test('DataFrame.plot method should return chart configuration', async () => {
-    const df = DataFrame.create(timeSeriesData);
+    const df = DataFrame.fromRecords(timeSeriesData);
     const config = await df.plot({ render: false });
 
     expect(config).toBeDefined();

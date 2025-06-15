@@ -223,7 +223,7 @@ describe('Schema Validator', () => {
       const validator = createColumnValidator(columnSchema);
 
       // Valid DataFrame
-      const validDF = DataFrame.fromRows([
+      const validDF = DataFrame.fromRecords([
         { id: 1, name: 'John', age: 30 },
         { id: 2, name: 'Jane', age: 25 },
       ]);
@@ -231,7 +231,7 @@ describe('Schema Validator', () => {
       expect(() => validator(validDF)).not.toThrow();
 
       // Invalid: missing required column
-      const missingColumn = DataFrame.fromRows([
+      const missingColumn = DataFrame.fromRecords([
         { id: 1, age: 30 },
         { id: 2, age: 25 },
       ]);
@@ -242,7 +242,7 @@ describe('Schema Validator', () => {
       );
 
       // Invalid: wrong value type
-      const wrongType = DataFrame.fromRows([
+      const wrongType = DataFrame.fromRecords([
         { id: 1, name: 'John', age: 30 },
         { id: 2, name: 'Jane', age: 'twenty-five' },
       ]);
@@ -251,7 +251,7 @@ describe('Schema Validator', () => {
       expect(() => validator(wrongType)).toThrow(/must be an integer/);
 
       // Invalid: out of range
-      const outOfRange = DataFrame.fromRows([
+      const outOfRange = DataFrame.fromRecords([
         { id: 1, name: 'John', age: 30 },
         { id: 2, name: 'Jane', age: -5 },
       ]);

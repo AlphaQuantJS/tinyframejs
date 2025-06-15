@@ -152,7 +152,7 @@ describe('DataFrame.mutate', () => {
     const result = df.mutate(columnFunctions, { inplace: true });
 
     // Assert
-    expect(result).toBe(df); // Должен вернуть тот же экземпляр DataFrame
+    expect(result).toBe(df); // Should return the same DataFrame instance
     expect(df.columns).toContain('c');
     expect(df.col('c').toArray()).toEqual([10, 40, 90]);
   });

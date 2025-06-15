@@ -3,12 +3,12 @@ import { ColumnVector } from './ColumnVector.js';
 import { TypedArrayVector } from './TypedArrayVector.js';
 
 /**
- * Простая реализация ColumnVector для работы с нечисловыми данными.
- * Используется как fallback, когда Arrow недоступен и данные не числовые.
+ * Simple implementation of ColumnVector for working with non-numeric data.
+ * Used as fallback, when Arrow is not available and data is not numeric.
  */
 export class SimpleVector extends ColumnVector {
   /**
-   * @param {Array} data - Массив данных любого типа
+   * @param {Array} data - Array of any type
    */
   constructor(data) {
     super();
@@ -18,27 +18,27 @@ export class SimpleVector extends ColumnVector {
   }
 
   /**
-   * Получение элемента по индексу
-   * @param {number} i - Индекс элемента
-   * @returns {*} Значение элемента
+   * Get element by index
+   * @param {number} i - Index of the element
+   * @returns {*} Value of the element
    */
   get(i) {
     return this._data[i];
   }
 
   /**
-   * Преобразование в обычный JavaScript массив
-   * @returns {Array} Копия внутреннего массива
+   * Convert to a regular JavaScript array
+   * @returns {Array} Copy of the internal array
    */
   toArray() {
     return [...this._data];
   }
 
   /**
-   * Создание нового вектора путем применения функции к каждому элементу.
-   * Сохраняет числовой бэкенд для числовых результатов.
-   * @param {Function} fn - Функция преобразования (value, index) => newValue
-   * @returns {ColumnVector} Новый вектор с преобразованными значениями
+   * Create a new vector by applying a function to each element.
+   * Preserves numeric backend for numeric results.
+   * @param {Function} fn - Conversion function (value, index) => newValue
+   * @returns {ColumnVector} New vector with transformed values
    */
   map(fn) {
     const mapped = this._data.map(fn);
@@ -51,22 +51,22 @@ export class SimpleVector extends ColumnVector {
   }
 
   /**
-   * Создание подмножества вектора
-   * @param {number} start - Начальный индекс (включительно)
-   * @param {number} end - Конечный индекс (не включительно)
-   * @returns {SimpleVector} Новый вектор с подмножеством элементов
+   * Create a new vector with a subset of elements
+   * @param {number} start - Start index (inclusive)
+   * @param {number} end - End index (exclusive)
+   * @returns {SimpleVector} New vector with a subset of elements
    */
   slice(start, end) {
     return new SimpleVector(this._data.slice(start, end));
   }
 
   /**
-   * Вычисление суммы элементов (только для числовых данных)
-   * @returns {number|undefined} Сумма или undefined для нечисловых данных
+   * Calculate the sum of elements (only for numeric data)
+   * @returns {number|undefined} Sum or undefined for non-numeric data
    */
   sum() {
-    // Оптимизация: проверяем только первые несколько элементов
-    // для определения, является ли колонка числовой
+    // Optimization: check only the first few elements
+    // to determine if the column is numeric
     const sampleSize = Math.min(10, this.length);
     const sample = this._data.slice(0, sampleSize);
 
@@ -80,16 +80,16 @@ export class SimpleVector extends ColumnVector {
   }
 
   /**
-   * JSON представление вектора
-   * @returns {Array} Массив для JSON сериализации
+   * JSON representation of the vector
+   * @returns {Array} Array for JSON serialization
    */
   toJSON() {
     return this.toArray();
   }
 
   /**
-   * Для совместимости с ColumnVector.toArrow()
-   * @returns {Array} Внутренний массив данных
+   * For compatibility with ColumnVector.toArrow()
+   * @returns {Array} Internal data array
    */
   toArrow() {
     return this._data;

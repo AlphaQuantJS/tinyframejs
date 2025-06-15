@@ -20,7 +20,7 @@ const testData = [
 describe('last method', () => {
   describe('with standard storage', () => {
     // Create DataFrame directly
-    const df = DataFrame.fromRows(testData);
+    const df = DataFrame.fromRecords(testData);
 
     // Testing the last function directly
     it('should return the last value in a column', () => {
@@ -68,7 +68,7 @@ describe('last method', () => {
 
     it('should return undefined for empty DataFrame', () => {
       // Create an empty DataFrame
-      const emptyDf = DataFrame.fromRows([]);
+      const emptyDf = DataFrame.fromRecords([]);
 
       // Create last function with a mock validator
       const validateColumn = vi.fn();
@@ -93,7 +93,7 @@ describe('last method', () => {
 
     it('should handle empty DataFrame gracefully', () => {
       // Create an empty DataFrame
-      const emptyDf = DataFrame.fromRows([]);
+      const emptyDf = DataFrame.fromRecords([]);
 
       // Check that the last method returns undefined for an empty DataFrame
       expect(emptyDf.last('value')).toBeUndefined();

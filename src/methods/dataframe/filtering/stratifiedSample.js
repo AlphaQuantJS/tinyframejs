@@ -60,7 +60,7 @@ export const stratifiedSample = (
   });
 
   // Create a new DataFrame from sampled rows
-  return df.constructor.fromRows(sampledRows);
+  return df.constructor.fromRecords(sampledRows);
 };
 
 /**

@@ -4,7 +4,8 @@
  */
 
 // Import all series methods
-import './timeseries/index.js';
+// The timeseries/index.js module will be added in future versions
+// import './timeseries/index.js';
 
 // Export nothing as methods are attached to Series prototype
 export {};

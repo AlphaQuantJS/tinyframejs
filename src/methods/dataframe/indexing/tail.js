@@ -23,7 +23,7 @@ export const tail = (df, n = 5, options = { print: false }) => {
   const selectedRows = rows.slice(-n);
 
   // Create a new DataFrame from selected rows
-  const result = df.constructor.fromRows(selectedRows);
+  const result = df.constructor.fromRecords(selectedRows);
 
   // Note: the print option is preserved for API compatibility, but is not used in the current version
   // In the future, we can add the print method to DataFrame

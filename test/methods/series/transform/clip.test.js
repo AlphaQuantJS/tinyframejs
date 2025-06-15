@@ -55,7 +55,9 @@ describe('Series.clip', () => {
 
   test('throws error when neither min nor max is provided', () => {
     const series = new Series([1, 2, 3]);
-    expect(() => series.clip({})).toThrow('At least one of min or max must be provided');
+    expect(() => series.clip({})).toThrow(
+      'At least one of min or max must be provided',
+    );
   });
 
   test('works with empty Series', () => {
@@ -74,10 +76,10 @@ describe('Series.clip', () => {
   });
 
   test('works with direct function call', () => {
-    // Регистрируем метод
+    // Register the clip method on Series prototype
     register(Series);
     const series = new Series([1, 2, 3, 4, 5]);
-    // Используем метод напрямую
+    // Use the method directly
     const clipped = series.clip({ min: 2, max: 4 });
     expect(clipped.toArray()).toEqual([2, 2, 3, 4, 4]);
   });

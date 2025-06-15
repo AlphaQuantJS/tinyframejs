@@ -13,7 +13,7 @@ describe('std method', () => {
     it('should calculate the standard deviation correctly', () => {
       // Create a DataFrame with numeric values
       const numericValues = [10, 20, 30, 40, 50];
-      const numericDf = DataFrame.fromRows(
+      const numericDf = DataFrame.fromRecords(
         numericValues.map((v) => ({ value: v })),
       );
 
@@ -42,7 +42,7 @@ describe('std method', () => {
     it('should handle mixed data types by converting to numbers', () => {
       // Create a DataFrame with mixed data types
       const mixedValues = [10, '20', 30, '40', 50];
-      const mixedDf = DataFrame.fromRows(
+      const mixedDf = DataFrame.fromRecords(
         mixedValues.map((v) => ({ value: v })),
       );
 
@@ -64,7 +64,7 @@ describe('std method', () => {
     it('should return null for a column with no valid numeric values', () => {
       // Create a DataFrame with non-numeric values
       const nonNumericValues = ['a', 'b', 'c', null, undefined];
-      const nonNumericDf = DataFrame.fromRows(
+      const nonNumericDf = DataFrame.fromRecords(
         nonNumericValues.map((v) => ({ value: v })),
       );
 
@@ -82,7 +82,7 @@ describe('std method', () => {
 
     it('should return null for an empty DataFrame', () => {
       // Create an empty DataFrame
-      const emptyDf = DataFrame.fromRows([]);
+      const emptyDf = DataFrame.fromRecords([]);
 
       // Create a mock validator function
       const validateColumn = vi.fn();
@@ -100,7 +100,7 @@ describe('std method', () => {
     it('should return 0 for a DataFrame with a single value', () => {
       // Create a DataFrame with a single value
       const singleValue = [42];
-      const singleValueDf = DataFrame.fromRows(
+      const singleValueDf = DataFrame.fromRecords(
         singleValue.map((v) => ({ value: v })),
       );
 
@@ -119,7 +119,7 @@ describe('std method', () => {
     it('should be available as a DataFrame method', () => {
       // Create a DataFrame with numeric values
       const values = [10, 20, 30];
-      const df = DataFrame.fromRows(values.map((v) => ({ value: v })));
+      const df = DataFrame.fromRecords(values.map((v) => ({ value: v })));
 
       // Calculate the standard deviation using the DataFrame method
       const result = df.std('value');
@@ -139,7 +139,7 @@ describe('std method', () => {
 
     it('should handle empty DataFrame gracefully', () => {
       // Create an empty DataFrame
-      const emptyDf = DataFrame.fromRows([]);
+      const emptyDf = DataFrame.fromRecords([]);
 
       // Calculate the standard deviation using the DataFrame method
       const result = emptyDf.std('value');
@@ -150,7 +150,7 @@ describe('std method', () => {
 
     it('should throw an error for a non-existent column', () => {
       // Create a DataFrame
-      const df = DataFrame.fromRows([{ value: 10 }, { value: 20 }]);
+      const df = DataFrame.fromRecords([{ value: 10 }, { value: 20 }]);
 
       // Check that an error is thrown for a non-existent column
       expect(() => df.std('non_existent')).toThrow(

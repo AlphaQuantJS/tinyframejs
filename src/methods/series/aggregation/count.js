@@ -4,7 +4,7 @@
  * @param {Series} series - Series instance
  * @returns {number} - Count of valid values
  */
-export const count = (series) => {
+export function count(series) {
   const values = series.toArray();
 
   let validCount = 0;
@@ -16,16 +16,18 @@ export const count = (series) => {
   }
 
   return validCount;
-};
+}
 
 /**
  * Registers the count method on Series prototype
  * @param {Class} Series - Series class to extend
  */
-export const register = (Series) => {
-  Series.prototype.count = function() {
-    return count(this);
-  };
-};
+export function register(Series) {
+  if (!Series.prototype.count) {
+    Series.prototype.count = function () {
+      return count(this);
+    };
+  }
+}
 
 export default { count, register };

@@ -116,7 +116,16 @@ const sourceHandlers = [
       isNodeJs(),
     getContent: async (src) => {
       try {
-        const fs = safeRequire('fs');
+        // For ESM, use asynchronous import
+        let fs;
+        if (typeof require === 'undefined') {
+          // ESM environment - use dynamic import
+          fs = await import('fs');
+        } else {
+          // CommonJS environment - use require
+          fs = safeRequire('fs');
+        }
+
         if (fs && fs.promises) {
           return await fs.promises.readFile(src, 'utf8');
         }
@@ -371,7 +380,7 @@ export async function readJson(source, options = {}) {
             allData.push(...batchDf.toArray());
           }
 
-          return DataFrame.fromRows(allData, frameOptions);
+          return DataFrame.fromRecords(allData, frameOptions);
         },
       };
     }
@@ -395,7 +404,7 @@ export async function readJson(source, options = {}) {
     if (Array.isArray(data)) {
       // Empty array case
       if (data.length === 0) {
-        return DataFrame.fromRows([], frameOptions);
+        return DataFrame.fromRecords([], frameOptions);
       }
 
       // Array of objects case
@@ -410,7 +419,7 @@ export async function readJson(source, options = {}) {
           }
           return processedItem;
         });
-        return DataFrame.fromRows(processedData, frameOptions);
+        return DataFrame.fromRecords(processedData, frameOptions);
       }
 
       // Array of arrays case
@@ -429,7 +438,7 @@ export async function readJson(source, options = {}) {
           }
           return obj;
         });
-        return DataFrame.fromRows(processedData, frameOptions);
+        return DataFrame.fromRecords(processedData, frameOptions);
       }
     } else if (typeof data === 'object' && data !== null) {
       // Object with column arrays case
@@ -449,10 +458,10 @@ export async function readJson(source, options = {}) {
               processedColumns[key] = data[key];
             }
           }
-          // Для данных, организованных по колонкам, создаем DataFrame напрямую
+          // For data organized by columns, create DataFrame directly
           return new DataFrame(processedColumns, frameOptions);
         }
-        // Для данных, организованных по колонкам, создаем DataFrame напрямую
+        // For data organized by columns, create DataFrame directly
         return new DataFrame(data, frameOptions);
       } else {
         // Single object case - convert to array with one item
@@ -463,7 +472,7 @@ export async function readJson(source, options = {}) {
             ? convertType(value, emptyValue)
             : value;
         }
-        return DataFrame.fromRows([processedItem], frameOptions);
+        return DataFrame.fromRecords([processedItem], frameOptions);
       }
     }
 

@@ -23,9 +23,9 @@ describe('median method', () => {
       { value: 60, category: 'D', mixed: 40 },
     ];
 
-    // Create DataFrames using fromRows for proper column names
-    const dfOdd = DataFrame.fromRows(testDataOdd);
-    const dfEven = DataFrame.fromRows(testDataEven);
+    // Create DataFrames using fromRecords for proper column names
+    const dfOdd = DataFrame.fromRecords(testDataOdd);
+    const dfEven = DataFrame.fromRecords(testDataEven);
 
     it('should calculate the median for odd number of elements', () => {
       // Call median function directly with a mock validator
@@ -89,8 +89,8 @@ describe('median method', () => {
     });
 
     it('should handle empty frames', () => {
-      // Create an empty DataFrame using fromRows
-      const emptyDf = DataFrame.fromRows([]);
+      // Create an empty DataFrame using fromRecords
+      const emptyDf = DataFrame.fromRecords([]);
 
       // Call median function directly with a validator that doesn't throw for empty frames
       const validateColumn = vi.fn(); // Mock validator that doesn't check anything

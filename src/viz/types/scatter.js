@@ -44,7 +44,7 @@ export function scatterPlot(dataFrame, options) {
   if (!config.options) config.options = {};
   config.options.title = {
     display: true,
-    text: options.chartOptions?.title || 'Scatter Plot'
+    text: options.chartOptions?.title || 'Scatter Plot',
   };
 
   return config;
@@ -252,8 +252,8 @@ export function bubbleChart(dataFrame, options) {
  * @param {Object} options - Chart options
  * @param {string} options.x - Column name for X axis
  * @param {string} options.y - Column name for Y axis
- * @param {string} [options.regressionType='linear'] - Type of regression ('linear', 'polynomial', 'exponential', 'logarithmic')
- * @param {number} [options.polynomialOrder=2] - Order of polynomial regression (only for polynomial type)
+ * @param {string} [options.regressionType='linear'] - Type of regression ('linear', etc)
+ * @param {number} [options.polynomialOrder=2] - Order of polynomial regression
  * @param {Object} [options.chartOptions] - Additional Chart.js options
  * @returns {Object} Chart configuration object
  */
@@ -403,16 +403,16 @@ function calculateRegression(points, type, polynomialOrder = 2) {
 
   // Calculate regression based on type
   switch (type.toLowerCase()) {
-  case 'linear':
-    return linearRegression(points, regressionXValues);
-  case 'polynomial':
-    return polynomialRegression(points, regressionXValues, polynomialOrder);
-  case 'exponential':
-    return exponentialRegression(points, regressionXValues);
-  case 'logarithmic':
-    return logarithmicRegression(points, regressionXValues);
-  default:
-    throw new Error(`Unsupported regression type: ${type}`);
+    case 'linear':
+      return linearRegression(points, regressionXValues);
+    case 'polynomial':
+      return polynomialRegression(points, regressionXValues, polynomialOrder);
+    case 'exponential':
+      return exponentialRegression(points, regressionXValues);
+    case 'logarithmic':
+      return logarithmicRegression(points, regressionXValues);
+    default:
+      throw new Error(`Unsupported regression type: ${type}`);
   }
 }
 

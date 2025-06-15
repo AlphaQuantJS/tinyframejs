@@ -20,11 +20,11 @@ describe('Loc Method', () => {
   registerDataFrameIndexing(DataFrame);
 
   describe('with standard storage', () => {
-    // Create DataFrame using fromRows
-    const df = DataFrame.fromRows(testData);
+    // Create DataFrame using fromRecords
+    const df = DataFrame.fromRecords(testData);
 
     // Create DataFrame with typed arrays for testing type preservation
-    const typedDf = DataFrame.fromRows(testData, {
+    const typedDf = DataFrame.fromRecords(testData, {
       columns: {
         age: { type: 'int32' },
         salary: { type: 'float64' },

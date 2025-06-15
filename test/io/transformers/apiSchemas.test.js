@@ -126,8 +126,8 @@ describe('Crypto API Schemas', () => {
       buyQuoteVolume: 1792500.0,
     });
 
-    // В новой реализации applySchema принимает имя схемы, а не саму схему
-    // Поэтому мы используем напрямую функцию трансформации
+    // In the new implementation, applySchema takes the schema name, not the schema itself
+    // So we use the transform function directly
     const manuallyTransformed = transformBinanceOHLCV([binanceData[0]])[0];
 
     expect(manuallyTransformed).toEqual(transformed[0]);

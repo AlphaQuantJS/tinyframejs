@@ -21,15 +21,20 @@ export function registerDataFrameDisplay(DataFrame) {
    * @param {number} [cols] - Maximum number of columns to display
    * @returns {DataFrame} - Returns the DataFrame for chaining
    */
-  DataFrame.prototype.print = function(rows, cols) {
+  DataFrame.prototype.print = function (rows, cols) {
     // Convert DataFrame to TinyFrame format expected by print function
     const frame = {
-      columns: this._columns,
+      columns: {},
       rowCount: this.rowCount,
     };
 
+    // Convert _columns to format expected by print function
+    for (const colName of this.columns) {
+      frame.columns[colName] = this._columns[colName].toArray();
+    }
+
     // Use the imported print function
-    return print()(frame, rows, cols);
+    return print(frame, rows, cols);
   };
 
   /**
@@ -42,7 +47,7 @@ export function registerDataFrameDisplay(DataFrame) {
    * @param {string} [options.theme='default'] - Theme for the table ('default', 'dark', 'minimal')
    * @returns {string} - HTML string representation of the DataFrame
    */
-  DataFrame.prototype.toHTML = function(options = {}) {
+  DataFrame.prototype.toHTML = function (options = {}) {
     // Convert DataFrame to TinyFrame format expected by toHTML function
     const frame = {
       columns: this._columns,
@@ -57,7 +62,7 @@ export function registerDataFrameDisplay(DataFrame) {
    * Returns a string representation of the DataFrame
    * @returns {string} - String representation
    */
-  DataFrame.prototype.toString = function() {
+  DataFrame.prototype.toString = function () {
     return `DataFrame(${this.rowCount} rows × ${this.columns.length} columns)`;
   };
 
@@ -72,7 +77,7 @@ export function registerDataFrameDisplay(DataFrame) {
    * @param {string} [options.container] - CSS selector for container element (browser only)
    * @returns {DataFrame} - Returns the DataFrame for chaining
    */
-  DataFrame.prototype.display = function(options = {}) {
+  DataFrame.prototype.display = function (options = {}) {
     // Convert DataFrame to TinyFrame format expected by display function
     const frame = {
       columns: this._columns,
@@ -97,7 +102,7 @@ export function registerDataFrameDisplay(DataFrame) {
    * @param {string} [options.theme='default'] - Theme for the table ('default', 'dark', 'minimal')
    * @returns {DataFrame} - Returns the DataFrame for chaining
    */
-  DataFrame.prototype.renderTo = function(element, options = {}) {
+  DataFrame.prototype.renderTo = function (element, options = {}) {
     // Convert DataFrame to TinyFrame format expected by renderTo function
     const frame = {
       columns: this._columns,
@@ -116,7 +121,7 @@ export function registerDataFrameDisplay(DataFrame) {
    * @param {Object} [options] - Display options
    * @returns {Object} - Jupyter display object
    */
-  DataFrame.prototype.toJupyter = function(options = {}) {
+  DataFrame.prototype.toJupyter = function (options = {}) {
     // Convert DataFrame to TinyFrame format
     const frame = {
       columns: this._columns,

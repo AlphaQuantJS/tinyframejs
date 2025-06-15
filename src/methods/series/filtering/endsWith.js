@@ -15,7 +15,7 @@ export function endsWith() {
    * @param {boolean} [options.caseSensitive=true] - Whether the search is case sensitive
    * @returns {Series} - New Series with filtered values
    */
-  return function(suffix, options = {}) {
+  return function (suffix, options = {}) {
     const { caseSensitive = true } = options;
 
     if (suffix === undefined || suffix === null) {
@@ -28,9 +28,9 @@ export function endsWith() {
       }
 
       const strValue = String(value);
-      
+
       if (caseSensitive) {
-        // В режиме чувствительности к регистру проверяем точное совпадение
+        // In case-sensitive mode, we check for exact match
         return strValue.endsWith(suffix);
       } else {
         return strValue.toLowerCase().endsWith(suffix.toLowerCase());

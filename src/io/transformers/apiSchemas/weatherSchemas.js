@@ -228,7 +228,7 @@ function getNestedValue(obj, path, defaultValue = null) {
 
   for (let i = 0; i < parts.length; i++) {
     const part = parts[i];
-    const arrayMatch = part.match(/^([^\[]+)\[(\d+)\]$/);
+    const arrayMatch = part.match(/^([^[]+)\[(\d+)\]$/);
 
     if (arrayMatch) {
       // Handle array access

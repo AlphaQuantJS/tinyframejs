@@ -57,7 +57,7 @@ vi.mock('fs/promises', () => ({
 
 vi.mock('fs', () => {
   const mockWriteStream = {
-    on: vi.fn().mockImplementation(function(event, callback) {
+    on: vi.fn().mockImplementation(function (event, callback) {
       if (event === 'finish') {
         setTimeout(callback, 0);
       }
@@ -79,7 +79,7 @@ describe('Arrow Writer', () => {
 
   beforeEach(() => {
     // Create a test DataFrame
-    testDataFrame = DataFrame.fromRows([
+    testDataFrame = DataFrame.fromRecords([
       { id: 1, name: 'Alice', age: 30 },
       { id: 2, name: 'Bob', age: 25 },
       { id: 3, name: 'Charlie', age: 35 },
@@ -189,7 +189,7 @@ describe('Arrow Writer', () => {
       const arrow = await import('apache-arrow');
 
       const mockStream = {
-        on: vi.fn().mockImplementation(function(event, callback) {
+        on: vi.fn().mockImplementation(function (event, callback) {
           if (event === 'finish') {
             setTimeout(callback, 0);
           }
@@ -216,7 +216,7 @@ describe('Arrow Writer', () => {
   describe('addArrowBatchMethods', () => {
     it('should add Arrow methods to DataFrame', () => {
       // Create a proper mock DataFrame constructor
-      const MockDataFrame = function() {
+      const MockDataFrame = function () {
         // Create private properties
         const _columns = ['id', 'name'];
         const _rowCount = 2;

@@ -15,7 +15,14 @@ describe('Series.unique', () => {
   });
 
   test('preserves the original order of first occurrence', () => {
-    const series = new Series(['apple', 'banana', 'apple', 'orange', 'banana', 'grape']);
+    const series = new Series([
+      'apple',
+      'banana',
+      'apple',
+      'orange',
+      'banana',
+      'grape',
+    ]);
     const unique = series.unique();
     expect(unique.toArray()).toEqual(['apple', 'banana', 'orange', 'grape']);
   });
@@ -62,10 +69,10 @@ describe('Series.unique', () => {
   });
 
   test('works with direct function call', () => {
-    // Регистрируем метод
+    // Register the unique method on Series prototype
     register(Series);
     const series = new Series([1, 2, 2, 3, 1]);
-    // Используем метод напрямую
+    // Use the method directly
     const unique = series.unique();
     expect(unique.toArray()).toEqual([1, 2, 3]);
   });

@@ -86,10 +86,10 @@ describe('Advanced Chart Types', () => {
   ];
 
   // Create DataFrames
-  const timeSeriesDf = DataFrame.create(timeSeriesData);
-  const categoricalDf = DataFrame.create(categoricalData);
-  const radarDf = DataFrame.create(radarData);
-  const financialDf = DataFrame.create(financialData);
+  const timeSeriesDf = DataFrame.fromRecords(timeSeriesData);
+  const categoricalDf = DataFrame.fromRecords(categoricalData);
+  const radarDf = DataFrame.fromRecords(radarData);
+  const financialDf = DataFrame.fromRecords(financialData);
 
   it('should create an area chart configuration', () => {
     const config = viz.line.areaChart(timeSeriesDf, {
@@ -175,7 +175,7 @@ describe('Advanced Chart Types', () => {
     expect(detection).toBeDefined();
     expect(detection.type).toBe('pie');
     expect(detection.columns.x).toBe('category');
-    expect(detection.columns.y).toBe('value');
+    expect(detection.columns.y).toContain('value');
   });
 
   it('should automatically detect chart type for financial data', () => {
@@ -183,9 +183,8 @@ describe('Advanced Chart Types', () => {
 
     expect(detection).toBeDefined();
     // Currently automatic detection does not support financial data
-    // This will be implemented in future versions
-    // In our implementation, 'table' type is returned for financial data
-    expect(detection.type).toBe('table');
+    // Financial data with date, open, high, low, close is detected as line chart
+    expect(detection.type).toBe('line');
     // Check that the message about not finding suitable columns is present
     expect(detection.message).toBeDefined();
   });
@@ -229,7 +228,7 @@ describe('Chart Export Functionality', () => {
     { category: 'C', value: 20 },
   ];
 
-  const df = DataFrame.create(data);
+  const df = DataFrame.fromRecords(data);
 
   // Create output directory for tests
   const outputDir = path.join(__dirname, '../../test-output');

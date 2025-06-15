@@ -56,7 +56,7 @@ describe('DataFrame', () => {
       { a: 3, b: 'z' },
     ];
 
-    const df = DataFrame.fromRows(data);
+    const df = DataFrame.fromRecords(data);
 
     expect(df).toBeInstanceOf(DataFrame);
     expect(df.rowCount).toBe(3);

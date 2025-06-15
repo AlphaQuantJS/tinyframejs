@@ -73,14 +73,14 @@ describe('Pipe Utilities', () => {
       // Mock reader that calls onBatch with batches of data
       const reader = async ({ batchSize, onBatch }) => {
         await onBatch(
-          DataFrame.fromRows([
+          DataFrame.fromRecords([
             { id: 1, value: 10 },
             { id: 2, value: 20 },
           ]),
         );
 
         await onBatch(
-          DataFrame.fromRows([
+          DataFrame.fromRecords([
             { id: 3, value: 30 },
             { id: 4, value: 40 },
           ]),
@@ -89,7 +89,7 @@ describe('Pipe Utilities', () => {
 
       // Mock processor that doubles values
       const processor = vi.fn((batch) =>
-        // Преобразуем батч в массив и применяем map
+        // Convert batch to array and apply map
         batch.toArray().map((row) => ({
           ...row,
           value: row.value * 2,
@@ -125,7 +125,7 @@ describe('Pipe Utilities', () => {
 
       // Check results contain processed batches
       expect(results).toHaveLength(2);
-      // Процессор теперь возвращает массив, а не DataFrame
+      // The processor now returns an array, not a DataFrame
       expect(results[0]).toEqual([
         { id: 1, value: 20 },
         { id: 2, value: 40 },
@@ -148,7 +148,7 @@ describe('DataFrame Transformers', () => {
     { id: 5, name: 'Eve', age: 22, score: 80 },
   ];
 
-  const sampleDataFrame = DataFrame.fromRows(sampleData);
+  const sampleDataFrame = DataFrame.fromRecords(sampleData);
 
   describe('filter', () => {
     it('should filter DataFrame rows', () => {

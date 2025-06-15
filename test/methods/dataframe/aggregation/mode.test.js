@@ -20,8 +20,8 @@ describe('mode method', () => {
       { value: 20, category: 'B', mixed: '20' },
     ];
 
-    // Create DataFrame using fromRows for proper column names
-    const df = DataFrame.fromRows(modeTestData);
+    // Create DataFrame using fromRecords for proper column names
+    const df = DataFrame.fromRecords(modeTestData);
 
     // Test the mode function directly
     it('should find the most frequent value in a column', () => {
@@ -58,8 +58,8 @@ describe('mode method', () => {
         { invalid: NaN },
       ];
 
-      // Create DataFrame using fromRows
-      const invalidDf = DataFrame.fromRows(invalidData);
+      // Create DataFrame using fromRecords
+      const invalidDf = DataFrame.fromRecords(invalidData);
 
       // Create the mode function with a mock validator
       const validateColumn = vi.fn();
@@ -84,8 +84,8 @@ describe('mode method', () => {
         { value: 30 },
       ];
 
-      // Create DataFrame using fromRows
-      const multiModeDf = DataFrame.fromRows(multiModeData);
+      // Create DataFrame using fromRecords
+      const multiModeDf = DataFrame.fromRecords(multiModeData);
 
       // Create the mode function with a mock validator
       const validateColumn = vi.fn();
@@ -117,8 +117,8 @@ describe('mode method', () => {
     });
 
     it('should return null for empty DataFrame', () => {
-      // Create an empty DataFrame using fromRows
-      const emptyDf = DataFrame.fromRows([]);
+      // Create an empty DataFrame using fromRecords
+      const emptyDf = DataFrame.fromRecords([]);
 
       // Create the mode function with a mock validator
       const validateColumn = vi.fn();
@@ -143,8 +143,8 @@ describe('mode method', () => {
     });
 
     it('should handle empty DataFrame gracefully', () => {
-      // Create an empty DataFrame using fromRows
-      const emptyDf = DataFrame.fromRows([]);
+      // Create an empty DataFrame using fromRecords
+      const emptyDf = DataFrame.fromRecords([]);
 
       // Check that the mode method returns null for an empty DataFrame
       expect(emptyDf.mode('value')).toBe(null);

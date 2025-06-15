@@ -31,11 +31,11 @@ describe('StratifiedSample Method', () => {
   registerDataFrameFiltering(DataFrame);
 
   describe('with standard storage', () => {
-    // Create DataFrame using fromRows
-    const df = DataFrame.fromRows(testData);
+    // Create DataFrame using fromRecords
+    const df = DataFrame.fromRecords(testData);
 
     // Create DataFrame with typed arrays for testing type preservation
-    const typedDf = DataFrame.fromRows(testData, {
+    const typedDf = DataFrame.fromRecords(testData, {
       columns: {
         age: { type: 'int32' },
         salary: { type: 'float64' },
@@ -144,7 +144,7 @@ describe('StratifiedSample Method', () => {
         { name: 'Bob', category: 'B' },
         { name: 'Charlie', category: 'C' },
       ];
-      const singleItemDf = DataFrame.fromRows(singleItemData);
+      const singleItemDf = DataFrame.fromRecords(singleItemData);
 
       // Call stratifiedSample on DataFrame with one item in each category
       const result = singleItemDf.stratifiedSample('category', 0.5);

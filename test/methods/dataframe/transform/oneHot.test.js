@@ -12,7 +12,7 @@ describe('DataFrame.oneHot', () => {
     };
 
     // Create test DataFrame
-    df = DataFrame.fromRows([
+    df = DataFrame.fromRecords([
       { category: 'A' },
       { category: 'B' },
       { category: 'A' },
@@ -103,7 +103,7 @@ describe('DataFrame.oneHot', () => {
 
   test('handles null values with handleNull option', () => {
     // Create DataFrame with null values
-    const dfWithNulls = DataFrame.fromRows([
+    const dfWithNulls = DataFrame.fromRecords([
       { category: 'A' },
       { category: null },
       { category: 'B' },
@@ -160,7 +160,7 @@ describe('DataFrame.oneHot', () => {
     expect(() => df.oneHot('category', { handleNull: 'invalid' })).toThrow();
 
     // Create DataFrame with null values
-    const dfWithNulls = DataFrame.fromRows([
+    const dfWithNulls = DataFrame.fromRecords([
       { category: 'A' },
       { category: null },
       { category: 'B' },

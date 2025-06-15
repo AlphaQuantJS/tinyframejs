@@ -18,7 +18,11 @@ export class LazyFrame {
    *  Creation                                           *
    * -------------------------------------------------- */
 
-  /** @param {DataFrame} df */
+  /**
+   * Create a LazyFrame from a DataFrame
+   * @param {DataFrame} df - Source DataFrame
+   * @returns {LazyFrame} New LazyFrame instance
+   */
   static fromDataFrame(df) {
     return new LazyFrame([{ op: 'source', df }]);
   }
@@ -27,19 +31,28 @@ export class LazyFrame {
    *  Transformations (lazy)                             *
    * -------------------------------------------------- */
 
-  /** @param {(row:any)=>boolean} fn */
+  /**
+   * Filter rows based on a predicate function
+   * @param {(row:any)=>boolean} fn - Filter predicate
+   * @returns {LazyFrame} New LazyFrame with filter operation added
+   */
   filter(fn) {
     return new LazyFrame([...this._plan, { op: 'filter', fn }]);
   }
 
-  /** @param {string[]} cols */
+  /**
+   * Select columns to keep
+   * @param {string[]} cols - Column names to select
+   * @returns {LazyFrame} New LazyFrame with select operation added
+   */
   select(cols) {
     return new LazyFrame([...this._plan, { op: 'select', cols }]);
   }
 
   /**
    * Returns first n rows
-   * @param n
+   * @param {number} n - Number of rows to return
+   * @returns {LazyFrame} New LazyFrame with head operation added
    */
   head(n = 5) {
     return new LazyFrame([...this._plan, { op: 'head', n }]);
@@ -47,7 +60,8 @@ export class LazyFrame {
 
   /**
    * Arbitrary function over DataFrame → DataFrame
-   * @param {(df:DataFrame)=>DataFrame} fn
+   * @param {(df:DataFrame)=>DataFrame} fn - Transform function
+   * @returns {LazyFrame} New LazyFrame with apply operation added
    */
   apply(fn) {
     return new LazyFrame([...this._plan, { op: 'apply', fn }]);
@@ -61,30 +75,31 @@ export class LazyFrame {
    * Executes the plan and returns an actual DataFrame.
    * Materializes DataFrame at each iteration; for production
    * an optimizer can be inserted to combine steps.
+   * @returns {DataFrame} Materialized DataFrame after executing all operations
    */
   collect() {
     let df = this._plan[0].df; // source DataFrame
 
     for (const step of this._plan.slice(1)) {
       switch (step.op) {
-      case 'filter':
-        df = DataFrame.fromRows(df.toArray().filter(step.fn));
-        break;
+        case 'filter':
+          df = DataFrame.fromRecords(df.toArray().filter(step.fn));
+          break;
 
-      case 'select':
-        df = df.select(step.cols);
-        break;
+        case 'select':
+          df = df.select(step.cols);
+          break;
 
-      case 'head':
-        df = DataFrame.fromRows(df.toArray().slice(0, step.n));
-        break;
+        case 'head':
+          df = DataFrame.fromRecords(df.toArray().slice(0, step.n));
+          break;
 
-      case 'apply':
-        df = step.fn(df);
-        break;
+        case 'apply':
+          df = step.fn(df);
+          break;
 
-      default:
-        throw new Error(`LazyFrame: unknown operation '${step.op}'`);
+        default:
+          throw new Error(`LazyFrame: unknown operation '${step.op}'`);
       }
     }
     return df;
@@ -94,12 +109,18 @@ export class LazyFrame {
    *  Syntactic sugar                                    *
    * -------------------------------------------------- */
 
-  /** alias to collect() for symmetry with Polars */
+  /**
+   * Alias to collect() for symmetry with Polars
+   * @returns {DataFrame} Materialized DataFrame after executing all operations
+   */
   execute() {
     return this.collect();
   }
 
-  /** Debug print of the plan */
+  /**
+   * Debug print of the plan
+   * @returns {string} String representation of the LazyFrame
+   */
   toString() {
     return `LazyFrame(steps: ${this._plan.length - 1})`;
   }

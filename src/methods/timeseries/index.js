@@ -3,17 +3,18 @@
  * @module methods/timeseries
  */
 
-// Import registrars
-import registerDataFrameTimeSeries from './dataframe/register.js';
-import registerSeriesTimeSeries from './series/register.js';
+// Import registerAll function
+import registerAllTimeSeries from './registerAll.js';
 
 // Import DataFrame and Series classes
 import { DataFrame } from '../../core/dataframe/DataFrame.js';
 import { Series } from '../../core/dataframe/Series.js';
 
-// Register methods
-registerDataFrameTimeSeries(DataFrame);
-registerSeriesTimeSeries(Series);
+// Import utility functions from alltypes
+import * as timeseriesUtils from './alltypes/index.js';
 
-// Export nothing as methods are attached to DataFrame and Series prototypes
-export {};
+// Register all timeseries methods
+registerAllTimeSeries(DataFrame, Series);
+
+// Export utility functions for external use
+export { timeseriesUtils };

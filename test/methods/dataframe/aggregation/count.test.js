@@ -123,8 +123,8 @@ describe('DataFrame count function', () => {
 // Tests with real DataFrames
 describe('DataFrame count with real DataFrames', () => {
   describe('with standard storage', () => {
-    // Create a DataFrame using fromRows for proper column names
-    const df = DataFrame.fromRows(testData);
+    // Create a DataFrame using fromRecords for proper column names
+    const df = DataFrame.fromRecords(testData);
 
     test('should count all non-null, non-undefined, non-NaN values in a column', () => {
       // Create a mock validator

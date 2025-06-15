@@ -1,6 +1,9 @@
 import { describe, test, expect, beforeAll } from 'vitest';
 import { Series } from '../../../../src/core/dataframe/Series.js';
-import { between, register } from '../../../../src/methods/series/filtering/between.js';
+import {
+  between,
+  register,
+} from '../../../../src/methods/series/filtering/between.js';
 
 describe('Series.between', () => {
   // Register the method before running tests
@@ -45,13 +48,19 @@ describe('Series.between', () => {
 
   test('throws error when lower bound is greater than upper bound', () => {
     const series = new Series([1, 2, 3, 4, 5]);
-    expect(() => series.between(4, 2)).toThrow('Lower bound must be less than or equal to upper bound');
+    expect(() => series.between(4, 2)).toThrow(
+      'Lower bound must be less than or equal to upper bound',
+    );
   });
 
   test('throws error when bounds are not provided', () => {
     const series = new Series([1, 2, 3, 4, 5]);
-    expect(() => series.between()).toThrow('Both lower and upper bounds must be provided');
-    expect(() => series.between(1)).toThrow('Both lower and upper bounds must be provided');
+    expect(() => series.between()).toThrow(
+      'Both lower and upper bounds must be provided',
+    );
+    expect(() => series.between(1)).toThrow(
+      'Both lower and upper bounds must be provided',
+    );
   });
 
   test('works with direct function call', () => {

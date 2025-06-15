@@ -15,23 +15,24 @@ export function fillna() {
    * @param {boolean} [options.inplace=false] - Modify the Series in place
    * @returns {Series} - New Series with filled values
    */
-  return function(value, options = {}) {
+  return function (value, options = {}) {
     const { inplace = false } = options;
-    
+
     if (value === undefined) {
       throw new Error('Fill value must be provided');
     }
-    
+
     const values = this.toArray();
     const result = new Array(values.length);
-    
+
     for (let i = 0; i < values.length; i++) {
-      result[i] = values[i] === null || values[i] === undefined ? value : values[i];
+      result[i] =
+        values[i] === null || values[i] === undefined ? value : values[i];
     }
-    
+
     if (inplace) {
       // Replace the values in the current Series
-      // Поскольку метода set нет, создаем новый объект Series и заменяем внутренние свойства
+      // Since there is no set method, create a new Series object and replace its internal properties
       const newSeries = new this.constructor(result, { name: this.name });
       Object.assign(this, newSeries);
       return this;

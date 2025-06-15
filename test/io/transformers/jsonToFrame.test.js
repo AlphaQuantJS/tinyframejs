@@ -73,8 +73,8 @@ describe('jsonToFrame Transformer', () => {
 
     const df = jsonToFrame(data, { useTypedArrays: true });
 
-    // В текущей реализации DataFrame мы не можем напрямую проверить использование TypedArrays
-    // Поэтому просто проверяем, что DataFrame создан корректно
+    // In the current DataFrame implementation, we cannot directly check TypedArrays usage
+    // So we simply check that the DataFrame is created correctly
     expect(df).toBeInstanceOf(DataFrame);
     expect(df.rowCount).toBe(3);
     expect(df.columns).toContain('a');
@@ -94,8 +94,8 @@ describe('jsonToFrame Transformer', () => {
 
     const df = jsonToFrame(data, { useTypedArrays: false });
 
-    // В текущей реализации DataFrame мы не можем напрямую проверить использование TypedArrays
-    // Поэтому просто проверяем, что DataFrame создан корректно
+    // In the current DataFrame implementation, we cannot directly check TypedArrays usage
+    // So we simply check that the DataFrame is created correctly
     expect(df).toBeInstanceOf(DataFrame);
     expect(df.rowCount).toBe(3);
     expect(df.columns).toContain('a');

@@ -45,10 +45,10 @@ export function vectorFromArray(array) {
   }
 }
 
-// Проверка доступности Arrow
+// Check Arrow availability
 export function isArrowAvailable() {
   return !!Arrow && typeof Arrow.vectorFromArray === 'function';
 }
 
-// Экспортируем Arrow для использования в других модулях
+// Export Arrow for use in other modules
 export { Arrow };

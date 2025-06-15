@@ -15,7 +15,7 @@ export function matches() {
    * @param {boolean} [options.flags] - Flags for the RegExp if pattern is a string
    * @returns {Series} - New Series with filtered values
    */
-  return function(pattern, options = {}) {
+  return function (pattern, options = {}) {
     const { flags = '' } = options;
 
     if (pattern === undefined || pattern === null) {
@@ -23,9 +23,8 @@ export function matches() {
     }
 
     // Convert string pattern to RegExp if needed
-    const regex = pattern instanceof RegExp 
-      ? pattern 
-      : new RegExp(pattern, flags);
+    const regex =
+      pattern instanceof RegExp ? pattern : new RegExp(pattern, flags);
 
     return this.filter((value) => {
       if (value === null || value === undefined) {

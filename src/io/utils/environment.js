@@ -41,6 +41,7 @@ export function detectEnvironment() {
 /**
  * Safely requires a module in Node.js environment
  * Provides helpful error message if module is not installed
+ * Works in both CommonJS and ESM environments
  *
  * @param {string} moduleName - Name of the module to require
  * @param {string} [installCommand] - Custom install command (defaults to npm install moduleName)
@@ -54,22 +55,44 @@ export function safeRequire(moduleName, installCommand) {
   }
 
   try {
-    // For compatibility with ESM and CommonJS
-    // Use global require if available
+    // Special handling for built-in Node.js modules in ESM context
+    if (moduleName === 'fs') {
+      // fs - built-in module, always available in Node.js
+      // For ESM, use dynamic import
+      if (typeof require === 'undefined') {
+        // Create a stub for fs synchronous methods, which are often used
+        // This is a temporary solution until full migration to async methods
+        const fsMock = {
+          readFileSync: (path, options) => {
+            throw new Error(
+              'Synchronous fs methods are not available in ESM. Use asynchronous fs.promises methods.',
+            );
+          },
+          promises: {},
+        };
+
+        // Dynamically import fs and populate promises
+        import('fs')
+          .then((fs) => {
+            Object.assign(fsMock.promises, fs.promises);
+            Object.assign(fsMock, fs);
+          })
+          .catch(() => {});
+
+        return fsMock;
+      }
+    }
+
+    // For CommonJS, use require
     if (typeof require !== 'undefined') {
       return require(moduleName);
     }
 
-    // In Node.js we can use the global require
-    if (
-      typeof process !== 'undefined' &&
-      process.versions &&
-      process.versions.node
-    ) {
-      return require(moduleName);
-    }
-
-    // If we get here, we can't load the module
+    // For ESM with external modules, use dynamic import
+    // But this will not work synchronously
+    console.warn(
+      `Module ${moduleName} cannot be loaded synchronously in ESM. Use asynchronous import.`,
+    );
     return null;
   } catch (error) {
     const command = installCommand || `npm install ${moduleName}`;

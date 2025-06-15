@@ -28,8 +28,8 @@ describe('first method', () => {
       { value: 50, category: 'B', mixed: NaN },
     ];
 
-    // Create DataFrame using fromRows for proper column names
-    const df = DataFrame.fromRows(testData);
+    // Create DataFrame using fromRecords for proper column names
+    const df = DataFrame.fromRecords(testData);
 
     // Test the first function directly
     it('should return the first value in a column', () => {
@@ -56,8 +56,8 @@ describe('first method', () => {
     });
 
     it('should return undefined for empty DataFrame', () => {
-      // Create an empty DataFrame using fromRows
-      const emptyDf = DataFrame.fromRows([]);
+      // Create an empty DataFrame using fromRecords
+      const emptyDf = DataFrame.fromRecords([]);
 
       // Create a first function with a mock validator
       const validateColumn = vi.fn();
@@ -99,8 +99,8 @@ describe('first method', () => {
     });
 
     it('should handle empty DataFrame gracefully', () => {
-      // Create an empty DataFrame using fromRows
-      const emptyDf = DataFrame.fromRows([]);
+      // Create an empty DataFrame using fromRecords
+      const emptyDf = DataFrame.fromRecords([]);
 
       // Check that the first method returns undefined for an empty DataFrame
       expect(emptyDf.first('value')).toBeUndefined();

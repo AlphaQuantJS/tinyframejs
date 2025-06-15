@@ -1,6 +1,9 @@
 import { describe, test, expect, beforeAll } from 'vitest';
 import { Series } from '../../../../src/core/dataframe/Series.js';
-import { endsWith, register } from '../../../../src/methods/series/filtering/endsWith.js';
+import {
+  endsWith,
+  register,
+} from '../../../../src/methods/series/filtering/endsWith.js';
 
 describe('Series.endsWith', () => {
   // Register the method before running tests
@@ -8,16 +11,38 @@ describe('Series.endsWith', () => {
     register(Series);
   });
   test('filters string values that end with the specified suffix (case sensitive)', () => {
-    const series = new Series(['apple', 'banana', 'pineapple', 'Orange', 'grape']);
+    const series = new Series([
+      'apple',
+      'banana',
+      'pineapple',
+      'Orange',
+      'grape',
+    ]);
     const filtered = series.endsWith('e');
-    // String.endsWith() возвращает true для 'Orange' с суффиксом 'e'
-    expect(filtered.toArray()).toEqual(['apple', 'pineapple', 'Orange', 'grape']);
+    // String.endsWith() returns true for 'Orange' with suffix 'e'
+    expect(filtered.toArray()).toEqual([
+      'apple',
+      'pineapple',
+      'Orange',
+      'grape',
+    ]);
   });
 
   test('filters string values that end with the specified suffix (case insensitive)', () => {
-    const series = new Series(['apple', 'banana', 'pineapple', 'Orange', 'grape']);
+    const series = new Series([
+      'apple',
+      'banana',
+      'pineapple',
+      'Orange',
+      'grape',
+    ]);
     const filtered = series.endsWith('E', { caseSensitive: false });
-    expect(filtered.toArray()).toEqual(['apple', 'pineapple', 'Orange', 'grape']);
+    expect(filtered.toArray()).toEqual([
+      'apple',
+      'pineapple',
+      'Orange',
+      'grape',
+    ]);
   });
 
   test('handles non-string values by converting them to strings', () => {

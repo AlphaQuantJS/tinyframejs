@@ -1,12 +1,11 @@
 // test/methods/timeseries/dataframe/resample.test.js
 import { describe, test, expect, beforeAll } from 'vitest';
 import { DataFrame } from '../../../../src/core/dataframe/DataFrame.js';
-import resample from '../../../../src/methods/timeseries/dataframe/resample.js';
 import registerDataFrameTimeSeries from '../../../../src/methods/timeseries/dataframe/register.js';
 
 describe('resample', () => {
   beforeAll(() => {
-    // Регистрируем методы временных рядов для DataFrame
+    // Register timeseries methods before tests
     registerDataFrameTimeSeries(DataFrame);
   });
   test('should resample daily data to monthly data', async () => {

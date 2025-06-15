@@ -65,7 +65,7 @@ describe('CSV Reader Tests', () => {
     expect(df.columns).toContain('close');
     expect(df.columns).toContain('volume');
 
-    // Проверка типов данных
+    // Check data types
     const firstRow = df.toArray()[0];
     expect(typeof firstRow.date).toBe('string');
     expect(typeof firstRow.open).toBe('number');

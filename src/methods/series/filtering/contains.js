@@ -15,7 +15,7 @@ export function contains() {
    * @param {boolean} [options.caseSensitive=true] - Whether the search is case sensitive
    * @returns {Series} - New Series with filtered values
    */
-  return function(substring, options = {}) {
+  return function (substring, options = {}) {
     const { caseSensitive = true } = options;
 
     if (substring === undefined || substring === null) {
@@ -28,7 +28,7 @@ export function contains() {
       }
 
       const strValue = String(value);
-      
+
       if (caseSensitive) {
         return strValue.includes(substring);
       } else {

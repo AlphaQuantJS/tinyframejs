@@ -129,7 +129,7 @@ const testData = [
 describe('DataFrame.pivot', () => {
   describe('with standard storage', () => {
     // Create DataFrame with test data
-    const df = DataFrame.fromRows(testData);
+    const df = DataFrame.fromRecords(testData);
 
     test('creates a pivot table with default aggregation function (sum)', () => {
       // Create DataFrame only with data for pivot test
@@ -143,7 +143,7 @@ describe('DataFrame.pivot', () => {
         { product: 'Product B', region: 'East', quarter: 'Q1', sales: 35 },
         { product: 'Product B', region: 'West', quarter: 'Q1', sales: 45 },
       ];
-      const dfPivot = DataFrame.fromRows(testPivotData);
+      const dfPivot = DataFrame.fromRecords(testPivotData);
 
       // Call the pivot method
       const result = dfPivot.pivot('product', 'region', 'sales');
@@ -189,7 +189,7 @@ describe('DataFrame.pivot', () => {
         { product: 'Product B', region: 'South', sales: 25 },
         { product: 'Product B', region: 'South', sales: 35 },
       ];
-      const dfPivot = DataFrame.fromRows(testPivotData);
+      const dfPivot = DataFrame.fromRecords(testPivotData);
 
       // Call the pivot method with mean aggregation function
       const result = dfPivot.pivot('product', 'region', 'sales', mean);
@@ -218,7 +218,7 @@ describe('DataFrame.pivot', () => {
         { product: 'Product B', region: 'South', sales: 35 },
         { product: 'Product B', region: 'South', sales: 45 },
       ];
-      const dfPivot = DataFrame.fromRows(testPivotData);
+      const dfPivot = DataFrame.fromRecords(testPivotData);
 
       // Call the pivot method with count aggregation function
       const result = dfPivot.pivot('product', 'region', 'sales', count);
@@ -247,7 +247,7 @@ describe('DataFrame.pivot', () => {
         { product: 'Product B', region: 'South', sales: 35 },
         { product: 'Product B', region: 'South', sales: 45 },
       ];
-      const dfPivot = DataFrame.fromRows(testPivotData);
+      const dfPivot = DataFrame.fromRecords(testPivotData);
 
       // Call the pivot method with max aggregation function
       const resultMax = dfPivot.pivot('product', 'region', 'sales', max);
@@ -306,7 +306,7 @@ describe('DataFrame.pivot', () => {
           sales: 25,
         },
       ];
-      const dfPivot = DataFrame.fromRows(testPivotData);
+      const dfPivot = DataFrame.fromRecords(testPivotData);
 
       // Call the pivot method with multi-index
       const result = dfPivot.pivot(['product', 'category'], 'region', 'sales');
@@ -347,18 +347,18 @@ describe('DataFrame.pivot', () => {
         { product: 'Product B', region: 'East', sales: 35 },
         { product: 'Product B', region: 'West', sales: 45 },
       ];
-      const dfPivot = DataFrame.fromRows(testPivotData);
+      const dfPivot = DataFrame.fromRecords(testPivotData);
 
       // Call the pivot method
       const result = dfPivot.pivot('product', 'region', 'sales');
 
-      // Проверяем, что все регионы присутствуют в результате
+      // Check that all regions are present in the result
       expect(result.columns).toContain('North');
       expect(result.columns).toContain('South');
       expect(result.columns).toContain('East');
       expect(result.columns).toContain('West');
 
-      // Проверяем значения
+      // Check values
       const pivotData = result.toArray();
       const eastValues = pivotData.map((row) => row.East);
       expect(eastValues).toEqual([30, 35]);
@@ -376,7 +376,7 @@ describe('DataFrame.pivot', () => {
         { product: 'Product B', region: 'South', sales: 25 },
         { product: null, region: 'North', sales: 5 },
       ];
-      const dfPivot = DataFrame.fromRows(testPivotData);
+      const dfPivot = DataFrame.fromRecords(testPivotData);
 
       // Call the pivot method
       const result = dfPivot.pivot('product', 'region', 'sales');
@@ -395,7 +395,7 @@ describe('DataFrame.pivot', () => {
 
     test('throws an error with invalid arguments', () => {
       // Create a test DataFrame
-      // df создан выше с помощью createDataFrameWithStorage
+      // df created above with createDataFrameWithStorage
 
       // Check that the method throws an error if columns don't exist
       expect(() => df.pivot('nonexistent', 'region', 'sales')).toThrow();
@@ -416,7 +416,7 @@ describe('DataFrame.pivot', () => {
         { product: 'Product B', region: 'North', sales: 15 },
         { product: 'Product B', region: 'South', sales: 25 },
       ];
-      const dfPivot = DataFrame.fromRows(testPivotData);
+      const dfPivot = DataFrame.fromRecords(testPivotData);
 
       // Modify the pivot method to support object parameter style
       const originalPivot = DataFrame.prototype.pivot;
@@ -472,7 +472,7 @@ describe('DataFrame.pivot', () => {
         { product: 'Product B', region: 'North', quarter: 'Q2', sales: 35 },
         { product: 'Product B', region: 'South', quarter: 'Q2', sales: 45 },
       ];
-      const dfPivot = DataFrame.fromRows(testPivotData);
+      const dfPivot = DataFrame.fromRecords(testPivotData);
 
       // Call the pivot method with multi-level columns
       const result = dfPivot.pivot('product', ['region', 'quarter'], 'sales');
@@ -555,7 +555,7 @@ describe('DataFrame.pivot', () => {
           sales: 45,
         },
       ];
-      const dfPivot = DataFrame.fromRows(testPivotData);
+      const dfPivot = DataFrame.fromRecords(testPivotData);
 
       // Call the pivot method with multi-level indices and columns
       const result = dfPivot.pivot({

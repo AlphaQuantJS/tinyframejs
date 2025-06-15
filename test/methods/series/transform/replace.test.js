@@ -29,7 +29,12 @@ describe('Series.replace', () => {
   test('replaces values using regex pattern', () => {
     const series = new Series(['apple', 'banana', 'apricot', 'orange']);
     const replaced = series.replace('^ap', 'fruit-', { regex: true });
-    expect(replaced.toArray()).toEqual(['fruit-', 'banana', 'fruit-', 'orange']);
+    expect(replaced.toArray()).toEqual([
+      'fruit-',
+      'banana',
+      'fruit-',
+      'orange',
+    ]);
   });
 
   test('replaces in place when inplace option is true', () => {
@@ -49,12 +54,16 @@ describe('Series.replace', () => {
 
   test('throws error when oldValue is not provided', () => {
     const series = new Series([1, 2, 3]);
-    expect(() => series.replace(undefined, 99)).toThrow('Old value must be provided');
+    expect(() => series.replace(undefined, 99)).toThrow(
+      'Old value must be provided',
+    );
   });
 
   test('throws error when newValue is not provided', () => {
     const series = new Series([1, 2, 3]);
-    expect(() => series.replace(2, undefined)).toThrow('New value must be provided');
+    expect(() => series.replace(2, undefined)).toThrow(
+      'New value must be provided',
+    );
   });
 
   test('works with empty Series', () => {
@@ -70,10 +79,10 @@ describe('Series.replace', () => {
   });
 
   test('works with direct function call', () => {
-    // Регистрируем метод
+    // Register the replace method on Series prototype
     register(Series);
     const series = new Series([1, 2, 3, 2]);
-    // Используем метод напрямую
+    // Use the method directly
     const replaced = series.replace(2, 99);
     expect(replaced.toArray()).toEqual([1, 99, 3, 99]);
   });

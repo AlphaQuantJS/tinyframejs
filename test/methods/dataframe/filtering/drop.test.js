@@ -18,8 +18,8 @@ describe('Drop Method', () => {
   registerDataFrameFiltering(DataFrame);
 
   describe('with standard storage', () => {
-    // Create DataFrame using fromRows
-    const df = DataFrame.fromRows(testData);
+    // Create DataFrame using fromRecords
+    const df = DataFrame.fromRecords(testData);
 
     test('should drop specified columns', () => {
       const result = df.drop(['city', 'salary']);

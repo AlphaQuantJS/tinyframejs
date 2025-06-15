@@ -52,7 +52,7 @@ export function pieChart(dataFrame, options) {
   if (!config.options) config.options = {};
   config.options.title = {
     display: true,
-    text: options.chartOptions?.title || 'Pie Chart'
+    text: options.chartOptions?.title || 'Pie Chart',
   };
 
   return config;

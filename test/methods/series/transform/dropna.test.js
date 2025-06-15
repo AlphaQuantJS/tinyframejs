@@ -58,10 +58,10 @@ describe('Series.dropna', () => {
   });
 
   test('works with direct function call', () => {
-    // Регистрируем метод
+    // Register the dropna method on Series prototype
     register(Series);
     const series = new Series([1, null, 3]);
-    // Используем метод напрямую
+    // Use the method directly
     const result = series.dropna();
     expect(result.toArray()).toEqual([1, 3]);
   });

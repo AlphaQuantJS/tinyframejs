@@ -15,7 +15,7 @@ export function startsWith() {
    * @param {boolean} [options.caseSensitive=true] - Whether the search is case sensitive
    * @returns {Series} - New Series with filtered values
    */
-  return function(prefix, options = {}) {
+  return function (prefix, options = {}) {
     const { caseSensitive = true } = options;
 
     if (prefix === undefined || prefix === null) {
@@ -28,7 +28,7 @@ export function startsWith() {
       }
 
       const strValue = String(value);
-      
+
       if (caseSensitive) {
         return strValue.startsWith(prefix);
       } else {

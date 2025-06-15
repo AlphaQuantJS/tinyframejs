@@ -18,8 +18,8 @@ describe('Filter Method', () => {
   registerDataFrameFiltering(DataFrame);
 
   describe('with standard storage', () => {
-    // Create DataFrame using fromRows
-    const df = DataFrame.fromRows(testData);
+    // Create DataFrame using fromRecords
+    const df = DataFrame.fromRecords(testData);
 
     test('should filter rows based on a condition', () => {
       const result = df.filter((row) => row.age > 25);
@@ -81,7 +81,7 @@ describe('Filter Method', () => {
       ];
 
       // Use Int32Array for age and Float64Array for salary
-      const typedDf = DataFrame.fromRows(typedData, {
+      const typedDf = DataFrame.fromRecords(typedData, {
         columns: {
           age: { type: 'int32' },
           salary: { type: 'float64' },

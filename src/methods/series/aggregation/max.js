@@ -2,12 +2,13 @@
  * Finds the maximum value in a Series.
  *
  * @param {Series} series - Series instance
- * @returns {number} - Maximum value
+ * @returns {number|null} - Maximum value or null for empty series
  */
-export const max = (series) => {
+export function max(series) {
   const values = series.toArray();
 
-  if (values.length === 0) return NaN;
+  // Return null for empty series (not NaN) according to guidelines
+  if (values.length === 0) return null;
 
   let maxValue = Number.NEGATIVE_INFINITY;
   for (let i = 0; i < values.length; i++) {
@@ -20,17 +21,20 @@ export const max = (series) => {
     }
   }
 
-  return maxValue === Number.NEGATIVE_INFINITY ? NaN : maxValue;
-};
+  // Return null if no valid numeric values were found
+  return maxValue === Number.NEGATIVE_INFINITY ? null : maxValue;
+}
 
 /**
  * Registers the max method on Series prototype
  * @param {Class} Series - Series class to extend
  */
-export const register = (Series) => {
-  Series.prototype.max = function() {
-    return max(this);
-  };
-};
+export function register(Series) {
+  if (!Series.prototype.max) {
+    Series.prototype.max = function () {
+      return max(this);
+    };
+  }
+}
 
 export default { max, register };

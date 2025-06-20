@@ -1,16 +1,18 @@
-# 🤝 Contributing to tinyframejs
+# 🤝 Contributing to TinyFrameJS
 
-Thank you for your interest in contributing to **tinyframejs**, the high-performance JavaScript engine for tabular data. We welcome contributions of all kinds — code, docs, benchmarks, ideas.
+Thank you for your interest in contributing to **TinyFrameJS**, the high-performance JavaScript engine for tabular data processing with a modular, functional architecture. We welcome contributions of all kinds — code, docs, benchmarks, ideas.
 
 ---
 
-## 🧰 Repository Overview
+## 🛠 Repository Overview
 
-This repository is a standalone part of the [AlphaQuantJS](https://github.com/AlphaQuantJS) ecosystem and contains:
+This repository is a monorepo part of the [AlphaQuantJS](https://github.com/AlphaQuantJS) ecosystem and contains:
 
-- ✅ The core tabular engine built on TypedArray structures (TinyFrame)
-- ✅ Functional APIs for stats, filtering, reshaping
-- ✅ Chainable `DataFrame` wrapper (inspired by Pandas)
+- ✅ **packages/core**: The core tabular engine with DataFrame, Series, and ColumnVector implementations
+- ✅ **packages/io**: Input/output functionality for CSV, JSON, Excel
+- ✅ **packages/viz**: Visualization methods for charts and plots
+- ✅ **packages/quant**: Technical analysis and quantitative methods
+- ✅ **packages/utils**: Shared utilities and helper functions
 - ✅ Vitest-based unit tests
 - ✅ Benchmarks vs competitors in `/benchmarks`
 
@@ -18,81 +20,109 @@ Project structure is in [`README.md`](./README.md#-package-structure)
 
 ---
 
-## 🧩 Module Structure and Plug-and-Play Aggregators
+## 👌 Modular Structure and Method Registration
 
-> Enables you to add new aggregators in a plug-and-play fashion — simply create a file in `primitives/` and export it in `index.js`.
+> Allows adding new methods in a "plug-and-play" style — just create a file with your method and export it in a barrel file.
 
-### Step-by-Step Guide to Adding a New Aggregator
+### Step-by-Step Guide to Adding a New Method
 
-1. **Create the “primitive” file**  
-   _(Here, `aggregation` is just an example — you may have other module directories, each with their own `primitives/` folder for plug-and-play modules.)_
-   In `methods/aggregation/primitives/`, create `yourNew.js`:
+1. **Create a file with your method**  
+   In the `packages/core/src/methods/dataframe/aggregation/` directory, create a file `yourNew.js`:
 
    ```js
-   // methods/aggregation/primitives/yourNew.js
-
    /**
-    * yourNew — example of a new aggregator
+    * yourNew - example of a new aggregation method
     *
-    * @param {{ validateColumn(frame, column): void }} deps
-    * @returns {(frame: TinyFrame, column: string) => any}
+    * @param {{ validateColumn(frame, column): void }} deps - Dependencies
+    * @returns {(frame: DataFrame, column: string) => any} - Function for working with DataFrame
     */
    export const yourNew =
      ({ validateColumn }) =>
      (frame, column) => {
        validateColumn(frame, column);
-       // …your logic here
+       // Your logic here
        return; /* result */
      };
    ```
 
-2. **Register it in the barrel**  
-   Open `methods/aggregation/primitives/index.js` and add:
+2. **Add the method to the barrel file**  
+   Open `packages/core/src/methods/dataframe/aggregation/pool.js` and add:
 
    ```js
-   // at the top, alongside other exports
-   export { yourNew as _yourNew } from './yourNew.js';
+   // Add along with other exports
+   export { yourNew } from './yourNew.js';
    ```
 
-3. **Inject dependencies**  
-   Ensure your `index.js` wires it up automatically:
+3. **Method Registration**  
+   All methods are automatically registered via `extendDataFrame` in the file `packages/core/src/methods/dataframe/aggregation/index.js`:
 
    ```js
-   import * as rawFns from './index.js'; // _yourNew is now part of rawFns
-   import { validateColumn } from '../../../primitives/validators.js';
+   import { DataFrame } from '../../../core/DataFrame.js';
+   import { extendDataFrame } from '../../../core/extendDataFrame.js';
+   import * as pool from './pool.js';
 
-   const deps = { validateColumn /*, other shared deps */ };
+   // Dependencies
+   import { validateColumn } from '../../../utils/validators.js';
 
-   export const aggregationFunctions = Object.fromEntries(
-     Object.entries(rawFns).map(([key, fn]) => [
-       key.replace(/^_/, ''), // strip the leading “_”
-       fn(deps), // yields a (frame, column) => … function
-     ]),
-   );
+   const deps = { validateColumn };
+
+   // Register methods
+   extendDataFrame(DataFrame.prototype, pool);
+
+   // Export methods for direct use
+   export * from './pool.js';
    ```
 
-4. **Facade remains unchanged**  
-   In `methods/aggregation/groupByAgg.js` you don’t need to touch a thing — `yourNew` is picked up automatically:
+4. **Using the new method**
 
    ```js
-   import { aggregationFunctions } from './primitives/index.js';
-
-   export function groupByAgg(frame, column, aggName) {
-     const fn = aggregationFunctions[aggName];
-     if (!fn) throw new Error(`Unknown aggregator: ${aggName}`);
-     return fn(frame, column);
-   }
+   import { DataFrame } from '@tinyframejs/core';
+   
+   const df = new DataFrame({ x: [1, 2, 3], y: [4, 5, 6] });
+   
+   // The method is automatically available in DataFrame
+   const result = df.yourNew('x');
    ```
 
-5. **Use your new aggregator**
+   Done! Your method works without needing to modify other files or the library core.
 
+### Adding Methods to Namespaces
+
+For specialized methods that belong to a specific domain (like technical analysis, visualization, etc.), use namespaces:
+
+1. **Create a method in the appropriate package**
    ```js
-   import { groupByAgg } from 'methods/aggregation';
-
-   const result = groupByAgg(myFrame, 'someColumn', 'yourNew');
+   // packages/quant/src/methods/ta/sma.js
+   export const sma = 
+     ({ validateColumn }) =>
+     (frame, column, period = 14) => {
+       validateColumn(frame, column);
+       // Implementation
+       return result;
+     };
    ```
 
-   That’s it — `yourNew` works out of the box, with no further edits to the facade or other modules.
+2. **Register with namespace**
+   ```js
+   // packages/quant/src/methods/ta/index.js
+   import { DataFrame } from '@tinyframejs/core';
+   import { extendDataFrame } from '@tinyframejs/core';
+   import * as taMethods from './pool.js';
+   
+   // Register methods in the 'ta' namespace
+   extendDataFrame(DataFrame.prototype, taMethods, { namespace: 'ta' });
+   ```
+
+3. **Usage**
+   ```js
+   import { DataFrame } from '@tinyframejs/core';
+   import '@tinyframejs/quant'; // Registers methods
+   
+   const df = new DataFrame({ close: [100, 101, 102, 101, 99] });
+   
+   // Access through namespace
+   const smaValues = df.ta.sma('close', 3);
+   ```
 
 ---
 
@@ -250,16 +280,17 @@ Please review our [`Coding Guidelines`](./CODING_GUIDELINES.md) for:
 
 ---
 
-## ✅ Pull Request Checklist
+## 📋 Pull Request Checklist
 
 - [ ] Code builds with `pnpm build`
-- [ ] Added or updated relevant tests in `test/`
+- [ ] Added or updated relevant tests in the appropriate package
+- [ ] Methods properly registered with `extendDataFrame`
+- [ ] Namespaces used for domain-specific methods
 - [ ] Follows ESLint/Prettier rules
 - [ ] Descriptive commit message (see below)
 - [ ] Linked to a GitHub Issue (if applicable)
 - [ ] Clear description in PR body of what was changed and why
 - [ ] If change is test-only or doc-only, ensure CI does **not** fail due to lack of coverage
-- [ ] If no tests are added, check that Vitest is configured with `passWithNoTests: true` and Codecov uses `fail_ci_if_error: false` or `handle_no_reports_found: false`
 - [ ] If new code is added, ensure at least minimal test coverage is present (to trigger coverage report upload)
 
 ---
@@ -363,6 +394,9 @@ Common types:
 - Keep pull requests small and focused
 - Add tests for each new piece of logic
 - Document public functions with JSDoc
+- Use dependency injection pattern for all methods
+- Register methods properly with `extendDataFrame`
+- Use namespaces for domain-specific methods
 - Benchmark performance-critical paths
 - Update `examples/` when introducing new APIs
 
@@ -370,7 +404,8 @@ Common types:
 
 ## 🧪 Testing and Coverage
 
-- Run tests via `pnpm test`
+- Run tests via `pnpm test` (all packages) or `pnpm -F @tinyframejs/[package] test` (specific package)
+- Test through the DataFrame API, not internal functions
 - Coverage is uploaded to Codecov
 - Benchmarks are located in `benchmarks/`
 - Guard tests protect against performance/memory regressions

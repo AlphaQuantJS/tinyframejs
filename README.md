@@ -1,26 +1,125 @@
 # TinyFrameJS
 
-**TinyFrameJS** constitutes an advanced, high-performance JavaScript framework tailored for processing large-scale tabular and financial data. Architected atop a bespoke in-memory representation inspired by columnar data paradigms (such as Pandas), TinyFrameJS is rigorously optimized for the JavaScript runtime ecosystem.
+**TinyFrameJS** is an advanced high-performance JavaScript framework for processing large-scale tabular and financial data. The project aims to provide capabilities in the JavaScript environment (Node.js and browser) that were previously available primarily in Python (Pandas) or R, without the need to switch between languages.
 
-It leverages `TypedArray`-based memory management to enable low-latency, high-throughput operations, offering computational efficiency approaching that of systems implemented in native code, but with the accessibility and flexibility of JavaScript.
-
----
-
-## 🚀 Mission Statement
-
-TinyFrameJS endeavors to establish a scalable, memory-efficient, and performant infrastructure for analytical and quantitative workflows in JavaScript. It obviates the need to offload workloads to Python or R by providing a native, fluent API for statistical computation, data transformation, and time-series modeling directly within the JS execution environment (Node.js or browser).
+The library uses optimized data storage based on a columnar model with automatic selection between `TypedArray` and Apache Arrow for maximum performance and flexibility.
 
 ---
 
-## 🔥 Core Differentiators
+## 🚀 Project Purpose and Goals
 
-- Entirely JavaScript-native with zero binary dependencies (no WebAssembly or C++ bindings required)
-- Operates directly on `Float64Array` and `Int32Array` structures to ensure dense memory layout and consistent type uniformity
-- Achieves 10× to 100× performance gains over traditional JS object/array workflows
-- DataFrame prototype is auto-extended at runtime; no manual augmentation or external registration required
-- Modular design enables method-level tree-shaking for highly customized builds
+TinyFrameJS aims to solve the problem of performance and ease of working with data in JavaScript. Traditional approaches (using regular arrays of objects in JS) are significantly slower than their Python/Pandas counterparts. The goal of the project is to **provide the JavaScript ecosystem with tools comparable in capabilities and speed to Pandas**.
+
+---
+
+## 🔥 Key Features
+
+- Pure JavaScript without external binary dependencies
+- Two-layer data storage architecture (TypedArray and Apache Arrow)
+- Automatic selection of the optimal data storage engine
+- Performance 10-100 times higher compared to traditional JS approaches
+- Modular architecture with namespace support to avoid name conflicts
+- Functional programming style with pure functions attached to prototypes
+- Methods are added to DataFrame only when importing the corresponding packages
+- Tree-shaking support for bundle size optimization
 
 > Released under the MIT license, ensuring unrestricted academic and commercial application.
+
+---
+
+## 🔧 Core Architecture and Modular System
+
+### ✅ Two-Layer DataFrame Architecture
+
+TinyFrameJS implements a clean two-layer architecture for the DataFrame class:
+
+- **DataFrame** - public API for working with data
+- **Series** - data columns, wrapper over ColumnVector
+- **ColumnVector** - abstraction for data storage, can be:
+  - **TypedArrayVector** - fast storage for numeric data
+  - **ArrowVector** - optimized storage with support for null values, strings, and complex types
+
+The engine selection is done automatically through `VectorFactory` based on the data type and operation context.
+
+```javascript
+// Example lifecycle
+
+// 1. Create DataFrame
+const df = new DataFrame({ x: [1, 2, 3], y: ['a', 'b', 'c'] });
+
+// 2. DataFrame calls VectorFactory for each column
+// 3. VectorFactory decides whether to use Arrow or TypedArray
+// 4. Returns the corresponding ColumnVector
+// 5. Each column becomes a Series with the chosen ColumnVector
+// 6. DataFrame methods work uniformly regardless of the storage type
+```
+
+### 📦 Modular Method Registration System
+
+TinyFrameJS uses a modular method registration system, where each method:
+
+1. Is defined in a separate file as a pure function
+2. Is exported through a barrel file (pool.js)
+3. Is registered in the DataFrame prototype through the `extendDataFrame` utility
+
+```javascript
+// Import core classes
+import { DataFrame } from '@tinyframejs/core';
+
+// Import additional packages (automatically register methods)
+import '@tinyframejs/viz';
+import '@tinyframejs/quant';
+
+// Create DataFrame
+const df = new DataFrame(data);
+
+// Use aggregation methods (from core)
+console.log(df.sum('price'));
+
+// Use visualization methods (from viz)
+df.plot('price');
+
+// Use technical analysis methods (from quant)
+const sma = df.ta.sma('price', 14);
+```
+
+### 🧩 Extending with Custom Methods
+
+You can easily add your own methods using the `extendDataFrame` utility:
+
+```javascript
+import { DataFrame, extendDataFrame } from '@tinyframejs/core';
+
+// Define methods as pure functions
+const customMethods = {
+  logReturn(df, column = 'close') {
+    return df.col(column).map((value, i, series) => {
+      if (i === 0) return 0;
+      return Math.log(value / series.get(i - 1));
+    });
+  },
+  
+  volatility(df, column = 'close', window = 5) {
+    const returns = df.logReturn(column);
+    return returns.std({ window });
+  }
+};
+
+// Register methods in DataFrame prototype
+extendDataFrame(DataFrame.prototype, customMethods, { namespace: 'custom' });
+
+// Use custom methods
+const returns = df.custom.logReturn('price');
+const volatility = df.custom.volatility('price', 5);
+```
+
+### 🌟 Benefits of such architecture
+
+1. **Pure logic separation** - the calculation part of the method is separated from binding to the DataFrame class
+2. **Tree-shaking** - unused methods do not enter the final bundle
+3. **Namespaces** - methods from different packages do not conflict with each other
+4. **Functional style** - methods are implemented as pure functions without side effects
+5. **Ease of extension** - adding new methods does not require changing the library core
 
 ---
 
@@ -39,25 +138,25 @@ TinyFrameJS endeavors to establish a scalable, memory-efficient, and performant 
 
 ## 📦 Project Structure Overview
 
+TinyFrameJS uses a monorepo structure with module separation:
+
 ```bash
-src/
-├── core/                # Foundational logic: validators, type guards, runtime enforcement
-├── io/                  # Input/output abstraction layer: CSV, XLSX, JSON, SQL, APIs
-├── methods/             # Modular operations: aggregation, filtering, sorting, transforms, rolling
-│   ├── aggregation/
-│   ├── filtering/
-│   ├── sorting/
-│   ├── transform/
-│   ├── rolling/
-│   ├── raw.js           # Unified export of method definitions
-│   ├── inject.js        # Dependency injection wrapper for stateful functions
-│   └── autoExtend.js    # Runtime auto-extension of DataFrame.prototype
-├── frame/               # TinyFrame core representation + DataFrame chainable API class
-├── display/             # Rendering modules for console and web visualization
-├── utils/               # Low-level array, math, and hashing utilities
-├── loader.js            # Global pre-initialization logic (invokes auto-extension)
-├── types.js             # Global TS type definitions
-└── index.js             # Public API surface of the library
+packages/
+├─ core/                # Library core: DataFrame, Series, vectors, and basic methods
+│   ├─ src/
+│   │   ├─ core/          # Main classes: DataFrame, Series, VectorFactory
+│   │   ├─ vectors/       # Vector implementations: TypedArray, Arrow, Simple
+│   │   ├─ methods/       # DataFrame methods: aggregation, filtering, transformation
+│   │   └─ utils/        # Utilities: validators, math functions
+│   ├─ tests/         # Tests for the main module
+│   └─ package.json   # Configuration for the main module
+├─ io/                 # Module for working with input/output: CSV, JSON, SQL, API
+├─ quant/              # Module for financial and quantum calculations
+├─ viz/                # Module for visualization and data display
+└─ utils/              # Common utilities and helper functions
+
+tests/               # Integration tests and performance tests
+benсhmarks/          # Scripts for comparing performance
 ```
 
 ---
@@ -66,189 +165,239 @@ src/
 
 ### Data Flow Pipeline
 
-TinyFrameJS follows a clear data flow from raw inputs to the fluent API:
+Methods in TinyFrameJS are categorized as follows:
 
-```mermaid
-graph TD
-    input[Raw Data: CSV, JSON, API] --> reader[reader.js]
-    reader --> createFrame[createFrame.js]
-    createFrame --> tf[TinyFrame Structure]
-    tf --> df[DataFrame Wrapper]
-    df --> auto[Auto-Extended Methods]
-    auto --> user["User API: df.sort().dropNaN().head().count()"]
-```
+1. **Transform methods** (e.g., `sort()`, `filter()`, `select()`)
 
-### Auto-Extension Mechanism
-
-One of TinyFrameJS's key innovations is its **automatic method extension**:
-
-1. All methods are defined as pure, curried functions with dependency injection
-2. The `inject.js` module centralizes dependencies like validators
-3. The `autoExtend.js` module automatically attaches all methods to `DataFrame.prototype`
-4. This happens once at runtime initialization
-
-This approach provides several benefits:
-
-- **Zero boilerplate**: No manual registration of methods
-- **Tree-shakable**: Unused methods can be eliminated by bundlers
-- **Fluent API**: Methods can be chained naturally
-- **Clean separation**: Core logic vs. API surface
-
-### Method Types
-
-TinyFrameJS methods fall into two categories:
-
-1. **Transformation methods** (e.g., `sort()`, `dropNaN()`, `head()`)
-
-   - Return a new DataFrame instance
+   - Return a new DataFrame
    - Can be chained with other methods
 
 2. **Aggregation methods** (e.g., `count()`, `mean()`, `sum()`)
+
    - Return a scalar value or array
    - Typically terminate a method chain
 
-Example of combined usage:
+3. **Methods in namespaces** (e.g., `df.ta.sma()`, `df.viz.plot()`)
 
-```js
-// Chain transformations and end with aggregation
-const result = df
-  .sort('price') // transformation → returns new DataFrame
-  .dropNaN('volume') // transformation → returns new DataFrame
-  .head(10) // transformation → returns new DataFrame
-  .mean('price'); // aggregation → returns number
+   - Grouped by functional modules
+   - Avoid name conflicts between different packages
+
+### DataFrame Creation
+
+Create a DataFrame using the constructor or static method:
+
+```javascript
+// From column-oriented data (preferred way)
+const df = new DataFrame({
+  price: [10.5, 11.2, 9.8, 12.3],
+  quantity: [100, 50, 75, 200],
+});
+
+// From row-oriented data
+const df = DataFrame.fromRecords([
+  { price: 10.5, quantity: 100 },
+  { price: 11.2, quantity: 50 },
+  // ...
+]);
+```
+
+### Example of method usage
+
+```javascript
+// Chain of transform and aggregation methods
+const avgPrice = df
+  .filter(row => row.quantity > 0)
+  .sort('price')
+  .select(['price', 'quantity'])
+  .mean('price');
+
+// Use methods from namespaces
+const sma20 = df.ta.sma('price', 20);
+const histogram = df.viz.histogram('price', { bins: 10 });
 ```
 
 ---
 
-## 🧠 API Design Paradigm
+## 🧠 Extending DataFrame with Custom Methods
 
-### Instantiation
+You can easily extend DataFrame with your own methods:
 
-```ts
-import { DataFrame } from 'tinyframejs';
+```js
+import { DataFrame } from '@tinyframejs/core';
+import { extendDataFrame } from '@tinyframejs/core/utils';
 
-const df = new DataFrame({
-  date: ['2023-01-01', '2023-01-02'],
-  price: [100, 105],
-  volume: [1000, 1500],
+// Creating a method
+const myCustomMethod = (frame, column, factor = 1) => {
+  // Validation and implementation...
+  return result;
+};
+
+// Register at the root
+extendDataFrame(DataFrame.prototype, { myCustomMethod });
+
+// Or in a namespace
+extendDataFrame(DataFrame.prototype, { myNamespacedMethod }, { namespace: 'custom' });
+
+// Usage
+const df = new DataFrame({ /* ... */ });
+const result1 = df.myCustomMethod('price', 2);
+const result2 = df.custom.myNamespacedMethod('price');
+```
+
+**Main methods include:**
+
+- **Base transformations**: `filter`, `select`, `sort`, `head`, `tail`
+- **Aggregations**: `count`, `mean`, `sum`, `min`, `max`, `std`, `var`
+- **Working with missing values**: `dropNaN`, `fillNaN`, `isNaN`
+
+**Module methods in namespaces:**
+
+- **Technical analysis (ta)**: `sma`, `ema`, `rsi`, `macd`, `bollinger`
+- **Visualization (viz)**: `plot`, `histogram`, `boxplot`, `heatmap`
+- **Statistics (stats)**: `correlation`, `regression`, `distribution`
+
+All methods are registered through the `extendDataFrame` system and are available in the corresponding namespaces.
+
+### Grouping and aggregation
+
+```js
+// Grouping by one column
+const grouped = df.groupBy('sector').aggregate({
+  price: 'mean',
+  volume: 'sum'
 });
-```
 
-### Declarative Transformation Pipeline
-
-```ts
-const top10 = df.sort('price').dropNaN('price').head(10).count('price');
-```
-
-**Core methods include:**
-
-- Row-wise transformations: `dropNaN`, `fillNaN`, `head`, `sort`, `diff`, `cumsum`
-- Aggregations: `count`, `mean`, `sum`, `min`, `max`
-- Rolling statistics: `rollingMean`, `rollingStd`, etc.
-
-All methods are automatically attached via runtime bootstrap — no explicit extension required.
-
-### Grouped Aggregation
-
-```ts
-const grouped = df.groupBy(['sector']).aggregate({
+// Grouping by multiple columns
+const multiGrouped = df.groupBy(['sector', 'region']).aggregate({
   price: 'mean',
   volume: 'sum',
+  count: 'count'
 });
 ```
 
-### Reshape Operations
+### Data reshaping operations
 
-```ts
-df.pivot('date', 'symbol', 'price');
-df.melt(['date'], ['price', 'volume']);
+```js
+// Long to wide
+const pivoted = df.pivot({
+  index: 'date',     // Column for rows
+  columns: 'symbol', // Column for generating new columns
+  values: 'price'    // Column for values
+});
+
+// Wide to long
+const melted = df.melt({
+  idVars: ['date'],           // Columns to keep
+  valueVars: ['price', 'volume'] // Columns to transform
+});
 ```
 
-Additional idioms and usage scenarios available in [`examples/`](./examples).
+Additional examples of usage are available in [`examples/`](./examples).
 
 ---
 
-## 🚀 Future Enhancements
+## 🚀 Future Improvements
 
-TinyFrameJS roadmap includes several performance-focused enhancements:
+The roadmap for TinyFrameJS includes the following performance improvements:
 
-### StreamingFrame
+### Vector optimization
 
-For processing massive datasets that don't fit in memory:
+Further optimization of working with different types of vectors:
 
-- Chunk-based processing of large files
-- Streaming API for continuous data ingestion
-- Memory-efficient operations on datasets with 10M+ rows
+- Automatic conversion between vector types
+- Operation optimization for each vector type
+- Expansion of Arrow support for complex data types
 
-### LazyPipeline
+### Lazy calculations
 
-For optimized execution of complex transformations:
+Optimization of complex transformations execution:
 
-- Deferred execution until results are needed
-- Automatic operation fusion and optimization
-- Reduced intermediate allocations
+- Lazy execution until results are requested
+- Automatic joining and optimization of operations
+- Reduction of intermediate memory allocations
 
-### Memory Optimization
+### Stream processing
 
-- Batch mutations to reduce allocations
-- Improved encapsulation of internal structures
-- Optimized cloning strategies for transformations
+For processing large datasets that do not fit into memory:
+
+- Chunk processing of large files
+- Stream API for continuous data input
+- Memory-efficient operations with datasets of more than 10 million rows
 
 ---
 
-## 🛠 Development Workflow
+## 🔧 Development Process
 
 ```bash
-npm run lint        # Lint codebase with ESLint
-npm run build       # Compile into dist/
-npm run test        # Execute unit tests (Vitest)
-npm run benchmark   # Launch performance suite
+# Run from the root of the project
+npm run lint        # Code check with ESLint
+npm run build       # Build all packages
+npm run test        # Run tests (Vitest)
+npm run benchmark   # Run performance tests
+
+# Work with individual packages
+cd packages/core
+npm run build       # Build the main package
+npm run test        # Run tests for the main package
 ```
 
-CI/CD is automated via GitHub Actions + Changesets. See [`ci.yml`](.github/workflows/ci.yml).
+CI/CD is automated through GitHub Actions + Changesets. See [`ci.yml`](.github/workflows/ci.yml).
 
 ---
 
-## 📊 Визуализация данных
+## 📈 Data visualization
 
-TinyFrameJS предоставляет мощный модуль визуализации для создания интерактивных графиков и диаграмм:
+TinyFrameJS provides a powerful visualization module through the `@tinyframejs/viz` package:
 
-### Поддерживаемые типы графиков
+### Supported chart types
 
-- **Базовые**: линейный, столбчатый, точечный, круговой
-- **Расширенные**: с областями, радарный, полярный, свечной (для финансовых данных)
-- **Специализированные**: гистограмма, регрессия, пузырьковый, временные ряды
+- **Basic**: line, bar, point, pie
+- **Advanced**: with areas, radar, polar, candlestick (for financial data)
+- **Specialized**: histogram, regression, bubble, time series
 
-### Автоматическое определение типа графика
-
-```js
-// Автоматически определяет наиболее подходящий тип графика
-const chart = await df.plot();
-```
-
-### Экспорт графиков
+### Usage in namespace
 
 ```js
-// Экспорт в различные форматы: PNG, JPEG, PDF, SVG
-await df.exportChart('chart.png', { chartType: 'line' });
-await df.exportChart('report.pdf', { chartType: 'pie' });
+import { DataFrame } from '@tinyframejs/core';
+import '@tinyframejs/viz'; // Registers methods in viz namespace
+
+const df = new DataFrame({ /* ... */ });
+
+// Usage in viz namespace
+const lineChart = df.viz.plot('price', { type: 'line' });
+const histogram = df.viz.histogram('price', { bins: 10 });
+const heatmap = df.viz.heatmap(['x', 'y', 'value']);
 ```
 
-Подробнее о возможностях визуализации в [документации](/docs/visualization-export.md).
+### Exporting charts
 
-## 🛣 Roadmap
+```js
+// Export to various formats: PNG, JPEG, PDF, SVG
+await df.viz.export('chart.png', { type: 'line' });
+await df.viz.export('report.pdf', { type: 'pie' });
+```
 
-- [x] Fully declarative DataFrame interface
-- [x] TypedArray-powered core computation
-- [x] Auto-attached methods via runtime extension
-- [x] Competitive performance with compiled backends
-- [x] Advanced visualization with automatic chart type detection
-- [x] Chart export functionality (PNG, JPEG, PDF, SVG)
-- [ ] Expand statistical/transform methods and rolling ops
-- [ ] StreamingFrame: chunk-wise ingestion for massive datasets
-- [ ] Lazy evaluation framework: `.pipe()` + deferred execution
-- [ ] WebAssembly integration for CPU-bound operations
-- [ ] Documentation with real-time interactive notebooks
+More details about visualization capabilities in the `@tinyframejs/viz` package documentation.
+
+## 🚛 Roadmap
+
+### Implemented
+
+- [x] Two-layer architecture DataFrame → Series → ColumnVector
+- [x] Optimized vectors for different data types (TypedArray, Arrow, Simple)
+- [x] Module system for method registration through extendDataFrame
+- [x] Namespaces for methods from different packages
+- [x] Monorepo structure with independent packages
+- [x] Performance at the level of compiled libraries
+
+### In development
+
+- [ ] Extension of Arrow support for complex data types
+- [ ] Lazy calculations and deferred operation execution
+- [ ] Stream processing for large datasets
+- [ ] Integration with WebAssembly for resource-intensive operations
+- [ ] Expansion of library of statistical and financial methods
+- [ ] Interactive documentation with examples and integration with Jupyter
 
 ---
 

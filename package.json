@@ -3,7 +3,13 @@
   "version": "1.0.4",
   "description": "Lightweight, high-performance tabular data engine for JavaScript",
   "type": "module",
-  "main": "./src/index.js",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "imports": {
+    "#/*": "./packages/*"
+  },
   "files": [
     "src",
     "LICENSE",

@@ -16,7 +16,7 @@ describe('DataFrame', () => {
   // Register display methods before running tests using the new extendDataFrame utility
   beforeAll(() => {
     extendDataFrame(DataFrame.prototype, {
-      display: display(),
+      display,
       // Add toHTML method for testing
       toHTML: (df) => {
         // Create table header

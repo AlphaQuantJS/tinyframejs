@@ -1,7 +1,7 @@
 /**
  * Unit-tests for DataFrame groupBy/group methods
  *
- * ▸ Библиотека ядра:  @tinyframejs/core
+ * ▸ Core library:  @tinyframejs/core
  *
  * ─────────────────────────────────────────────────────────
  */
@@ -22,6 +22,29 @@ const sampleData = {
 let df;
 beforeAll(() => {
   df = new DataFrame(sampleData);
+
+  // Check Series methods
+  const valueSeries = df.col('value');
+  console.log('Value Series:', valueSeries);
+  console.log('Value Series prototype:', Object.getPrototypeOf(valueSeries));
+  console.log(
+    'Value Series methods:',
+    Object.getOwnPropertyNames(Object.getPrototypeOf(valueSeries)),
+  );
+
+  // Check Series aggregation methods
+  if (typeof valueSeries.sum === 'function') {
+    console.log('Series.sum() =', valueSeries.sum());
+  }
+  if (typeof valueSeries.mean === 'function') {
+    console.log('Series.mean() =', valueSeries.mean());
+  }
+  if (typeof valueSeries.min === 'function') {
+    console.log('Series.min() =', valueSeries.min());
+  }
+  if (typeof valueSeries.max === 'function') {
+    console.log('Series.max() =', valueSeries.max());
+  }
 });
 
 // ---------------------------------------------
@@ -46,7 +69,12 @@ describe('DataFrame Group API', () => {
     });
 
     test('performs aggregation with sum method', () => {
+      console.log('Original DataFrame:', df);
+      console.log('Original data:', df.toArray());
+
       const result = df.group('category').sum('value');
+      console.log('Result after grouping and sum:', result);
+      console.log('Result data:', result.toArray());
 
       expect(result).toBeInstanceOf(DataFrame);
       expect(result.columns).toContain('category');
@@ -54,9 +82,11 @@ describe('DataFrame Group API', () => {
 
       // Convert to array for easier testing
       const rows = result.toArray();
+      console.log('Rows for testing:', rows);
 
       // Check aggregation results
       const groupA = rows.find((r) => r.category === 'A');
+      console.log('Group A:', groupA);
       expect(groupA.value).toBe(25); // 10 + 15
 
       const groupB = rows.find((r) => r.category === 'B');
@@ -189,6 +219,104 @@ describe('DataFrame Group API', () => {
   /**
    * Tests for the helper methods (groupSum, groupMean, etc.)
    */
+  describe('Series Methods Debug', () => {
+    test('Series methods work correctly', () => {
+      // Check Series methods and their functionality
+      const valueSeries = df.col('value');
+      console.log('Value Series:', valueSeries);
+      console.log(
+        'Value Series prototype:',
+        Object.getPrototypeOf(valueSeries),
+      );
+      console.log(
+        'Value Series methods:',
+        Object.getOwnPropertyNames(Object.getPrototypeOf(valueSeries)),
+      );
+
+      // Check Series data
+      console.log(
+        'Series.toArray():',
+        valueSeries.toArray ? valueSeries.toArray() : 'not available',
+      );
+      console.log(
+        'Series.values:',
+        valueSeries.values ? valueSeries.values : 'not available',
+      );
+      console.log(
+        'Series.vector:',
+        valueSeries.vector ? 'available' : 'not available',
+      );
+      if (valueSeries.vector) {
+        console.log(
+          'Series.vector.__data:',
+          valueSeries.vector.__data
+            ? valueSeries.vector.__data
+            : 'not available',
+        );
+      }
+
+      // Check aggregation methods
+      if (typeof valueSeries.sum === 'function') {
+        const sumResult = valueSeries.sum();
+        console.log('Series.sum() =', sumResult);
+        expect(sumResult).toBe(100); // 10 + 20 + 15 + 25 + 30
+      }
+
+      if (typeof valueSeries.mean === 'function') {
+        const meanResult = valueSeries.mean();
+        console.log('Series.mean() =', meanResult);
+        expect(meanResult).toBe(20); // (10 + 20 + 15 + 25 + 30) / 5
+      }
+
+      if (typeof valueSeries.min === 'function') {
+        const minResult = valueSeries.min();
+        console.log('Series.min() =', minResult);
+        expect(minResult).toBe(10);
+      }
+
+      if (typeof valueSeries.max === 'function') {
+        const maxResult = valueSeries.max();
+        console.log('Series.max() =', maxResult);
+        expect(maxResult).toBe(30);
+      }
+
+      // Check aggregation methods in GroupByCore
+      // Use grouping and aggregation in functional style
+
+      // Check aggregation through GroupByCore
+      const result = df.groupBy('category').agg({ value: 'sum' });
+
+      console.log('Group aggregation result:', result);
+
+      // Check aggregation results
+      const resultArray = result.toArray();
+      console.log('Result array:', resultArray);
+
+      // Log each row of the result in detail
+      resultArray.forEach((row, i) => {
+        console.log(`Row ${i}:`, row);
+        console.log(`Row ${i} keys:`, Object.keys(row));
+        console.log(`Row ${i} values:`, Object.values(row));
+      });
+
+      // Check that results contain correct sums for each group
+      const categoryA = resultArray.find((row) => row.category === 'A');
+      const categoryB = resultArray.find((row) => row.category === 'B');
+
+      // Check sum for category A
+      if (categoryA) {
+        console.log('Category A sum:', categoryA.value_sum);
+        expect(categoryA.value_sum).toBe(25); // 10 + 15
+      }
+
+      // Check sum for category B
+      if (categoryB) {
+        console.log('Category B sum:', categoryB.value_sum);
+        expect(categoryB.value_sum).toBe(45); // 20 + 25
+      }
+    });
+  });
+
   describe('DataFrame Helper Methods', () => {
     test('performs aggregation with groupSum', () => {
       const result = df.groupSum('category', 'value');

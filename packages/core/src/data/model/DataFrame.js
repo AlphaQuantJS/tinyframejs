@@ -11,7 +11,7 @@ import { validateColumn } from '../utils/index.js';
 import { sum as sumAggregation } from '../../methods/dataframe/aggregation/sum.js';
 
 /**
- * DataFrame class - основной класс для работы с табличными данными
+ * DataFrame class - the main class for working with tabular data
  */
 export class DataFrame {
   /**
@@ -99,7 +99,8 @@ export class DataFrame {
   /**
    * low-level vector getter
    * @param {string} n - Column name
-   * @returns {import('../storage/ColumnVector.js').ColumnVector|undefined} - Column vector or undefined if not found
+   * @returns {import('../storage/ColumnVector.js').ColumnVector|undefined} - Column vector or
+   * undefined if not found
    */
   _getVector(n) {
     return this._columns[n]?._vector;

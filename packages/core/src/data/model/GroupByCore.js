@@ -1,7 +1,6 @@
 /**
- * @experimental
- *
  * GroupByCore class for advanced DataFrame aggregation operations.
+ * Note: This API is experimental and may change in future versions.
  *
  * NOTE: For most use cases, consider using the simpler API:
  * - df.group(by) - returns a GroupByCore instance with methods like .agg(), .apply(), .sum(), etc.
@@ -30,23 +29,12 @@
  * @module data/model/GroupByCore
  */
 import { DataFrame } from './DataFrame.js';
-import { Series } from './Series.js';
-import { sum as seriesSum } from '../../methods/series/aggregation/sum.js';
-import { mean as seriesMean } from '../../methods/series/aggregation/mean.js';
-import { min as seriesMin } from '../../methods/series/aggregation/min.js';
-import { max as seriesMax } from '../../methods/series/aggregation/max.js';
-
-/**
- * Helper - safe Series length calculation
- * @param s
- */
-const seriesLen = (s) =>
-  typeof s.length === 'number' ? s.length : (s.vector?.length ?? s.size ?? 0);
 
 /**
  * Helper - generate unique output column name
- * @param raw
- * @param bag
+ * @param {string} raw - Base column name
+ * @param {Object} bag - Object containing existing column names
+ * @returns {string} - Unique column name that doesn't exist in the bag
  */
 const safeName = (raw, bag) => {
   let n = raw,
@@ -89,7 +77,8 @@ const normalizeAggSpec = (col, spec, aggFns, out) => {
  * GroupByCore class for DataFrame aggregation operations
  *
  * This is the core implementation of grouping functionality.
- * For most use cases, use the DataFrame.group() method instead of instantiating this class directly.
+ * For most use cases, use the DataFrame.group() method instead of instantiating
+ * this class directly.
  */
 export class GroupByCore {
   /**
@@ -128,18 +117,203 @@ export class GroupByCore {
   agg(aggregations) {
     // ---- 1. normalize aggregation spec -----------------------------
     const aggFns = {
-      sum: seriesSum,
-      mean: (s) =>
-        s.mean
-          ? s.mean()
-          : s.toArray().reduce((a, b) => a + b, 0) / seriesLen(s),
-      min: seriesMin,
-      max: seriesMax,
-      count: seriesLen,
+      sum: (s) => {
+        // Если метод sum доступен в Series, используем его
+        if (typeof s.sum === 'function') {
+          return s.sum();
+        }
+
+        // Otherwise use direct access to data
+        if (s.vector && s.vector.__data) {
+          const data = s.vector.__data;
+          let sum = 0;
+          for (let i = 0; i < data.length; i++) {
+            if (!isNaN(data[i])) {
+              sum += data[i];
+            }
+          }
+          return sum;
+        }
+
+        // Get values through toArray or values
+        let values = [];
+        if (typeof s.toArray === 'function') {
+          values = s.toArray();
+        } else if (s.values) {
+          values = s.values;
+        } else if (s.vector) {
+          try {
+            values = Array.from(s.vector);
+          } catch (e) {
+            values = [];
+          }
+        }
+
+        // Calculate sum
+        let sum = 0;
+        for (let i = 0; i < values.length; i++) {
+          const val = Number(values[i]);
+          if (!isNaN(val)) {
+            sum += val;
+          }
+        }
+        return sum;
+      },
+      mean: (s) => {
+        // If the mean method is available in Series, use it
+        if (typeof s.mean === 'function') {
+          return s.mean();
+        }
+
+        // Otherwise use direct access to data
+        if (s.vector && s.vector.__data) {
+          const data = s.vector.__data;
+          let sum = 0;
+          let count = 0;
+          for (let i = 0; i < data.length; i++) {
+            if (!isNaN(data[i])) {
+              sum += data[i];
+              count++;
+            }
+          }
+          return count > 0 ? sum / count : 0;
+        }
+
+        // Get values through toArray or values
+        let values = [];
+        if (typeof s.toArray === 'function') {
+          values = s.toArray();
+        } else if (s.values) {
+          values = s.values;
+        } else if (s.vector) {
+          try {
+            values = Array.from(s.vector);
+          } catch (e) {
+            values = [];
+          }
+        }
+
+        // Calculate mean
+        let sum = 0;
+        let count = 0;
+        for (let i = 0; i < values.length; i++) {
+          const val = Number(values[i]);
+          if (!isNaN(val)) {
+            sum += val;
+            count++;
+          }
+        }
+        return count > 0 ? sum / count : 0;
+      },
+      min: (s) => {
+        // If the min method is available in Series, use it
+        if (typeof s.min === 'function') {
+          return s.min();
+        }
+
+        // Otherwise use direct access to data
+        if (s.vector && s.vector.__data) {
+          const data = s.vector.__data;
+          let min = Infinity;
+          for (let i = 0; i < data.length; i++) {
+            if (!isNaN(data[i]) && data[i] < min) {
+              min = data[i];
+            }
+          }
+          return min === Infinity ? null : min;
+        }
+
+        // Get values through toArray or values
+        let values = [];
+        if (typeof s.toArray === 'function') {
+          values = s.toArray();
+        } else if (s.values) {
+          values = s.values;
+        } else if (s.vector) {
+          try {
+            values = Array.from(s.vector);
+          } catch (e) {
+            values = [];
+          }
+        }
+
+        // Find minimum
+        let min = Infinity;
+        for (let i = 0; i < values.length; i++) {
+          const val = Number(values[i]);
+          if (!isNaN(val) && val < min) {
+            min = val;
+          }
+        }
+        return min === Infinity ? null : min;
+      },
+      max: (s) => {
+        // If the max method is available in Series, use it
+        if (typeof s.max === 'function') {
+          return s.max();
+        }
+
+        // Otherwise use direct access to data
+        if (s.vector && s.vector.__data) {
+          const data = s.vector.__data;
+          let max = -Infinity;
+          for (let i = 0; i < data.length; i++) {
+            if (!isNaN(data[i]) && data[i] > max) {
+              max = data[i];
+            }
+          }
+          return max === -Infinity ? null : max;
+        }
+
+        // Get values through toArray or values
+        let values = [];
+        if (typeof s.toArray === 'function') {
+          values = s.toArray();
+        } else if (s.values) {
+          values = s.values;
+        } else if (s.vector) {
+          try {
+            values = Array.from(s.vector);
+          } catch (e) {
+            values = [];
+          }
+        }
+
+        // Find maximum
+        let max = -Infinity;
+        for (let i = 0; i < values.length; i++) {
+          const val = Number(values[i]);
+          if (!isNaN(val) && val > max) {
+            max = val;
+          }
+        }
+        return max === -Infinity ? null : max;
+      },
+      count: (s) => {
+        // If the count method is available in Series, use it
+        if (typeof s.count === 'function') {
+          return s.count();
+        }
+
+        // Otherwise use direct access to data
+        if (s.vector && s.vector.__data) {
+          return s.vector.__data.length;
+        }
+
+        // Get values through toArray or values
+        if (typeof s.toArray === 'function') {
+          return s.toArray().length;
+        }
+        if (s.values) {
+          return s.values.length;
+        }
+        return 0;
+      },
     };
     const spec = {};
-    for (const col in aggregations)
+    for (const col in aggregations) {
       normalizeAggSpec(col, aggregations[col], aggFns, spec);
+    }
 
     // ---- 2. prepare output object ---------------------------------
     const out = Object.fromEntries(this.by.map((c) => [c, []]));
@@ -157,8 +331,10 @@ export class GroupByCore {
       // 3.3. apply aggregations
       for (const col in spec) {
         const series = subDf.col(col);
-        for (const [oName, fn] of Object.entries(spec[col]))
-          out[oName].push(fn(series));
+        for (const [oName, fn] of Object.entries(spec[col])) {
+          const result = fn(series);
+          out[oName].push(result);
+        }
       }
     }
     return new DataFrame(out);
@@ -282,7 +458,12 @@ export class GroupByCore {
    */
   sum(column) {
     const agg = {};
-    agg[column] = (series) => seriesSum(series);
+    agg[column] = (series) => {
+      if (typeof series.sum === 'function') return series.sum();
+      const values =
+        series.values || (series.vector ? Array.from(series.vector) : []);
+      return values.reduce((a, b) => a + b, 0);
+    };
     return this.agg(agg);
   }
 
@@ -293,7 +474,35 @@ export class GroupByCore {
    */
   mean(column) {
     const agg = {};
-    agg[column] = (series) => seriesMean(series);
+    agg[column] = (series) => {
+      if (typeof series.mean === 'function') return series.mean();
+      const values =
+        series.values || (series.vector ? Array.from(series.vector) : []);
+      const count = values.length;
+      return count > 0 ? values.reduce((a, b) => a + b, 0) / count : 0;
+    };
+    return this.agg(agg);
+  }
+
+  /**
+   * Returns the minimum value in each group
+   * @param {string} column - Column to find minimum
+   * @returns {DataFrame} - DataFrame with group minimums
+   */
+  min(column) {
+    const agg = {};
+    agg[column] = 'min';
+    return this.agg(agg);
+  }
+
+  /**
+   * Returns the maximum value in each group
+   * @param {string} column - Column to find maximum
+   * @returns {DataFrame} - DataFrame with group maximums
+   */
+  max(column) {
+    const agg = {};
+    agg[column] = 'max';
     return this.agg(agg);
   }
 }

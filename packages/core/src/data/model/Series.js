@@ -1,5 +1,5 @@
 /**
- * Класс Series для работы с одномерными данными
+ * Series class - for working with one-dimensional data
  *
  * @module data/model/Series
  */

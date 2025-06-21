@@ -34,6 +34,17 @@ export function group(df, by) {
 }
 
 /**
+ * Alias for group function with a more descriptive name
+ *
+ * @param {DataFrame} df - DataFrame to group
+ * @param {string|string[]} by - Column(s) to group by
+ * @returns {Object} Proxy object with methods like .agg(), .apply(), .sum(), etc.
+ */
+export function groupBy(df, by) {
+  return group(df, by);
+}
+
+/**
  * Groups DataFrame by specified column(s) and performs aggregations.
  *
  * @param {DataFrame} df - DataFrame to group
@@ -138,6 +149,3 @@ export function groupCount(df, by, column) {
     ? groupByInstance.agg({ [column]: 'count' })
     : groupByInstance.count();
 }
-
-// Alias for backward compatibility
-export const groupBy = group;

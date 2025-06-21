@@ -1,7 +1,7 @@
 /**
- * Модели данных TinyFrameJS
+ * TinyFrameJS data models
  *
- * Основные классы для работы с данными: DataFrame, Series, GroupBy
+ * Main classes for working with data: DataFrame, Series, GroupBy
  *
  * @module data/model
  */

@@ -1,0 +1,31 @@
+{
+  "name": "@tinyframejs/core",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Core functionality for TinyFrameJS data analysis framework",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "main": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "test": "vitest",
+    "build": "rollup -c"
+  },
+  "keywords": [
+    "dataframe",
+    "data",
+    "analysis",
+    "javascript"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "apache-arrow": "^14.0.0"
+  },
+  "peerDependencies": {}
+}

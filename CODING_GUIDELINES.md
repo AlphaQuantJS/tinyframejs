@@ -1,6 +1,6 @@
-# 📏 TinyFrame Coding Guidelines
+# 📏 TinyFrameJS Coding Guidelines
 
-This document outlines the **best practices** for writing high-performance, accurate, and maintainable JavaScript code in the context of **data processing**. It is intended for contributors to the TinyFrame project, which runs on **Node.js** and in the **browser** (V8 engine).
+This document outlines the **best practices** for writing high-performance, accurate, and maintainable JavaScript code in the context of **data processing**. It is intended for contributors to the TinyFrameJS project, which runs on **Node.js** and in the **browser** (V8 engine).
 
 ## ⚡ Performance Recommendations
 
@@ -74,14 +74,15 @@ function safeProcess(data) {
 }
 ```
 
-### ✅ Optimizations Based on TinyFrame Experience
+### ✅ Optimizations Based on TinyFrameJS Experience
 
-#### Efficient Array Handling
+#### Efficient Data Storage
 
-- **Use typed arrays** (`Float64Array`, `Uint32Array`) for numeric data instead of regular JavaScript arrays.
-- **Avoid data copying** — use references or in-place operations where possible.
-- **Pre-allocate memory** for result arrays in a single call, knowing the size in advance.
-- **Use array pooling** for temporary arrays to reduce garbage collector pressure.
+- **Use appropriate ColumnVector implementation** - TypedArrayVector for numeric data, ArrowVector for complex types
+- **Let VectorFactory choose** the optimal storage backend based on data type
+- **Avoid data copying** — use references or in-place operations where possible
+- **Pre-allocate memory** for result arrays in a single call, knowing the size in advance
+- **Use array pooling** for temporary arrays to reduce garbage collector pressure
 
 ```js
 // Bad
@@ -288,43 +289,61 @@ function calculateStandardDeviation(values, population = true) {
 - **Trust the data structure** – if `createFrame` guarantees type homogeneity, do not recheck it
 - **Minimize data copying** – work with original arrays where possible
 
-## 🏗️ Method Development Guidelines
+## 🏗️ Руководство по разработке методов
 
-### ✅ Method Structure Pattern
+### ✅ Двухслойная архитектура DataFrame
 
-All methods in TinyFrameJS follow a consistent pattern with dependency injection:
+TinyFrameJS implements a clean two-layer architecture:
+
+```
+DataFrame (API) → Series (columns) → ColumnVector (storage)
+```
+
+- **DataFrame** - public API for working with data
+- **Series** - columns of data, wrapper over ColumnVector
+- **ColumnVector** - abstraction for storing data, can be:
+  - **TypedArrayVector** - fast storage for numeric data
+  - **ArrowVector** - optimized storage with support for null, strings and complex types
+  - **SimpleVector** - simple storage for small datasets or mixed types
+
+The engine selection is done automatically through `VectorFactory` based on the data type and operation context.
+
+### ✅ Method structure
+
+All methods in TinyFrameJS follow a unified pattern with dependency injection:
 
 ```js
 /**
- * Method description with clear explanation of what it does.
- *
- * @param {{ validateColumn(frame, column): void }} deps - Injected dependencies
- * @returns {(frame: TinyFrame, column: string) => number|TinyFrame} - Function that operates on frame
+ * Описание метода
+ * @param {Object} frame - Объект DataFrame
+ * @param {String} column - Имя колонки
+ * @returns {Number|Array|Object} - Description of the returned value
  */
 export const methodName =
-  ({ validateColumn }) =>
-  (frame, column) => {
-    // Validation
+  ({ validateColumn, otherDep }) =>
+  (frame, column, ...otherArgs) => {
+    // Input data validation
     validateColumn(frame, column);
-
+    
     // Implementation
-    // ...
-
-    // Return value or new TinyFrame
+    const result = /* ... */;
+    
+    return result;
   };
 ```
 
-This pattern enables:
+This pattern provides:
 
-- **Centralized dependency injection** - dependencies are injected once
-- **Testability** - methods can be tested in isolation with mock dependencies
+- **Dependency injection** - dependencies are passed to the method
+- **Testability** - dependencies can be mocked
 - **Consistency** - all methods follow the same structure
+- **Functional style** - pure functions without side effects
 
-### ✅ Method Types
+### ✅ Method types
 
-TinyFrameJS distinguishes between two types of methods:
+TinyFrameJS differentiates between two types of methods:
 
-1. **Transformation methods** - return a new TinyFrame:
+1. **Transform methods** - return a new DataFrame:
 
 ```js
 export const sort =
@@ -336,50 +355,111 @@ export const sort =
     const arr = frame.columns[column];
     const sortedIndices = [...arr.keys()].sort((a, b) => arr[a] - arr[b]);
 
-    // Create a new frame with sorted data
-    const sortedFrame = frame.clone();
+    // Create new frame with sorted data
+    const newColumns = {};
     for (const col of Object.keys(frame.columns)) {
-      sortedFrame.columns[col] = sortedIndices.map(
-        (i) => frame.columns[col][i],
-      );
+      const originalArray = frame.columns[col];
+      newColumns[col] = sortedIndices.map(i => originalArray[i]);
     }
 
-    return sortedFrame; // Returns a new TinyFrame
+    return { columns: newColumns, rowCount: frame.rowCount };
   };
 ```
 
 2. **Aggregation methods** - return a scalar value:
 
 ```js
-export const count =
+export const sum =
   ({ validateColumn }) =>
   (frame, column) => {
     validateColumn(frame, column);
-    return frame.columns[column].length; // Returns a number
+
+    const arr = frame.columns[column];
+    let total = 0;
+    for (let i = 0; i < arr.length; i++) {
+      total += arr[i];
+    }
+    return total;
   };
 ```
 
-### ✅ File Organization
+### ✅ Module system for method registration
 
-Follow these guidelines for organizing method files:
+TinyFrameJS uses a unified utility `extendDataFrame` for registering methods. The process consists of three steps:
 
-1. **File naming**: Use the method name (e.g., `count.js`, `sort.js`)
-2. **Directory structure**:
-   - `/src/methods/aggregation/` - Aggregation methods
-   - `/src/methods/filtering/` - Filtering methods
-   - `/src/methods/transform/` - Transformation methods
-3. **Integration**:
-   - Add your method to `raw.js` for central export
-   - Methods are automatically attached to DataFrame.prototype by `autoExtend.js`
+#### 1. Creating a method in a separate file
 
-### ✅ Testing Methods
+```js
+// src/methods/dataframe/aggregation/sum.js
+export const sum = ({ validateColumn }) => (frame, column) => {
+  validateColumn(frame, column);
+  // Implementation...
+  return total;
+};
+```
 
-When writing tests for DataFrame methods:
+#### 2. Creating barrel-file (pool.js) for re-exporting methods
 
-1. **Test file location**: `/test/methods/{category}/{methodName}.test.js`
-2. **Test with DataFrame API**: Test through the DataFrame interface, not the raw functions
-3. **Test both success and error cases**
-4. **For transformation methods**: Verify the returned DataFrame has the expected structure
+```js
+// src/methods/dataframe/aggregation/pool.js
+export { sum } from './sum.js';
+export { mean } from './mean.js';
+export { min } from './min.js';
+export { max } from './max.js';
+```
+
+#### 3. Registering methods through extendDataFrame
+
+```js
+// src/methods/dataframe/aggregation/index.js
+import { DataFrame } from '../../../core/DataFrame.js';
+import { extendDataFrame } from '../../../core/extendDataFrame.js';
+import * as pool from './pool.js';
+
+// Зависимости
+import { validateColumn } from '../../../utils/validators.js';
+
+const deps = { validateColumn };
+
+// Регистрация методов
+extendDataFrame(DataFrame.prototype, pool);
+
+// Export methods for direct use
+export * from './pool.js';
+```
+
+#### 4. Implementation of extendDataFrame
+
+```js
+// src/core/extendDataFrame.js
+export function extendDataFrame(proto, pool, { namespace, strict = true } = {}) {
+  const target = namespace ? (proto[namespace] ??= {}) : proto;
+
+  for (const [name, fn] of Object.entries(pool)) {
+    if (strict && name in target) {
+      throw new Error(`Method conflict: ${namespace ? namespace + '.' : ''}${name}`);
+    }
+    target[name] = function (...args) {
+      return fn(this, ...args);      // Transparently pass this as the first argument
+    };
+  }
+}
+```
+
+Benefits of this approach:
+
+- **Clean logic separation** - the calculation part of the method is separated from binding to the DataFrame class
+- **Tree-shaking** - unused methods do not enter the final bundle
+- **Namespaces** - methods from different packages do not conflict with each other
+
+### ✅ Testing methods
+
+When writing tests for DataFrame methods, follow these rules:
+
+1. **Test file location**: `/tests/core/methods/{category}/{methodName}.test.js`
+2. **Test through DataFrame API**: Test through the DataFrame interface, not directly through functions
+3. **Test successful and error scenarios**: Check both normal execution and error handling
+4. **For transformation methods**: Check that the returned DataFrame has the expected structure
 5. **For aggregation methods**: Verify the returned value is correct
 
 Example test structure:
@@ -413,79 +493,102 @@ describe('DataFrame.methodName', () => {
 
 ## 🔄 Architectural Principles
 
-### ✅ Centralized Dependency Injection
+### ✅ Two-Layer Architecture
 
-TinyFrameJS uses a centralized dependency injection pattern:
+TinyFrameJS implements a clean two-layer architecture:
 
-1. **Dependencies defined once** in `inject.js`
-2. **Methods receive dependencies** as their first argument
-3. **No direct imports** of utilities in method files
-4. **Easier testing** - dependencies can be mocked
-
-```js
-// inject.js
-import * as rawFns from './raw.js';
-import { validateColumn } from '../core/validators.js';
-
-const deps = {
-  validateColumn,
-  // Add more dependencies here
-};
-
-export function injectMethods() {
-  return Object.fromEntries(
-    Object.entries(rawFns).map(([name, fn]) => [
-      name,
-      fn(deps), // Inject dependencies into each method
-    ]),
-  );
-}
+```
+DataFrame (API) → Series (columns) → ColumnVector (storage)
 ```
 
-### ✅ Auto-Extension Pattern
+1. **DataFrame** - Public API for working with data, provides method chaining
+2. **Series** - Column representation, wraps a ColumnVector
+3. **ColumnVector** - Abstract storage interface with multiple implementations:
+   - **TypedArrayVector** - Fast storage for numeric data using JavaScript TypedArrays
+   - **ArrowVector** - Optimized storage with Arrow for complex types and null values
+   - **SimpleVector** - Fallback for mixed data types
 
-The auto-extension pattern allows methods to be automatically attached to DataFrame.prototype:
+The appropriate vector implementation is automatically selected by `VectorFactory` based on data type and operation context.
+
+### ✅ Dependency Injection Pattern
+
+TinyFrameJS uses dependency injection for all methods:
+
+1. **Methods are pure functions** with dependencies as their first parameter
+2. **No direct imports** of utilities in method files
+3. **Easier testing** - dependencies can be mocked
+
+```js
+// Example method with dependency injection
+export const sum =
+  ({ validateColumn }) =>
+  (frame, column) => {
+    validateColumn(frame, column);
+    const arr = frame.columns[column];
+    let total = 0;
+    for (let i = 0; i < arr.length; i++) {
+      total += arr[i];
+    }
+    return total;
+  };
+```
+
+### ✅ Modular Method Registration
+
+TinyFrameJS uses a modular method registration system via `extendDataFrame`:
 
 1. **Methods defined as pure functions** in individual files
-2. **Exported from `raw.js`** for centralized collection
-3. **Dependencies injected** via `inject.js`
-4. **Attached to DataFrame.prototype** by `autoExtend.js`
+2. **Exported through barrel files** (index.js) for organization
+3. **Registered with DataFrame** via the `extendDataFrame` utility
+4. **Support for namespaces** to avoid conflicts between packages
 
-This approach:
+```js
+// Example method registration
+import { DataFrame } from '../core/DataFrame.js';
+import { extendDataFrame } from '../utils/extendDataFrame.js';
+import * as aggregationMethods from './aggregation/index.js';
 
-- **Eliminates boilerplate** - no manual registration of methods
-- **Improves maintainability** - methods are isolated and focused
-- **Enables tree-shaking** - unused methods can be eliminated by bundlers
+// Register methods directly on DataFrame.prototype
+extendDataFrame(DataFrame.prototype, aggregationMethods);
+
+// Register methods in a namespace
+extendDataFrame(DataFrame.prototype, technicalMethods, { namespace: 'ta' });
+```
 
 ### ✅ Transformation vs. Aggregation
 
 When implementing a new method, decide whether it's a transformation or aggregation:
 
 1. **Transformation methods**:
-
-   - Return a new DataFrame/TinyFrame
+   - Return a new DataFrame
    - Can be chained with other methods
-   - Example: `sort()`, `dropNaN()`, `head()`
+   - Example: `sort()`, `filter()`, `select()`
 
 2. **Aggregation methods**:
    - Return a scalar value or array
    - Typically terminate a method chain
    - Example: `count()`, `mean()`, `sum()`
 
-This distinction is handled automatically by `autoExtend.js`:
+This distinction is handled automatically by the method implementation:
 
 ```js
-// In autoExtend.js
-DataFrame.prototype[name] = function (...args) {
-  const result = methodFn(this._frame, ...args);
+// Transformation method example
+export const filter =
+  ({ validateFunction }) =>
+  (frame, predicate) => {
+    validateFunction(predicate);
+    // Implementation that returns a new DataFrame
+    return new DataFrame(/* filtered data */); 
+  };
 
-  // If result is a TinyFrame, wrap it in DataFrame
-  if (result?.columns) {
-    return new DataFrame(result);
-  }
-  // Otherwise return the value directly
-  return result;
-};
+// Aggregation method example
+export const sum =
+  ({ validateColumn }) =>
+  (frame, column) => {
+    validateColumn(frame, column);
+    // Implementation that returns a scalar value
+    return total;
+  };
 ```
 
 ## 💰 Numerical Accuracy
@@ -566,10 +669,13 @@ class Trade {
 
 - One file = one module = one purpose
 - Separate strategy logic, formatting, calculations, UI
+- Each method in its own file with clear dependency injection
 
-### ✅ Use Modular System (ESM/CommonJS)
+### ✅ Use Modular System (ESM)
 
-- Follow the project standard (currently: ESM)
+- Follow the project standard (ESM)
+- Use barrel files (index.js) for organizing related methods
+- Register methods with `extendDataFrame` in namespace or directly
 
 ### ✅ Keep Functions Small
 
@@ -588,19 +694,26 @@ class Trade {
 
 ### ✅ Document Complex Logic
 
-- Use comments or JSDoc to explain important calculations
+- Use JSDoc to document all methods, especially their parameters and return values
+- Explain complex calculations with inline comments
+- Document namespace methods with their intended usage patterns
+- For methods that extend DataFrame, document how they interact with the two-layer architecture
 
 ## 🧪 Testing
 
 ### ✅ Always Add Tests
 
 - Cover new logic with unit tests
+- Test through the DataFrame API, not internal functions
 - Include correctness and boundary conditions
+- Test both direct methods and namespace methods
 
 ### ✅ For Financial Computation
 
 - Validate against known correct values
 - Add tolerances (`±1e-12`) for floating-point results
+- Test with different ColumnVector implementations
+- Verify results are consistent across backends
 
 ### ✅ Integration Tests
 
@@ -633,21 +746,24 @@ class Trade {
 Before submitting a PR, please verify:
 
 - [ ] Followed **project code style** (Prettier, ESLint)
-- [ ] Used **pure functions** where state is not required
+- [ ] Used **pure functions** with dependency injection
+- [ ] Properly registered methods using `extendDataFrame`
 - [ ] Added **tests** for new logic and edge cases
 - [ ] Benchmarked performance (if critical path is affected)
 - [ ] Avoided anti-patterns (e.g., array holes, mixed types, etc.)
 - [ ] Used **conventional commits** and described your PR clearly
 - [ ] Highlighted any code that is **precision-sensitive** (money, rates)
+- [ ] Updated documentation if adding to public API
 - [ ] CI passes ✅
 
 ## 🧠 Summary
 
 Write code that is:
 
-- **Fast** — V8-optimized, low-GC, dense data structures
+- **Fast** — V8-optimized, low-GC, optimized vector storage
 - **Accurate** — financial results must be precise to the cent
-- **Modular** — clear separation of responsibilities
-- **Predictable** — easy for V8 to generate optimized machine code
+- **Modular** — clear separation of responsibilities with namespaces
+- **Predictable** — pure functions with explicit dependencies
+- **Extensible** — properly registered via `extendDataFrame`
 
-Thank you for keeping TinyFrame fast and reliable ⚡
+Thank you for keeping TinyFrameJS fast and reliable ⚡

@@ -92,12 +92,14 @@ export const utils = {
 // Export extension functionality
 export { extendDataFrame, init };
 
+import { isBrowser } from '../io/utils/environment.js';
+
 /**
  * Detect environment and return appropriate renderer
  * @returns {Object} Renderer for the current environment
  */
 export function getRenderer() {
-  if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+  if (isBrowser()) {
     return browser;
   } else {
     return node;
@@ -113,36 +115,36 @@ export function getRenderer() {
  */
 export function createChart(dataFrame, type, options) {
   switch (type.toLowerCase()) {
-  case 'line':
-    return line.lineChart(dataFrame, options);
-  case 'bar':
-    return bar.barChart(dataFrame, options);
-  case 'scatter':
-    return scatter.scatterPlot(dataFrame, options);
-  case 'pie':
-    return pie.pieChart(dataFrame, options);
-  case 'doughnut':
-    return pie.doughnutChart(dataFrame, options);
-  case 'area':
-    return line.areaChart(dataFrame, options);
-  case 'timeseries':
-    return line.timeSeriesChart(dataFrame, options);
-  case 'bubble':
-    return scatter.bubbleChart(dataFrame, options);
-  case 'histogram':
-    return bar.histogram(dataFrame, options);
-  case 'radar':
-    return pie.radarChart(dataFrame, options);
-  case 'polar':
-    return pie.polarAreaChart(dataFrame, options);
-  case 'pareto':
-    return bar.paretoChart(dataFrame, options);
-  case 'regression':
-    return scatter.regressionPlot(dataFrame, options);
-  case 'candlestick':
-    return financial.candlestickChart(dataFrame, options);
-  default:
-    throw new Error(`Unsupported chart type: ${type}`);
+    case 'line':
+      return line.lineChart(dataFrame, options);
+    case 'bar':
+      return bar.barChart(dataFrame, options);
+    case 'scatter':
+      return scatter.scatterPlot(dataFrame, options);
+    case 'pie':
+      return pie.pieChart(dataFrame, options);
+    case 'doughnut':
+      return pie.doughnutChart(dataFrame, options);
+    case 'area':
+      return line.areaChart(dataFrame, options);
+    case 'timeseries':
+      return line.timeSeriesChart(dataFrame, options);
+    case 'bubble':
+      return scatter.bubbleChart(dataFrame, options);
+    case 'histogram':
+      return bar.histogram(dataFrame, options);
+    case 'radar':
+      return pie.radarChart(dataFrame, options);
+    case 'polar':
+      return pie.polarAreaChart(dataFrame, options);
+    case 'pareto':
+      return bar.paretoChart(dataFrame, options);
+    case 'regression':
+      return scatter.regressionPlot(dataFrame, options);
+    case 'candlestick':
+      return financial.candlestickChart(dataFrame, options);
+    default:
+      throw new Error(`Unsupported chart type: ${type}`);
   }
 }
 

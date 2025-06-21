@@ -7,16 +7,16 @@ import { vi } from 'vitest';
 import * as Arrow from 'apache-arrow';
 import { ArrowVector } from './src/core/storage/ArrowVector.js';
 
-// Экспортируем ArrowVector через глобальный объект для доступа из тестов
+// Export ArrowVector through the global object for access from tests
 globalThis.__TinyFrameArrowVector = ArrowVector;
 
-// Включаем отладочный режим для всех тестов
+// Enable debug mode for all tests
 const DEBUG = true;
 
-// Проверяем, доступен ли Apache Arrow
+// Check if Apache Arrow is available
 let arrowAvailable = false;
 try {
-  // Выводим информацию о загруженном модуле Arrow
+  // Output information about the loaded Arrow module
   if (DEBUG) {
     console.log('Apache Arrow module keys:', Object.keys(Arrow));
     console.log(
@@ -30,12 +30,12 @@ try {
     console.log('Arrow.Float64 exists:', typeof Arrow.Float64 === 'function');
   }
 
-  // Проверяем, что Arrow имеет необходимые функции
+  // Check if Arrow has the required functions
   if (Arrow && typeof Arrow.vectorFromArray === 'function') {
     arrowAvailable = true;
     console.log('Apache Arrow successfully loaded in test environment');
 
-    // Создаем тестовый вектор для проверки
+    // Create a test vector for verification
     if (DEBUG) {
       try {
         const testVector = Arrow.vectorFromArray(['test']);
@@ -55,10 +55,10 @@ try {
   arrowAvailable = false;
 }
 
-// Выводим информацию о состоянии Arrow для тестов
+// Output Arrow availability for tests
 console.log('Arrow availability for tests:', arrowAvailable);
 
-// Мокаем Apache Arrow только если он не установлен или не функционален
+// Mock Apache Arrow only if it is not installed or not functional
 if (!arrowAvailable) {
   console.log('Mocking Apache Arrow with test adapter');
   vi.mock(

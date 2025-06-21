@@ -212,11 +212,11 @@ describe('Advanced Chart Types', () => {
   });
 });
 
+import { isBrowser } from '../../src/io/utils/environment.js';
+
 describe('Chart Export Functionality', () => {
   // Skip tests in browser environment
-  const isBrowser =
-    typeof window !== 'undefined' && typeof document !== 'undefined';
-  if (isBrowser) {
+  if (isBrowser()) {
     it.skip('skipping Node.js-only tests in browser', () => {});
     return;
   }

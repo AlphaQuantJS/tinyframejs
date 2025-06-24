@@ -1,14 +1,12 @@
 /*-------------------------------------------------------------------------*
- |  DataFrame -› filtering · loc()                                       |
+ |  DataFrame - indexing - loc()                                          |
  |                                                                         |
- |  Selection of rows and columns from DataFrame by labels (names).        |
- |                                                                         |
- |  df.loc(5) → select row with index 5                                    |
- |  df.loc([1, 3, 5]) → select rows with specified indices                |
- |  df.loc(5, 'age') → select value in row 5, column 'age'                |
- |  df.loc([1, 3], ['name', 'age']) → select rows 1,3 and columns 'name','age' |
- |  df.loc(row => row.age > 30) → select rows where age > 30              |
- |  df.loc({city: 'Chicago'}) → select rows where city equals 'Chicago'   |
+ |  df.loc(5) -> select row with index 5                                   |
+ |  df.loc([1, 3, 5]) -> select rows with specified indices                |
+ |  df.loc(5, 'age') -> select value in row 5, column 'age'                |
+ |  df.loc([1, 3], ['name', 'age']) -> select rows 1,3 and columns 'name','age' |
+ |  df.loc(row => row.age > 30) -> select rows where age > 30              |
+ |  df.loc({city: 'Chicago'}) -> select rows where city equals 'Chicago'   |
  *-------------------------------------------------------------------------*/
 
 /**

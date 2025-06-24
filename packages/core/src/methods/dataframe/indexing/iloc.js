@@ -1,12 +1,12 @@
 /*-------------------------------------------------------------------------*
- |  DataFrame -› filtering · iloc()                                      |
+ |  DataFrame - indexing - iloc()                                         |
  |                                                                         |
  |  Selection of rows and columns from DataFrame by integer positions.    |
  |                                                                         |
- |  df.iloc(5) → select row with index 5                                  |
- |  df.iloc([1, 3, 5]) → select rows with specified indices              |
- |  df.iloc(5, 2) → select value in row 5, column 2                      |
- |  df.iloc([1, 3], [0, 2]) → select rows 1,3 and columns 0,2           |
+ |  df.iloc(5) -> select row with index 5                                 |
+ |  df.iloc([1, 3, 5]) -> select rows with specified indices              |
+ |  df.iloc(5, 2) -> select value in row 5, column 2                      |
+ |  df.iloc([1, 3], [0, 2]) -> select rows 1,3 and columns 0,2           |
  *-------------------------------------------------------------------------*/
 
 /**

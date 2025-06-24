@@ -8,21 +8,21 @@ import { validateColumn } from '../../../data/utils/validators.js';
 
 /** Operator → predicate map */
 const OPS = {
-  '==':  (a, b) => a == b,          // eslint-disable-line eqeqeq
+  '==': (a, b) => a == b, // eslint-disable-line eqeqeq
   '===': (a, b) => a === b,
-  '!=':  (a, b) => a != b,          // eslint-disable-line eqeqeq
+  '!=': (a, b) => a != b, // eslint-disable-line eqeqeq
   '!==': (a, b) => a !== b,
-  '>':   (a, b) => a >  b,
-  '>=':  (a, b) => a >= b,
-  '<':   (a, b) => a <  b,
-  '<=':  (a, b) => a <= b,
-  in:          (a, b) => Array.isArray(b) && b.includes(a),
-  contains:    (a, b) => String(a).includes(String(b)),
-  startsWith:  (a, b) => String(a).startsWith(String(b)),
-  startswith:  (a, b) => String(a).startsWith(String(b)),
-  endsWith:    (a, b) => String(a).endsWith(String(b)),
-  endswith:    (a, b) => String(a).endsWith(String(b)),
-  matches:     (a, b) =>
+  '>': (a, b) => a > b,
+  '>=': (a, b) => a >= b,
+  '<': (a, b) => a < b,
+  '<=': (a, b) => a <= b,
+  in: (a, b) => Array.isArray(b) && b.includes(a),
+  contains: (a, b) => String(a).includes(String(b)),
+  startsWith: (a, b) => String(a).startsWith(String(b)),
+  startswith: (a, b) => String(a).startsWith(String(b)),
+  endsWith: (a, b) => String(a).endsWith(String(b)),
+  endswith: (a, b) => String(a).endsWith(String(b)),
+  matches: (a, b) =>
     b instanceof RegExp ? b.test(String(a)) : new RegExp(b).test(String(a)),
 };
 
@@ -53,10 +53,9 @@ export function where(df, column, operator, value) {
 
   // Create options for the new DataFrame with column type information
   const newOptions = { ...df._options };
-  
+
   // Create new DataFrame from filtered rows with preserved column types
   return df.constructor.fromRecords(outRows, newOptions);
 }
 
 // Export the where method directly
-export { where };

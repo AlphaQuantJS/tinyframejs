@@ -8,14 +8,32 @@ import { where } from '../../../../../packages/core/src/methods/dataframe/filter
 
 // Test data for use in all tests
 const testData = [
-  { name: 'Alice', age: 25, city: 'New York', salary: 70000, tags: ['dev', 'js'] },
-  { name: 'Bob', age: 30, city: 'San Francisco', salary: 85000, tags: ['dev', 'python'] },
-  { name: 'Charlie', age: 35, city: 'Chicago', salary: 90000, tags: ['manager'] },
+  {
+    name: 'Alice',
+    age: 25,
+    city: 'New York',
+    salary: 70000,
+    tags: ['dev', 'js'],
+  },
+  {
+    name: 'Bob',
+    age: 30,
+    city: 'San Francisco',
+    salary: 85000,
+    tags: ['dev', 'python'],
+  },
+  {
+    name: 'Charlie',
+    age: 35,
+    city: 'Chicago',
+    salary: 90000,
+    tags: ['manager'],
+  },
 ];
 
 describe('Where Method', () => {
   // Add where method to DataFrame prototype
-  DataFrame.prototype.where = function(column, operator, value) {
+  DataFrame.prototype.where = function (column, operator, value) {
     return where(this, column, operator, value);
   };
 
@@ -29,7 +47,13 @@ describe('Where Method', () => {
       // Check that the filtered data is correct
       expect(result.rowCount).toBe(1);
       expect(result.toArray()).toEqual([
-        { name: 'Bob', age: 30, city: 'San Francisco', salary: 85000, tags: ['dev', 'python'] },
+        {
+          name: 'Bob',
+          age: 30,
+          city: 'San Francisco',
+          salary: 85000,
+          tags: ['dev', 'python'],
+        },
       ]);
     });
 
@@ -39,7 +63,13 @@ describe('Where Method', () => {
       // Check that the filtered data is correct
       expect(result.rowCount).toBe(1);
       expect(result.toArray()).toEqual([
-        { name: 'Bob', age: 30, city: 'San Francisco', salary: 85000, tags: ['dev', 'python'] },
+        {
+          name: 'Bob',
+          age: 30,
+          city: 'San Francisco',
+          salary: 85000,
+          tags: ['dev', 'python'],
+        },
       ]);
     });
 
@@ -49,8 +79,20 @@ describe('Where Method', () => {
       // Check that the filtered data is correct
       expect(result.rowCount).toBe(2);
       expect(result.toArray()).toEqual([
-        { name: 'Alice', age: 25, city: 'New York', salary: 70000, tags: ['dev', 'js'] },
-        { name: 'Charlie', age: 35, city: 'Chicago', salary: 90000, tags: ['manager'] },
+        {
+          name: 'Alice',
+          age: 25,
+          city: 'New York',
+          salary: 70000,
+          tags: ['dev', 'js'],
+        },
+        {
+          name: 'Charlie',
+          age: 35,
+          city: 'Chicago',
+          salary: 90000,
+          tags: ['manager'],
+        },
       ]);
     });
 
@@ -60,8 +102,20 @@ describe('Where Method', () => {
       // Check that the filtered data is correct
       expect(result.rowCount).toBe(2);
       expect(result.toArray()).toEqual([
-        { name: 'Alice', age: 25, city: 'New York', salary: 70000, tags: ['dev', 'js'] },
-        { name: 'Charlie', age: 35, city: 'Chicago', salary: 90000, tags: ['manager'] },
+        {
+          name: 'Alice',
+          age: 25,
+          city: 'New York',
+          salary: 70000,
+          tags: ['dev', 'js'],
+        },
+        {
+          name: 'Charlie',
+          age: 35,
+          city: 'Chicago',
+          salary: 90000,
+          tags: ['manager'],
+        },
       ]);
     });
 
@@ -71,8 +125,20 @@ describe('Where Method', () => {
       // Check that the filtered data is correct
       expect(result.rowCount).toBe(2);
       expect(result.toArray()).toEqual([
-        { name: 'Bob', age: 30, city: 'San Francisco', salary: 85000, tags: ['dev', 'python'] },
-        { name: 'Charlie', age: 35, city: 'Chicago', salary: 90000, tags: ['manager'] },
+        {
+          name: 'Bob',
+          age: 30,
+          city: 'San Francisco',
+          salary: 85000,
+          tags: ['dev', 'python'],
+        },
+        {
+          name: 'Charlie',
+          age: 35,
+          city: 'Chicago',
+          salary: 90000,
+          tags: ['manager'],
+        },
       ]);
     });
 
@@ -82,8 +148,20 @@ describe('Where Method', () => {
       // Check that the filtered data is correct
       expect(result.rowCount).toBe(2);
       expect(result.toArray()).toEqual([
-        { name: 'Bob', age: 30, city: 'San Francisco', salary: 85000, tags: ['dev', 'python'] },
-        { name: 'Charlie', age: 35, city: 'Chicago', salary: 90000, tags: ['manager'] },
+        {
+          name: 'Bob',
+          age: 30,
+          city: 'San Francisco',
+          salary: 85000,
+          tags: ['dev', 'python'],
+        },
+        {
+          name: 'Charlie',
+          age: 35,
+          city: 'Chicago',
+          salary: 90000,
+          tags: ['manager'],
+        },
       ]);
     });
 
@@ -93,7 +171,13 @@ describe('Where Method', () => {
       // Check that the filtered data is correct
       expect(result.rowCount).toBe(1);
       expect(result.toArray()).toEqual([
-        { name: 'Alice', age: 25, city: 'New York', salary: 70000, tags: ['dev', 'js'] },
+        {
+          name: 'Alice',
+          age: 25,
+          city: 'New York',
+          salary: 70000,
+          tags: ['dev', 'js'],
+        },
       ]);
     });
 
@@ -103,8 +187,20 @@ describe('Where Method', () => {
       // Check that the filtered data is correct
       expect(result.rowCount).toBe(2);
       expect(result.toArray()).toEqual([
-        { name: 'Alice', age: 25, city: 'New York', salary: 70000, tags: ['dev', 'js'] },
-        { name: 'Bob', age: 30, city: 'San Francisco', salary: 85000, tags: ['dev', 'python'] },
+        {
+          name: 'Alice',
+          age: 25,
+          city: 'New York',
+          salary: 70000,
+          tags: ['dev', 'js'],
+        },
+        {
+          name: 'Bob',
+          age: 30,
+          city: 'San Francisco',
+          salary: 85000,
+          tags: ['dev', 'python'],
+        },
       ]);
     });
 
@@ -114,8 +210,20 @@ describe('Where Method', () => {
       // Check that the filtered data is correct
       expect(result.rowCount).toBe(2);
       expect(result.toArray()).toEqual([
-        { name: 'Alice', age: 25, city: 'New York', salary: 70000, tags: ['dev', 'js'] },
-        { name: 'Charlie', age: 35, city: 'Chicago', salary: 90000, tags: ['manager'] },
+        {
+          name: 'Alice',
+          age: 25,
+          city: 'New York',
+          salary: 70000,
+          tags: ['dev', 'js'],
+        },
+        {
+          name: 'Charlie',
+          age: 35,
+          city: 'Chicago',
+          salary: 90000,
+          tags: ['manager'],
+        },
       ]);
     });
 
@@ -125,7 +233,13 @@ describe('Where Method', () => {
       // Check that the filtered data is correct
       expect(result.rowCount).toBe(1);
       expect(result.toArray()).toEqual([
-        { name: 'Bob', age: 30, city: 'San Francisco', salary: 85000, tags: ['dev', 'python'] },
+        {
+          name: 'Bob',
+          age: 30,
+          city: 'San Francisco',
+          salary: 85000,
+          tags: ['dev', 'python'],
+        },
       ]);
     });
 
@@ -135,7 +249,13 @@ describe('Where Method', () => {
       // Check that the filtered data is correct
       expect(result.rowCount).toBe(1);
       expect(result.toArray()).toEqual([
-        { name: 'Bob', age: 30, city: 'San Francisco', salary: 85000, tags: ['dev', 'python'] },
+        {
+          name: 'Bob',
+          age: 30,
+          city: 'San Francisco',
+          salary: 85000,
+          tags: ['dev', 'python'],
+        },
       ]);
     });
 
@@ -145,7 +265,13 @@ describe('Where Method', () => {
       // Check that the filtered data is correct
       expect(result.rowCount).toBe(1);
       expect(result.toArray()).toEqual([
-        { name: 'Alice', age: 25, city: 'New York', salary: 70000, tags: ['dev', 'js'] },
+        {
+          name: 'Alice',
+          age: 25,
+          city: 'New York',
+          salary: 70000,
+          tags: ['dev', 'js'],
+        },
       ]);
     });
 
@@ -155,7 +281,13 @@ describe('Where Method', () => {
       // Check that the filtered data is correct
       expect(result.rowCount).toBe(1);
       expect(result.toArray()).toEqual([
-        { name: 'Charlie', age: 35, city: 'Chicago', salary: 90000, tags: ['manager'] },
+        {
+          name: 'Charlie',
+          age: 35,
+          city: 'Chicago',
+          salary: 90000,
+          tags: ['manager'],
+        },
       ]);
     });
 
@@ -165,7 +297,13 @@ describe('Where Method', () => {
       // Check that the filtered data is correct
       expect(result.rowCount).toBe(1);
       expect(result.toArray()).toEqual([
-        { name: 'Alice', age: 25, city: 'New York', salary: 70000, tags: ['dev', 'js'] },
+        {
+          name: 'Alice',
+          age: 25,
+          city: 'New York',
+          salary: 70000,
+          tags: ['dev', 'js'],
+        },
       ]);
     });
 
@@ -174,16 +312,20 @@ describe('Where Method', () => {
 
       // Should be empty with no rows
       expect(result.rowCount).toBe(0);
-      // В новой реализации пустой DataFrame не сохраняет структуру колонок
-      // что является нормальным поведением для fromRecords([])
+      // In the new implementation, an empty DataFrame does not save the column structure
+      // which is normal behavior for fromRecords([])
     });
 
     test('should throw error for non-existent column', () => {
-      expect(() => df.where('nonexistent', '===', 30)).toThrow("Column 'nonexistent' not found");
+      expect(() => df.where('nonexistent', '===', 30)).toThrow(
+        "Column 'nonexistent' not found",
+      );
     });
 
     test('should throw error for invalid operator', () => {
-      expect(() => df.where('age', 'invalid', 30)).toThrow("Unsupported operator: 'invalid'");
+      expect(() => df.where('age', 'invalid', 30)).toThrow(
+        "Unsupported operator: 'invalid'",
+      );
     });
 
     test('should return a new DataFrame instance', () => {
@@ -206,15 +348,19 @@ describe('Where Method', () => {
 
       // Check that the result contains typed arrays
       expect(ArrayBuffer.isView(result._columns.age.vector.__data)).toBe(true);
-      expect(ArrayBuffer.isView(result._columns.salary.vector.__data)).toBe(true);
-      // Проверяем только наличие типизированных массивов, без проверки конкретных типов
-      // Типы могут быть разными в зависимости от реализации метода where
+      expect(ArrayBuffer.isView(result._columns.salary.vector.__data)).toBe(
+        true,
+      );
+      // Check only the presence of typed arrays, without checking specific types
+      // Types may be different depending on the implementation of the where method
     });
 
     test('should handle empty DataFrame', () => {
       const emptyDf = DataFrame.fromRecords([]);
-      
-      expect(() => emptyDf.where('age', '===', 30)).toThrow("Column 'age' not found");
+
+      expect(() => emptyDf.where('age', '===', 30)).toThrow(
+        "Column 'age' not found",
+      );
     });
   });
 });

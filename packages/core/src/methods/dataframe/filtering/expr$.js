@@ -47,46 +47,52 @@ export function expr$(df, strings, ...values) {
   if (filteredRows.length === 0) {
     // Create a new DataFrame instance with the same options as the original
     const result = new df.constructor({}, df._options);
-    
+
     // For each column, create a Series with the appropriate type
     for (const col of allColumns) {
       // Get the original column data to determine its type
       const originalColumn = df._columns[col];
       const originalArray = originalColumn.vector.__data;
-      
+
       // Create an empty array with the same type
-      if (ArrayBuffer.isView(originalArray) && !(originalArray instanceof DataView)) {
+      if (
+        ArrayBuffer.isView(originalArray) &&
+        !(originalArray instanceof DataView)
+      ) {
         const TypedArrayConstructor = originalArray.constructor;
         const emptyTypedArray = new TypedArrayConstructor(0);
         result._columns[col] = createTypedSeries(emptyTypedArray, col, df);
       } else {
         result._columns[col] = createTypedSeries([], col, df);
       }
-      
+
       // Add to column order
       if (!result._order.includes(col)) {
         result._order.push(col);
       }
     }
-    
+
     return result;
   }
 
   // For non-empty results, create a new DataFrame with filtered rows
   // Create a new DataFrame instance with the same options as the original
   const result = new df.constructor({}, df._options);
-  
+
   // For each column, create a Series with the appropriate type
   for (const col of allColumns) {
     // Get the original column data to determine its type
     const originalColumn = df._columns[col];
     const originalArray = originalColumn.vector.__data;
-    
+
     // Extract values for this column from the filtered rows
-    const values = filteredRows.map(row => row[col]);
-    
+    const values = filteredRows.map((row) => row[col]);
+
     // Preserve the array type if it's a typed array
-    if (ArrayBuffer.isView(originalArray) && !(originalArray instanceof DataView)) {
+    if (
+      ArrayBuffer.isView(originalArray) &&
+      !(originalArray instanceof DataView)
+    ) {
       const TypedArrayConstructor = originalArray.constructor;
       const typedValues = new TypedArrayConstructor(values.length);
       values.forEach((value, i) => {
@@ -96,19 +102,19 @@ export function expr$(df, strings, ...values) {
     } else {
       result._columns[col] = createTypedSeries(values, col, df);
     }
-    
+
     // Add to column order
     if (!result._order.includes(col)) {
       result._order.push(col);
     }
   }
-  
+
   return result;
 }
 
 /**
  * Create a predicate function for filtering rows
- * 
+ *
  * @param {string} expr - Expression to evaluate
  * @returns {Function} - Predicate function
  * @private
@@ -134,4 +140,3 @@ function createPredicate(expr) {
 }
 
 // Export the expr$ method directly
-export { expr$ };

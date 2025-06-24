@@ -87,7 +87,7 @@ export function query$(df, strings, ...values) {
 
 /**
  * Create a predicate function for filtering rows
- * 
+ *
  * @param {string} expr - Expression to evaluate
  * @returns {Function} - Predicate function
  * @private
@@ -113,4 +113,3 @@ function createPredicate(expr) {
 }
 
 // Export the query$ method directly
-export { query$ };
